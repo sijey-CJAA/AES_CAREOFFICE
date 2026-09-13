@@ -84,6 +84,7 @@
 </div>
 
 <script>
+const BASE_URL = '<?= BASE_URL ?>';
 // Close dropdown when clicking outside
 document.addEventListener('click', function(event) {
     const profile = document.querySelector('.user-profile');
@@ -140,3 +141,4 @@ document.getElementById('changePasswordForm')?.addEventListener('submit', functi
     });
 });
 </script>
+

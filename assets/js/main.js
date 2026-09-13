@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const formData = new FormData(learnerForm);
 
-            fetch('process_learner.php', {
+            fetch(BASE_URL + '/api/process_learner.php', {
                 method: 'POST',
                 body: formData
             })
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const formData = new FormData(parentForm);
 
-            fetch('process_parent.php', {
+            fetch(BASE_URL + '/api/process_parent.php', {
                 method: 'POST',
                 body: formData
             })
@@ -91,3 +91,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
