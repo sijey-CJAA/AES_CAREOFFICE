@@ -16,11 +16,12 @@ $user_name = ucfirst($name_parts[0]);
 $stmt_all_students = $pdo->query("SELECT id, full_name, lrn FROM students ORDER BY full_name ASC");
 $students = $stmt_all_students->fetchAll();
 
-// Fetch parents with their associated student
+// Fetch parents with student names
 $stmt_parents = $pdo->query("
     SELECT p.*, s.full_name as student_name 
-    FROM parents p 
-    LEFT JOIN students s ON p.student_id = s.id 
+    FROM parents p
+    LEFT JOIN students s ON p.student_id = s.id
+    WHERE p.deleted_at IS NULL
     ORDER BY p.created_at DESC
 ");
 $parents = $stmt_parents->fetchAll();
@@ -164,9 +165,8 @@ $parents = $stmt_parents->fetchAll();
             </div>
 
             <div class="dashboard-card" style="max-width: 100%;">
-                
-                <div class="table-responsive">
-                    <table class="data-table">
+                <div class="table-responsive" style="overflow-x: auto;">
+                    <table class="data-table" style="min-width: max-content;">
                         <thead>
                             <tr>
                                 <th>Parent / Guardian</th>
@@ -174,6 +174,9 @@ $parents = $stmt_parents->fetchAll();
                                 <th>Relationship</th>
                                 <th>Type</th>
                                 <th>Mobile Number</th>
+                                <th>Email Address</th>
+                                <th>Home Address</th>
+                                <th>Workplace Address</th>
                                 <th>Emergency Contact</th>
                                 <th>Registered</th>
                                 <th>Actions</th>
@@ -182,13 +185,15 @@ $parents = $stmt_parents->fetchAll();
                         <tbody>
                             <?php if(empty($parents)): ?>
                             <tr>
-                                <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">No parents found in the database.</td>
+                                <td colspan="11" style="text-align: center; color: var(--text-muted); padding: 2rem;">No active parents found.</td>
                             </tr>
                             <?php else: ?>
                                 <?php foreach($parents as $parent): ?>
                                 <tr>
                                     <td style="font-weight: 500; color: var(--text-dark);"><?php echo htmlspecialchars($parent['full_name']); ?></td>
-                                    <td style="color: var(--primary); font-weight: 500;"><?php echo htmlspecialchars($parent['student_name'] ?? 'Unknown'); ?></td>
+                                    <td>
+                                        <a href="#" style="color: var(--primary); text-decoration: none;"><?php echo htmlspecialchars($parent['student_name'] ?? 'Unknown'); ?></a>
+                                    </td>
                                     <td><?php echo htmlspecialchars($parent['relationship']); ?></td>
                                     <td>
                                         <span style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; 
@@ -197,6 +202,9 @@ $parents = $stmt_parents->fetchAll();
                                         </span>
                                     </td>
                                     <td><?php echo htmlspecialchars($parent['mobile_number']); ?></td>
+                                    <td><?php echo htmlspecialchars($parent['email_address'] ?: 'N/A'); ?></td>
+                                    <td><?php echo htmlspecialchars(substr($parent['home_address'] ?: 'N/A', 0, 30)) . (strlen($parent['home_address'] ?: 'N/A') > 30 ? '...' : ''); ?></td>
+                                    <td><?php echo htmlspecialchars(substr($parent['workplace_address'] ?: 'N/A', 0, 30)) . (strlen($parent['workplace_address'] ?: 'N/A') > 30 ? '...' : ''); ?></td>
                                     <td style="color: #b91c1c; font-weight: 500;"><?php echo htmlspecialchars($parent['emergency_contact_number'] ?: 'N/A'); ?></td>
                                     <td style="color: var(--text-muted);"><?php echo htmlspecialchars(date('M d, Y', strtotime($parent['created_at']))); ?></td>
                                     <td>
@@ -293,6 +301,9 @@ $parents = $stmt_parents->fetchAll();
 
                     <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem;">
                         <div id="edit-parent-response" style="margin-top: 0; padding: 0.5rem 1rem; flex: 1; display:none; border-radius:6px;"></div>
+                        <button type="button" onclick="deleteRecord('parents', document.getElementById('edit_parent_id').value)" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            Delete Record
+                        </button>
                         <button type="submit" class="submit-btn" id="edit-parent-btn">
                             Save Changes
                         </button>
@@ -381,6 +392,31 @@ $parents = $stmt_parents->fetchAll();
                 btn.disabled = false;
             });
         });
+
+        function deleteRecord(table, id) {
+            if (confirm("Are you sure you want to move this record to the trash? It can be restored from the Deleted Records page.")) {
+                const formData = new FormData();
+                formData.append('table', table);
+                formData.append('id', id);
+
+                fetch('process_delete.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        window.location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('An unexpected error occurred.');
+                });
+            }
+        }
     </script>
 </body>
 </html>

@@ -14,6 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $home_address = trim($_POST['edit_home_address'] ?? '');
     $allergies = trim($_POST['edit_allergies'] ?? '');
     $medications = trim($_POST['edit_medications'] ?? '');
+    $status = trim($_POST['edit_status'] ?? 'Unknown / Not Indicated');
 
     if (empty($id) || empty($learner_name) || empty($lrn) || empty($dob) || empty($home_address)) {
         echo json_encode(['status' => 'error', 'message' => 'Please fill in all required fields.']);
@@ -24,12 +25,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt = $pdo->prepare("
             UPDATE students 
             SET full_name = ?, lrn = ?, grade_section = ?, date_of_birth = ?, 
-                home_address = ?, blood_type = ?, allergies = ?, medications = ?
+                home_address = ?, blood_type = ?, allergies = ?, medications = ?, status = ?
             WHERE id = ?
         ");
         $stmt->execute([
             $learner_name, $lrn, $grade_section, $dob, 
-            $home_address, $blood_type, $allergies, $medications, 
+            $home_address, $blood_type, $allergies, $medications, $status,
             $id
         ]);
 

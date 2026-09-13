@@ -20,6 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $home_address = get_post('home_address');
     $allergies = get_post('allergies');
     $medications = get_post('medications');
+    $status = get_post('status') ?: 'Unknown / Not Indicated';
 
     // Basic Validation
     if (empty($learner_name) || empty($lrn) || empty($dob) || empty($home_address)) {
@@ -29,11 +30,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     try {
         $stmt_student = $pdo->prepare("
-            INSERT INTO students (full_name, lrn, grade_section, date_of_birth, home_address, blood_type, allergies, medications) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO students (full_name, lrn, grade_section, date_of_birth, home_address, blood_type, allergies, medications, status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt_student->execute([
-            $learner_name, $lrn, $grade_section, $dob, $home_address, $blood_type, $allergies, $medications
+            $learner_name, $lrn, $grade_section, $dob, $home_address, $blood_type, $allergies, $medications, $status
         ]);
 
         echo json_encode(['status' => 'success', 'message' => 'Learner record successfully saved!']);

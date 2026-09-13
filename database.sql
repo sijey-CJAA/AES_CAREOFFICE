@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS `students` (
   `allergies` text DEFAULT NULL,
   `medications` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -53,6 +54,44 @@ CREATE TABLE IF NOT EXISTS `parents` (
   `workplace_address` text DEFAULT NULL,
   `emergency_contact_number` varchar(50) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`student_id`) REFERENCES `students`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table for Guidance Office Assessment Records
+CREATE TABLE IF NOT EXISTS `assessment_records` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) NOT NULL,
+  `record_number` varchar(50) NOT NULL UNIQUE,
+  `school_year` varchar(20) NOT NULL,
+  `date` date NOT NULL,
+  `grade_section` varchar(50) NOT NULL,
+  `contact_number` varchar(20) NOT NULL,
+  `status` varchar(50) NOT NULL,
+  `assessment_provider` varchar(100) NOT NULL,
+  `findings` text,
+  `recommendations` text,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`student_id`) REFERENCES `students`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table for Guidance Office Case Register
+CREATE TABLE IF NOT EXISTS `case_register` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) NOT NULL,
+  `case_number` varchar(50) NOT NULL UNIQUE,
+  `school_year` varchar(20) NOT NULL,
+  `date` date NOT NULL,
+  `grade_section` varchar(50) NOT NULL,
+  `case_type` varchar(100) NOT NULL,
+  `brief_description` text,
+  `actions_taken` text,
+  `outcome_disposition` varchar(50) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`student_id`) REFERENCES `students`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

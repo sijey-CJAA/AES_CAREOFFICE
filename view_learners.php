@@ -12,9 +12,9 @@ $email_parts = explode('@', $user_email);
 $name_parts = explode('.', $email_parts[0]);
 $user_name = ucfirst($name_parts[0]);
 
-// Fetch learners
-$stmt_students = $pdo->query("SELECT * FROM students ORDER BY created_at DESC");
-$students = $stmt_students->fetchAll();
+// Fetch all active students from the database
+$stmt = $pdo->query("SELECT * FROM students WHERE deleted_at IS NULL ORDER BY created_at DESC");
+$students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -67,6 +67,16 @@ $students = $stmt_students->fetchAll();
                                 <label for="blood_type">Blood Type (if known)</label>
                                 <input type="text" id="blood_type" name="blood_type" class="form-control">
                             </div>
+                            <div class="form-group">
+                                <label for="status">Status</label>
+                                <select id="status" name="status" class="form-control">
+                                    <option value="Currently Enrolled">Currently Enrolled</option>
+                                    <option value="Graduated">Graduated</option>
+                                    <option value="Transferred">Transferred</option>
+                                    <option value="Dropped Out">Dropped Out</option>
+                                    <option value="Unknown / Not Indicated" selected>Unknown / Not Indicated</option>
+                                </select>
+                            </div>
                             <div class="form-group full-width">
                                 <label for="home_address">Home Address</label>
                                 <textarea id="home_address" name="home_address" class="form-control" required></textarea>
@@ -91,17 +101,19 @@ $students = $stmt_students->fetchAll();
             </div>
 
             <div class="dashboard-card" style="max-width: 100%;">
-                
-                <div class="table-responsive">
-                    <table class="data-table">
+                <div class="table-responsive" style="overflow-x: auto;">
+                    <table class="data-table" style="min-width: max-content;">
                         <thead>
                             <tr>
-                                <th>ID</th>
                                 <th>Full Name</th>
                                 <th>LRN</th>
                                 <th>Grade & Section</th>
                                 <th>Date of Birth</th>
                                 <th>Blood Type</th>
+                                <th>Status</th>
+                                <th>Home Address</th>
+                                <th>Allergies</th>
+                                <th>Medications</th>
                                 <th>Registered</th>
                                 <th>Actions</th>
                             </tr>
@@ -109,17 +121,38 @@ $students = $stmt_students->fetchAll();
                         <tbody>
                             <?php if(empty($students)): ?>
                             <tr>
-                                <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">No learners found in the database.</td>
+                                <td colspan="11" style="text-align: center; color: var(--text-muted); padding: 2rem;">No active learners found.</td>
                             </tr>
                             <?php else: ?>
                                 <?php foreach($students as $student): ?>
                                 <tr>
-                                    <td style="color: var(--text-muted);">#<?php echo $student['id']; ?></td>
                                     <td style="font-weight: 500; color: var(--text-dark);"><?php echo htmlspecialchars($student['full_name']); ?></td>
                                     <td><?php echo htmlspecialchars($student['lrn']); ?></td>
                                     <td><?php echo htmlspecialchars($student['grade_section']); ?></td>
                                     <td><?php echo htmlspecialchars(date('M d, Y', strtotime($student['date_of_birth']))); ?></td>
                                     <td><?php echo htmlspecialchars($student['blood_type'] ?: 'N/A'); ?></td>
+                                    <td>
+                                        <?php 
+                                            $status = $student['status'] ?? 'Unknown / Not Indicated';
+                                            $status_bg = '#f1f5f9';
+                                            $status_color = '#475569';
+                                            if ($status === 'Currently Enrolled') {
+                                                $status_bg = '#dcfce7'; $status_color = '#166534';
+                                            } elseif ($status === 'Graduated') {
+                                                $status_bg = '#dbeafe'; $status_color = '#1e40af';
+                                            } elseif ($status === 'Transferred') {
+                                                $status_bg = '#fef3c7'; $status_color = '#92400e';
+                                            } elseif ($status === 'Dropped Out') {
+                                                $status_bg = '#fee2e2'; $status_color = '#991b1b';
+                                            }
+                                        ?>
+                                        <span style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: <?php echo $status_bg; ?>; color: <?php echo $status_color; ?>;">
+                                            <?php echo htmlspecialchars($status); ?>
+                                        </span>
+                                    </td>
+                                    <td><?php echo htmlspecialchars(substr($student['home_address'], 0, 30)) . (strlen($student['home_address']) > 30 ? '...' : ''); ?></td>
+                                    <td><?php echo htmlspecialchars(substr($student['allergies'] ?: 'None', 0, 30)) . (strlen($student['allergies'] ?: 'None') > 30 ? '...' : ''); ?></td>
+                                    <td><?php echo htmlspecialchars(substr($student['medications'] ?: 'None', 0, 30)) . (strlen($student['medications'] ?: 'None') > 30 ? '...' : ''); ?></td>
                                     <td style="color: var(--text-muted);"><?php echo htmlspecialchars(date('M d, Y', strtotime($student['created_at']))); ?></td>
                                     <td>
                                         <button onclick="openEditLearnerModal(<?php echo $student['id']; ?>)" style="background: #f1f5f9; color: var(--primary); border: 1px solid #cbd5e1; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
@@ -174,6 +207,16 @@ $students = $stmt_students->fetchAll();
                             <label for="edit_blood_type">Blood Type (if known)</label>
                             <input type="text" id="edit_blood_type" name="edit_blood_type" class="form-control">
                         </div>
+                        <div class="form-group">
+                            <label for="edit_status">Status</label>
+                            <select id="edit_status" name="edit_status" class="form-control">
+                                <option value="Currently Enrolled">Currently Enrolled</option>
+                                <option value="Graduated">Graduated</option>
+                                <option value="Transferred">Transferred</option>
+                                <option value="Dropped Out">Dropped Out</option>
+                                <option value="Unknown / Not Indicated">Unknown / Not Indicated</option>
+                            </select>
+                        </div>
                         <div class="form-group full-width">
                             <label for="edit_home_address">Home Address</label>
                             <textarea id="edit_home_address" name="edit_home_address" class="form-control" required></textarea>
@@ -189,6 +232,9 @@ $students = $stmt_students->fetchAll();
                     </div>
                     <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem;">
                         <div id="edit-learner-response" style="margin-top: 0; padding: 0.5rem 1rem; flex: 1; display:none; border-radius:6px;"></div>
+                        <button type="button" onclick="deleteRecord('students', document.getElementById('edit_learner_id').value)" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            Delete Record
+                        </button>
                         <button type="submit" class="submit-btn" id="edit-learner-btn">
                             Save Changes
                         </button>
@@ -212,6 +258,7 @@ $students = $stmt_students->fetchAll();
                         document.getElementById('edit_grade_section').value = learner.grade_section;
                         document.getElementById('edit_dob').value = learner.date_of_birth;
                         document.getElementById('edit_blood_type').value = learner.blood_type;
+                        document.getElementById('edit_status').value = learner.status || 'Unknown / Not Indicated';
                         document.getElementById('edit_home_address').value = learner.home_address;
                         document.getElementById('edit_allergies').value = learner.allergies;
                         document.getElementById('edit_medications').value = learner.medications;
@@ -274,6 +321,31 @@ $students = $stmt_students->fetchAll();
                 btn.disabled = false;
             });
         });
+
+        function deleteRecord(table, id) {
+            if (confirm("Are you sure you want to move this record to the trash? It can be restored from the Deleted Records page.")) {
+                const formData = new FormData();
+                formData.append('table', table);
+                formData.append('id', id);
+
+                fetch('process_delete.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        window.location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('An unexpected error occurred.');
+                });
+            }
+        }
     </script>
 </body>
 </html>
