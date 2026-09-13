@@ -1,6 +1,6 @@
 <?php
-require_once 'auth.php';
-require_once 'db.php';
+require_once '../config/auth.php';
+require_once '../config/db.php';
 
 // Fetch the logged-in admin's details
 $stmt = $pdo->prepare("SELECT email FROM admins WHERE id = :id");
@@ -22,7 +22,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Learners Information | AES Care Office</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 
@@ -247,7 +247,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <script src="assets/js/main.js"></script>
     <script>
         function openEditLearnerModal(id) {
-            fetch('api_get_learner.php?id=' + id)
+            fetch('/api/api_get_learner.php?id=' + id)
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
@@ -292,7 +292,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             const formData = new FormData(this);
 
-            fetch('process_learner_edit.php', {
+            fetch('/api/process_learner_edit.php', {
                 method: 'POST',
                 body: formData
             })
@@ -328,7 +328,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 formData.append('table', table);
                 formData.append('id', id);
 
-                fetch('process_delete.php', {
+                fetch('/api/process_delete.php', {
                     method: 'POST',
                     body: formData
                 })

@@ -1,6 +1,6 @@
 <?php
-require_once 'auth.php';
-require_once 'db.php';
+require_once 'config/auth.php';
+require_once 'config/db.php';
 
 // Fetch the logged-in admin's details
 $stmt = $pdo->prepare("SELECT email FROM admins WHERE id = :id");

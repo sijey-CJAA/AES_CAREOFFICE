@@ -1,6 +1,6 @@
 <?php
-require_once 'auth.php';
-require_once 'db.php';
+require_once '../config/auth.php';
+require_once '../config/db.php';
 
 // Fetch the logged-in admin's details
 $stmt = $pdo->prepare("SELECT email FROM admins WHERE id = :id");
@@ -32,7 +32,7 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deleted Records | AES Care Office</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
     <style>
         .tabs {
             display: flex;
@@ -237,7 +237,7 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
                 formData.append('table', table);
                 formData.append('id', id);
 
-                fetch('process_restore.php', {
+                fetch('/api/process_restore.php', {
                     method: 'POST',
                     body: formData
                 })

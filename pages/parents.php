@@ -1,6 +1,6 @@
 <?php
-require_once 'auth.php';
-require_once 'db.php';
+require_once '../config/auth.php';
+require_once '../config/db.php';
 
 // Fetch the logged-in admin's details
 $stmt = $pdo->prepare("SELECT email FROM admins WHERE id = :id");
@@ -32,7 +32,7 @@ $parents = $stmt_parents->fetchAll();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parents Information | AES Care Office</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 
@@ -316,7 +316,7 @@ $parents = $stmt_parents->fetchAll();
     <script src="assets/js/main.js"></script>
     <script>
         function openEditParentModal(id) {
-            fetch('api_get_parent.php?id=' + id)
+            fetch('/api/api_get_parent.php?id=' + id)
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
@@ -363,7 +363,7 @@ $parents = $stmt_parents->fetchAll();
 
             const formData = new FormData(this);
 
-            fetch('process_parent_edit.php', {
+            fetch('/api/process_parent_edit.php', {
                 method: 'POST',
                 body: formData
             })
@@ -399,7 +399,7 @@ $parents = $stmt_parents->fetchAll();
                 formData.append('table', table);
                 formData.append('id', id);
 
-                fetch('process_delete.php', {
+                fetch('/api/process_delete.php', {
                     method: 'POST',
                     body: formData
                 })

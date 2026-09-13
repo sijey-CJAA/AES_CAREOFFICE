@@ -4,7 +4,7 @@
 
 // Load database configuration from external file
 // This keeps credentials out of the Git repository
-$config_file = __DIR__ . '/config.php';
+$config_file = __DIR__ . '/../config.php';
 
 if (file_exists($config_file)) {
     require_once $config_file;

@@ -1,6 +1,6 @@
 <?php
-require_once 'auth.php';
-require_once 'db.php';
+require_once '../config/auth.php';
+require_once '../config/db.php';
 
 // Fetch the logged-in admin's details
 $stmt = $pdo->prepare("SELECT email FROM admins WHERE id = :id");
@@ -16,20 +16,20 @@ $user_name = ucfirst($name_parts[0]);
 $stmt_students = $pdo->query("SELECT id, full_name, lrn FROM students ORDER BY full_name ASC");
 $students = $stmt_students->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch cases with student names
-$stmt_cases = $pdo->query("
-    SELECT c.*, s.full_name as student_name 
-    FROM case_register c
-    LEFT JOIN students s ON c.student_id = s.id
-    WHERE c.deleted_at IS NULL
-    ORDER BY c.created_at DESC
+// Fetch assessments with student names
+$stmt_assessments = $pdo->query("
+    SELECT a.*, s.full_name as student_name 
+    FROM assessment_records a
+    LEFT JOIN students s ON a.student_id = s.id
+    WHERE a.deleted_at IS NULL
+    ORDER BY a.created_at DESC
 ");
-$cases = $stmt_cases->fetchAll();
+$assessments = $stmt_assessments->fetchAll();
 
-// Generate next case number
-$stmt_last = $pdo->query("SELECT MAX(id) FROM case_register");
+// Generate next record number
+$stmt_last = $pdo->query("SELECT MAX(id) FROM assessment_records");
 $last_id = $stmt_last->fetchColumn() ?: 0;
-$next_case_number = 'AES-' . str_pad($last_id + 1, 4, '0', STR_PAD_LEFT);
+$next_record_number = 'AES-' . str_pad($last_id + 1, 4, '0', STR_PAD_LEFT);
 
 $today_date = date('Y-m-d');
 ?>
@@ -38,8 +38,8 @@ $today_date = date('Y-m-d');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Case Register | AES Care Office</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <title>Assessment Records | AES Care Office</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 
@@ -51,18 +51,18 @@ $today_date = date('Y-m-d');
         <main class="main-content">
             <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <h1>Case Register</h1>
-                    <p>Manage guidance office case records.</p>
+                    <h1>Assessment Records</h1>
+                    <p>Manage guidance office assessment records.</p>
                 </div>
-                <button onclick="document.getElementById('add-case-section').style.display = document.getElementById('add-case-section').style.display === 'none' ? 'block' : 'none'" class="submit-btn" style="padding: 0.5rem 1rem; background: var(--primary);">
-                    + Add Case
+                <button onclick="document.getElementById('add-assessment-section').style.display = document.getElementById('add-assessment-section').style.display === 'none' ? 'block' : 'none'" class="submit-btn" style="padding: 0.5rem 1rem; background: var(--primary);">
+                    + Add Record
                 </button>
             </div>
 
-            <div id="add-case-section" class="dashboard-card" style="display: none; margin-bottom: 2rem; max-width: 100%;">
-                <form id="case-form">
+            <div id="add-assessment-section" class="dashboard-card" style="display: none; margin-bottom: 2rem; max-width: 100%;">
+                <form id="assessment-form">
                     <div class="form-section">
-                        <h3>Add New Case Record</h3>
+                        <h3>Add New Assessment Record</h3>
                         <div class="form-group full-width" style="margin-bottom: 1.5rem;">
                             <label for="student_id">Student Name</label>
                             <select id="student_id" name="student_id" class="form-control" required>
@@ -76,8 +76,8 @@ $today_date = date('Y-m-d');
                         </div>
                         <div class="form-grid">
                             <div class="form-group">
-                                <label for="case_number">Case Number</label>
-                                <input type="text" id="case_number" name="case_number" class="form-control" value="<?php echo $next_case_number; ?>" readonly required>
+                                <label for="record_number">Record Number</label>
+                                <input type="text" id="record_number" name="record_number" class="form-control" value="<?php echo $next_record_number; ?>" readonly required>
                             </div>
                             <div class="form-group">
                                 <label for="school_year">School Year</label>
@@ -100,41 +100,30 @@ $today_date = date('Y-m-d');
                                 <input type="text" id="grade_section" name="grade_section" class="form-control">
                             </div>
                             <div class="form-group">
-                                <label for="case_type">Case Type</label>
-                                <select id="case_type" name="case_type" class="form-control" required>
-                                    <option value="Bullying">Bullying</option>
-                                    <option value="Physical Violence/Altercation">Physical Violence/Altercation</option>
-                                    <option value="Sexual Violence/Abuse">Sexual Violence/Abuse</option>
-                                    <option value="Verbal/Relational Conflict">Verbal/Relational Conflict</option>
-                                    <option value="Behavioral Concern">Behavioral Concern</option>
-                                    <option value="Emotional/Psychosocial Concern">Emotional/Psychosocial Concern</option>
-                                    <option value="Academic Concern">Academic Concern</option>
-                                    <option value="Family/Home Concern">Family/Home Concern</option>
-                                    <option value="Other">Other</option>
-                                </select>
+                                <label for="contact_number">Contact Number</label>
+                                <input type="text" id="contact_number" name="contact_number" class="form-control">
                             </div>
                             <div class="form-group">
-                                <label for="outcome_disposition">Outcome/Disposition</label>
-                                <select id="outcome_disposition" name="outcome_disposition" class="form-control" required>
-                                    <option value="Ongoing">Ongoing</option>
-                                    <option value="To Follow-Up">To Follow-Up</option>
-                                    <option value="Referred">Referred</option>
-                                    <option value="Closed/Resolved">Closed/Resolved</option>
-                                </select>
+                                <label for="status">Status</label>
+                                <input type="text" id="status" name="status" class="form-control">
                             </div>
                             <div class="form-group full-width">
-                                <label for="brief_description">Brief Description</label>
-                                <textarea id="brief_description" name="brief_description" class="form-control"></textarea>
+                                <label for="assessment_provider">Assessment Provider</label>
+                                <input type="text" id="assessment_provider" name="assessment_provider" class="form-control">
                             </div>
                             <div class="form-group full-width">
-                                <label for="actions_taken">Actions Taken</label>
-                                <textarea id="actions_taken" name="actions_taken" class="form-control"></textarea>
+                                <label for="findings">Findings</label>
+                                <textarea id="findings" name="findings" class="form-control"></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="recommendations">Recommendations</label>
+                                <textarea id="recommendations" name="recommendations" class="form-control"></textarea>
                             </div>
                         </div>
                     </div>
                     <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem;">
-                        <div id="case-response" style="margin-top: 0; padding: 0.5rem 1rem; flex: 1; display:none; border-radius:6px;"></div>
-                        <button type="submit" class="submit-btn" id="case-btn">
+                        <div id="assessment-response" style="margin-top: 0; padding: 0.5rem 1rem; flex: 1; display:none; border-radius:6px;"></div>
+                        <button type="submit" class="submit-btn" id="assessment-btn">
                             Save Record
                         </button>
                     </div>
@@ -146,48 +135,39 @@ $today_date = date('Y-m-d');
                     <table class="data-table" style="min-width: max-content;">
                         <thead>
                             <tr>
-                                <th>Case No.</th>
+                                <th>Record No.</th>
                                 <th>Student Name</th>
-                                <th>School Year</th>
                                 <th>Date</th>
+                                <th>School Year</th>
                                 <th>Grade & Section</th>
-                                <th>Case Type</th>
-                                <th>Brief Description</th>
-                                <th>Actions Taken</th>
-                                <th>Outcome</th>
+                                <th>Contact Number</th>
+                                <th>Status</th>
+                                <th>Provider</th>
+                                <th>Findings</th>
+                                <th>Recommendations</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if(empty($cases)): ?>
+                            <?php if(empty($assessments)): ?>
                             <tr>
-                                <td colspan="10" style="text-align: center; color: var(--text-muted); padding: 2rem;">No case records found.</td>
+                                <td colspan="11" style="text-align: center; color: var(--text-muted); padding: 2rem;">No assessment records found.</td>
                             </tr>
                             <?php else: ?>
-                                <?php foreach($cases as $case): ?>
+                                <?php foreach($assessments as $record): ?>
                                 <tr>
-                                    <td style="color: var(--text-muted);"><?php echo htmlspecialchars($case['case_number']); ?></td>
-                                    <td style="font-weight: 500; color: var(--text-dark);"><?php echo htmlspecialchars($case['student_name'] ?? 'Unknown'); ?></td>
-                                    <td><?php echo htmlspecialchars($case['school_year']); ?></td>
-                                    <td><?php echo htmlspecialchars(date('M d, Y', strtotime($case['date']))); ?></td>
-                                    <td><?php echo htmlspecialchars($case['grade_section']); ?></td>
-                                    <td><?php echo htmlspecialchars($case['case_type']); ?></td>
-                                    <td><?php echo htmlspecialchars(substr($case['brief_description'], 0, 30)) . (strlen($case['brief_description']) > 30 ? '...' : ''); ?></td>
-                                    <td><?php echo htmlspecialchars(substr($case['actions_taken'], 0, 30)) . (strlen($case['actions_taken']) > 30 ? '...' : ''); ?></td>
+                                    <td style="color: var(--text-muted);"><?php echo htmlspecialchars($record['record_number']); ?></td>
+                                    <td style="font-weight: 500; color: var(--text-dark);"><?php echo htmlspecialchars($record['student_name'] ?? 'Unknown'); ?></td>
+                                    <td><?php echo htmlspecialchars(date('M d, Y', strtotime($record['date']))); ?></td>
+                                    <td><?php echo htmlspecialchars($record['school_year']); ?></td>
+                                    <td><?php echo htmlspecialchars($record['grade_section']); ?></td>
+                                    <td><?php echo htmlspecialchars($record['contact_number']); ?></td>
+                                    <td><?php echo htmlspecialchars($record['status']); ?></td>
+                                    <td><?php echo htmlspecialchars($record['assessment_provider']); ?></td>
+                                    <td><?php echo htmlspecialchars(substr($record['findings'], 0, 30)) . (strlen($record['findings']) > 30 ? '...' : ''); ?></td>
+                                    <td><?php echo htmlspecialchars(substr($record['recommendations'], 0, 30)) . (strlen($record['recommendations']) > 30 ? '...' : ''); ?></td>
                                     <td>
-                                        <?php 
-                                            $outcome = $case['outcome_disposition'];
-                                            $bg = '#f1f5f9'; $color = '#475569';
-                                            if ($outcome == 'Closed/Resolved') { $bg = '#dcfce7'; $color = '#166534'; }
-                                            elseif ($outcome == 'Ongoing') { $bg = '#fef3c7'; $color = '#92400e'; }
-                                            elseif ($outcome == 'Referred') { $bg = '#dbeafe'; $color = '#1e40af'; }
-                                        ?>
-                                        <span style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: <?php echo $bg; ?>; color: <?php echo $color; ?>;">
-                                            <?php echo htmlspecialchars($outcome); ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button onclick="openEditCaseModal(<?php echo $case['id']; ?>)" style="background: #f1f5f9; color: var(--primary); border: 1px solid #cbd5e1; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                                        <button onclick="openEditAssessmentModal(<?php echo $record['id']; ?>)" style="background: #f1f5f9; color: var(--primary); border: 1px solid #cbd5e1; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
                                             Edit
                                         </button>
                                     </td>
@@ -205,18 +185,18 @@ $today_date = date('Y-m-d');
         </main>
     </div>
 
-    <!-- Edit Case Modal -->
-    <div id="editCaseModal" class="modal-overlay">
+    <!-- Edit Assessment Modal -->
+    <div id="editAssessmentModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Edit Case Record</h2>
-                <button class="modal-close" onclick="closeEditCaseModal()">
+                <h2>Edit Assessment Record</h2>
+                <button class="modal-close" onclick="closeEditAssessmentModal()">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
             <div class="modal-body">
-                <form id="edit-case-form">
-                    <input type="hidden" id="edit_case_id" name="edit_case_id">
+                <form id="edit-assessment-form">
+                    <input type="hidden" id="edit_assessment_id" name="edit_assessment_id">
                     
                     <div class="form-group full-width" style="margin-bottom: 1.5rem;">
                         <label for="edit_student_id">Student Name</label>
@@ -231,8 +211,8 @@ $today_date = date('Y-m-d');
 
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="edit_case_number">Case Number</label>
-                            <input type="text" id="edit_case_number" name="edit_case_number" class="form-control" readonly required>
+                            <label for="edit_record_number">Record Number</label>
+                            <input type="text" id="edit_record_number" name="edit_record_number" class="form-control" readonly required>
                         </div>
                         <div class="form-group">
                             <label for="edit_school_year">School Year</label>
@@ -255,44 +235,33 @@ $today_date = date('Y-m-d');
                             <input type="text" id="edit_grade_section" name="edit_grade_section" class="form-control">
                         </div>
                         <div class="form-group">
-                            <label for="edit_case_type">Case Type</label>
-                            <select id="edit_case_type" name="edit_case_type" class="form-control" required>
-                                <option value="Bullying">Bullying</option>
-                                <option value="Physical Violence/Altercation">Physical Violence/Altercation</option>
-                                <option value="Sexual Violence/Abuse">Sexual Violence/Abuse</option>
-                                <option value="Verbal/Relational Conflict">Verbal/Relational Conflict</option>
-                                <option value="Behavioral Concern">Behavioral Concern</option>
-                                <option value="Emotional/Psychosocial Concern">Emotional/Psychosocial Concern</option>
-                                <option value="Academic Concern">Academic Concern</option>
-                                <option value="Family/Home Concern">Family/Home Concern</option>
-                                <option value="Other">Other</option>
-                            </select>
+                            <label for="edit_contact_number">Contact Number</label>
+                            <input type="text" id="edit_contact_number" name="edit_contact_number" class="form-control">
                         </div>
                         <div class="form-group">
-                            <label for="edit_outcome_disposition">Outcome/Disposition</label>
-                            <select id="edit_outcome_disposition" name="edit_outcome_disposition" class="form-control" required>
-                                <option value="Ongoing">Ongoing</option>
-                                <option value="To Follow-Up">To Follow-Up</option>
-                                <option value="Referred">Referred</option>
-                                <option value="Closed/Resolved">Closed/Resolved</option>
-                            </select>
+                            <label for="edit_status">Status</label>
+                            <input type="text" id="edit_status" name="edit_status" class="form-control">
                         </div>
                         <div class="form-group full-width">
-                            <label for="edit_brief_description">Brief Description</label>
-                            <textarea id="edit_brief_description" name="edit_brief_description" class="form-control"></textarea>
+                            <label for="edit_assessment_provider">Assessment Provider</label>
+                            <input type="text" id="edit_assessment_provider" name="edit_assessment_provider" class="form-control">
                         </div>
                         <div class="form-group full-width">
-                            <label for="edit_actions_taken">Actions Taken</label>
-                            <textarea id="edit_actions_taken" name="edit_actions_taken" class="form-control"></textarea>
+                            <label for="edit_findings">Findings</label>
+                            <textarea id="edit_findings" name="edit_findings" class="form-control"></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="edit_recommendations">Recommendations</label>
+                            <textarea id="edit_recommendations" name="edit_recommendations" class="form-control"></textarea>
                         </div>
                     </div>
 
                     <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem;">
-                        <div id="edit-case-response" style="margin-top: 0; padding: 0.5rem 1rem; flex: 1; display:none; border-radius:6px;"></div>
-                        <button type="button" onclick="deleteRecord('case_register', document.getElementById('edit_case_id').value)" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        <div id="edit-assessment-response" style="margin-top: 0; padding: 0.5rem 1rem; flex: 1; display:none; border-radius:6px;"></div>
+                        <button type="button" onclick="deleteRecord('assessment_records', document.getElementById('edit_assessment_id').value)" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
                             Delete Record
                         </button>
-                        <button type="submit" class="submit-btn" id="edit-case-btn">
+                        <button type="submit" class="submit-btn" id="edit-assessment-btn">
                             Save Changes
                         </button>
                     </div>
@@ -303,20 +272,20 @@ $today_date = date('Y-m-d');
 
     <script src="assets/js/main.js"></script>
     <script>
-        document.getElementById('case-form').addEventListener('submit', function(e) {
+        document.getElementById('assessment-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            const btn = document.getElementById('case-btn');
+            const btn = document.getElementById('assessment-btn');
             const originalText = btn.innerHTML;
             btn.innerHTML = 'Saving...';
             btn.disabled = true;
 
-            const responseDiv = document.getElementById('case-response');
+            const responseDiv = document.getElementById('assessment-response');
             responseDiv.style.display = 'none';
             responseDiv.className = '';
 
             const formData = new FormData(this);
 
-            fetch('process_case.php', {
+            fetch('/api/process_assessment.php', {
                 method: 'POST',
                 body: formData
             })
@@ -346,53 +315,54 @@ $today_date = date('Y-m-d');
             });
         });
 
-        function openEditCaseModal(id) {
-            fetch('api_get_case.php?id=' + id)
+        function openEditAssessmentModal(id) {
+            fetch('/api/api_get_assessment.php?id=' + id)
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
                         const record = data.data;
-                        document.getElementById('edit_case_id').value = record.id;
+                        document.getElementById('edit_assessment_id').value = record.id;
                         document.getElementById('edit_student_id').value = record.student_id;
-                        document.getElementById('edit_case_number').value = record.case_number;
+                        document.getElementById('edit_record_number').value = record.record_number;
                         document.getElementById('edit_school_year').value = record.school_year;
                         document.getElementById('edit_date').value = record.date;
                         document.getElementById('edit_grade_section').value = record.grade_section;
-                        document.getElementById('edit_case_type').value = record.case_type;
-                        document.getElementById('edit_brief_description').value = record.brief_description;
-                        document.getElementById('edit_actions_taken').value = record.actions_taken;
-                        document.getElementById('edit_outcome_disposition').value = record.outcome_disposition;
+                        document.getElementById('edit_contact_number').value = record.contact_number;
+                        document.getElementById('edit_status').value = record.status;
+                        document.getElementById('edit_assessment_provider').value = record.assessment_provider;
+                        document.getElementById('edit_findings').value = record.findings;
+                        document.getElementById('edit_recommendations').value = record.recommendations;
                         
-                        document.getElementById('editCaseModal').classList.add('active');
+                        document.getElementById('editAssessmentModal').classList.add('active');
                     } else {
                         alert(data.message);
                     }
                 })
                 .catch(err => {
                     console.error('Error fetching record:', err);
-                    alert('Could not fetch case details.');
+                    alert('Could not fetch assessment details.');
                 });
         }
 
-        function closeEditCaseModal() {
-            document.getElementById('editCaseModal').classList.remove('active');
-            document.getElementById('edit-case-response').style.display = 'none';
+        function closeEditAssessmentModal() {
+            document.getElementById('editAssessmentModal').classList.remove('active');
+            document.getElementById('edit-assessment-response').style.display = 'none';
         }
 
-        document.getElementById('edit-case-form').addEventListener('submit', function(e) {
+        document.getElementById('edit-assessment-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            const btn = document.getElementById('edit-case-btn');
+            const btn = document.getElementById('edit-assessment-btn');
             const originalText = btn.innerHTML;
             btn.innerHTML = 'Saving...';
             btn.disabled = true;
 
-            const responseDiv = document.getElementById('edit-case-response');
+            const responseDiv = document.getElementById('edit-assessment-response');
             responseDiv.style.display = 'none';
             responseDiv.className = '';
 
             const formData = new FormData(this);
 
-            fetch('process_case_edit.php', {
+            fetch('/api/process_assessment_edit.php', {
                 method: 'POST',
                 body: formData
             })
@@ -428,7 +398,7 @@ $today_date = date('Y-m-d');
                 formData.append('table', table);
                 formData.append('id', id);
 
-                fetch('process_delete.php', {
+                fetch('/api/process_delete.php', {
                     method: 'POST',
                     body: formData
                 })
