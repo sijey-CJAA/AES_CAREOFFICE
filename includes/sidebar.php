@@ -19,10 +19,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             Dashboard
         </a>
         
-        <a href="add_learner.php" class="nav-item <?php echo $current_page == 'add_learner.php' ? 'active' : ''; ?>">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-            Add Learner
-        </a>
+
         
         <div class="nav-label" style="margin-top: 1rem;">View Records</div>
         <a href="view_learners.php" class="nav-item <?php echo $current_page == 'view_learners.php' ? 'active' : ''; ?>">
