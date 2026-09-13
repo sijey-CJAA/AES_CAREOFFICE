@@ -1,0 +1,31 @@
+name: Deploy to InfinityFree
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create config.php file
+        run: |
+          echo "<?php" > config.php
+          echo "define('DB_HOST', '${{ secrets.DB_HOST }}');" >> config.php
+          echo "define('DB_NAME', '${{ secrets.DB_NAME }}');" >> config.php
+          echo "define('DB_USER', '${{ secrets.DB_USER }}');" >> config.php
+          echo "define('DB_PASS', '${{ secrets.DB_PASS }}');" >> config.php
+          echo "?>" >> config.php
+
+      - name: Upload via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./
+          server-dir: htdocs/
