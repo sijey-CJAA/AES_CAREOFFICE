@@ -32,25 +32,25 @@ $parents = $stmt_parents->fetchAll();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parents Information | AES Care Office</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
 </head>
 <body>
 
     <?php include '../includes/sidebar.php'; ?>
 
     <div class="main-wrapper">
-        <div class="top-header"></div>
+        <?php include '../includes/topbar.php'; ?>
 
         <main class="main-content">
-            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h1>Parents & Guardians</h1>
-                    <p>Overview of all registered parents and their linked learners.</p>
-                </div>
-                <button onclick="document.getElementById('add-parent-section').style.display = document.getElementById('add-parent-section').style.display === 'none' ? 'block' : 'none'" class="submit-btn" style="padding: 0.5rem 1rem; background: var(--primary);">
-                    + Add Parent
-                </button>
-            </div>
+                <div class="page-header-container">
+        <h1 class="page-title">Parents</h1>
+        <div class="page-controls">
+            <span style="color: var(--text-muted); font-size: 0.85rem; display:flex; align-items:center; gap:0.25rem;">Showing <strong style="color:var(--text-dark);">10</strong> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+            <button class="control-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg> Filter</button>
+            <button class="control-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg> Export</button>
+            <button class="control-btn btn-primary" onclick="document.getElementById('add-parent-section').style.display = document.getElementById('add-parent-section').style.display === 'none' ? 'block' : 'none'">+ Add New Parent</button>
+        </div>
+    </div>
 
             <div id="add-parent-section" class="dashboard-card" style="display: none; margin-bottom: 2rem; max-width: 100%;">
                 <form id="parent-form">
@@ -164,7 +164,7 @@ $parents = $stmt_parents->fetchAll();
                 </form>
             </div>
 
-            <div class="dashboard-card" style="max-width: 100%;">
+            <div class="content-card">
                 <div class="table-responsive" style="overflow-x: auto;">
                     <table class="data-table" style="min-width: max-content;">
                         <thead>
@@ -313,10 +313,10 @@ $parents = $stmt_parents->fetchAll();
         </div>
     </div>
 
-    <script src="/assets/js/main.js"></script>
+    <script src="<?= BASE_URL ?>/assets/js/main.js"></script>
     <script>
         function openEditParentModal(id) {
-            fetch('/api/api_get_parent.php?id=' + id)
+            fetch('<?= BASE_URL ?>/api/api_get_parent.php?id=' + id)
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
@@ -363,7 +363,7 @@ $parents = $stmt_parents->fetchAll();
 
             const formData = new FormData(this);
 
-            fetch('/api/process_parent_edit.php', {
+            fetch('<?= BASE_URL ?>/api/process_parent_edit.php', {
                 method: 'POST',
                 body: formData
             })
@@ -399,7 +399,7 @@ $parents = $stmt_parents->fetchAll();
                 formData.append('table', table);
                 formData.append('id', id);
 
-                fetch('/api/process_delete.php', {
+                fetch('<?= BASE_URL ?>/api/process_delete.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -420,3 +420,4 @@ $parents = $stmt_parents->fetchAll();
     </script>
 </body>
 </html>
+

@@ -32,7 +32,7 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deleted Records | AES Care Office</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
     <style>
         .tabs {
             display: flex;
@@ -66,15 +66,19 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
     <?php include '../includes/sidebar.php'; ?>
 
     <div class="main-wrapper">
-        <div class="top-header"></div>
+        <?php include '../includes/topbar.php'; ?>
 
         <main class="main-content">
-            <div class="page-header">
-                <h1>Deleted Records Archive</h1>
-                <p>View and restore records that were moved to the trash.</p>
+            <div class="page-header-container">
+                <h1 class="page-title">Deleted Records</h1>
+                <div class="page-controls">
+                    <span style="color: var(--text-muted); font-size: 0.85rem; display:flex; align-items:center; gap:0.25rem;">Showing <strong style="color:var(--text-dark);">10</strong> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+                    <button class="control-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg> Filter</button>
+                    <button class="control-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg> Export</button>
+                </div>
             </div>
 
-            <div class="dashboard-card" style="max-width: 100%;">
+            <div class="content-card">
                 
                 <div class="tabs">
                     <button class="tab-btn active" onclick="switchTab('learners')">Learners (<?php echo count($del_students); ?>)</button>
@@ -219,7 +223,7 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
         </main>
     </div>
 
-    <script src="/assets/js/main.js"></script>
+    <script src="<?= BASE_URL ?>/assets/js/main.js"></script>
     <script>
         function switchTab(tabName) {
             // Remove active from all tabs and contents
@@ -237,7 +241,7 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
                 formData.append('table', table);
                 formData.append('id', id);
 
-                fetch('/api/process_restore.php', {
+                fetch('<?= BASE_URL ?>/api/process_restore.php', {
                     method: 'POST',
                     body: formData
                 })

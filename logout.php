@@ -3,6 +3,8 @@
 session_start();
 session_unset();
 session_destroy();
-header('Location: login.php');
+require_once 'config/db.php';
+header('Location: ' . BASE_URL . '/login.php');
 exit;
 ?>
+

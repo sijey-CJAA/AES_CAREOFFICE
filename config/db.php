@@ -9,12 +9,19 @@ $config_file = __DIR__ . '/../config.php';
 if (file_exists($config_file)) {
     require_once $config_file;
 } else {
-    // Fallback defaults (useful if someone forgets to create config.php)
+    // Fallback defaults for local development
     define('DB_HOST', 'localhost');
     define('DB_NAME', 'aes');
     define('DB_USER', 'root');
     define('DB_PASS', '');
 }
+
+    // Set Base URL for local vs production
+    if ($_SERVER['HTTP_HOST'] === 'localhost') {
+        define('BASE_URL', '/AES_CAREOFFICE');
+    } else {
+        define('BASE_URL', '');
+    }
 
 try {
     $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);

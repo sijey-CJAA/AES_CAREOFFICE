@@ -34,7 +34,7 @@ $total_cases = $stmt_cases->fetchColumn();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | AES Care Office</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
 </head>
 <body>
 
@@ -42,19 +42,21 @@ $total_cases = $stmt_cases->fetchColumn();
 
     <!-- Main Wrapper -->
     <div class="main-wrapper">
-        <div class="top-header"></div>
+        <?php include 'includes/topbar.php'; ?>
 
         <!-- Main Content -->
         <main class="main-content">
-            <div class="page-header">
-                <h1>Welcome, <?php echo $user_name; ?>!</h1>
-                <p>Here's the latest update.</p>
+            <div class="page-header-container">
+                <div>
+                    <h1 class="page-title">Welcome, <?php echo $user_name; ?>!</h1>
+                    <p style="color: var(--text-muted); margin-top: 0.25rem;">Here's the latest update.</p>
+                </div>
             </div>
 
             <!-- Dashboard Stats Grid -->
             <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
                 <!-- Total Students -->
-                <a href="pages/learners.php" style="text-decoration: none; color: inherit;">
+                <a href="<?= BASE_URL ?>/pages/learners.php" style="text-decoration: none; color: inherit;">
                     <div style="background: white; border: 1px solid var(--border-light); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: transform 0.2s; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
                         <div style="width: 50px; height: 50px; background: rgba(37, 99, 235, 0.1); color: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -67,7 +69,7 @@ $total_cases = $stmt_cases->fetchColumn();
                 </a>
 
                 <!-- Total Parents -->
-                <a href="pages/parents.php" style="text-decoration: none; color: inherit;">
+                <a href="<?= BASE_URL ?>/pages/parents.php" style="text-decoration: none; color: inherit;">
                     <div style="background: white; border: 1px solid var(--border-light); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: transform 0.2s; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
                         <div style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.1); color: #10b981; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -80,7 +82,7 @@ $total_cases = $stmt_cases->fetchColumn();
                 </a>
 
                 <!-- Assessment Records -->
-                <a href="pages/assessments.php" style="text-decoration: none; color: inherit;">
+                <a href="<?= BASE_URL ?>/pages/assessments.php" style="text-decoration: none; color: inherit;">
                     <div style="background: white; border: 1px solid var(--border-light); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: transform 0.2s; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
                         <div style="width: 50px; height: 50px; background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
@@ -93,7 +95,7 @@ $total_cases = $stmt_cases->fetchColumn();
                 </a>
 
                 <!-- Case Register -->
-                <a href="pages/cases.php" style="text-decoration: none; color: inherit;">
+                <a href="<?= BASE_URL ?>/pages/cases.php" style="text-decoration: none; color: inherit;">
                     <div style="background: white; border: 1px solid var(--border-light); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: transform 0.2s; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
                         <div style="width: 50px; height: 50px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
