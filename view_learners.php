@@ -127,9 +127,9 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <?php foreach($students as $student): ?>
                                 <tr>
                                     <td style="font-weight: 500; color: var(--text-dark);"><?php echo htmlspecialchars($student['full_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($student['lrn']); ?></td>
+                                    <td style="color: var(--text-muted);"><?php echo htmlspecialchars($student['lrn']); ?></td>
                                     <td><?php echo htmlspecialchars($student['grade_section']); ?></td>
-                                    <td><?php echo htmlspecialchars(date('M d, Y', strtotime($student['date_of_birth']))); ?></td>
+                                    <td><?php echo htmlspecialchars($student['date_of_birth'] ? date('M d, Y', strtotime($student['date_of_birth'])) : 'N/A'); ?></td>
                                     <td><?php echo htmlspecialchars($student['blood_type'] ?: 'N/A'); ?></td>
                                     <td>
                                         <?php 
