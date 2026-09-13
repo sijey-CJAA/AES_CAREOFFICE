@@ -26,7 +26,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
 
-    <?php include 'includes/sidebar.php'; ?>
+    <?php include '../includes/sidebar.php'; ?>
 
     <div class="main-wrapper">
         <div class="top-header"></div>
@@ -244,7 +244,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
-    <script src="assets/js/main.js"></script>
+    <script src="/assets/js/main.js"></script>
     <script>
         function openEditLearnerModal(id) {
             fetch('/api/api_get_learner.php?id=' + id)

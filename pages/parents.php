@@ -36,7 +36,7 @@ $parents = $stmt_parents->fetchAll();
 </head>
 <body>
 
-    <?php include 'includes/sidebar.php'; ?>
+    <?php include '../includes/sidebar.php'; ?>
 
     <div class="main-wrapper">
         <div class="top-header"></div>
@@ -313,7 +313,7 @@ $parents = $stmt_parents->fetchAll();
         </div>
     </div>
 
-    <script src="assets/js/main.js"></script>
+    <script src="/assets/js/main.js"></script>
     <script>
         function openEditParentModal(id) {
             fetch('/api/api_get_parent.php?id=' + id)

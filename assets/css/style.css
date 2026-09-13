@@ -81,6 +81,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    overflow-y: auto; /* Allow sidebar to scroll on small screens */
 }
 
 .nav-label {
@@ -546,4 +547,57 @@ textarea.form-control {
 
 .modal-body {
     padding: 2rem;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+        overflow-y: auto;
+        height: auto;
+        min-height: 100vh;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+        flex: none;
+    }
+    
+    .sidebar-nav {
+        overflow-y: visible;
+    }
+
+    .main-wrapper {
+        overflow: visible;
+        flex: 1;
+    }
+    
+    .main-content {
+        overflow-y: visible;
+        padding: 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .top-header {
+        display: none;
+    }
+
+    .modal-content {
+        width: 95%;
+        padding: 1rem;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
 }

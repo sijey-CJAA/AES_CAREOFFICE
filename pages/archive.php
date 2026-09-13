@@ -63,7 +63,7 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
 
-    <?php include 'includes/sidebar.php'; ?>
+    <?php include '../includes/sidebar.php'; ?>
 
     <div class="main-wrapper">
         <div class="top-header"></div>
@@ -219,7 +219,7 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
         </main>
     </div>
 
-    <script src="assets/js/main.js"></script>
+    <script src="/assets/js/main.js"></script>
     <script>
         function switchTab(tabName) {
             // Remove active from all tabs and contents

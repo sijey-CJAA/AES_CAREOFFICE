@@ -43,7 +43,7 @@ $today_date = date('Y-m-d');
 </head>
 <body>
 
-    <?php include 'includes/sidebar.php'; ?>
+    <?php include '../includes/sidebar.php'; ?>
 
     <div class="main-wrapper">
         <div class="top-header"></div>
@@ -270,7 +270,7 @@ $today_date = date('Y-m-d');
         </div>
     </div>
 
-    <script src="assets/js/main.js"></script>
+    <script src="/assets/js/main.js"></script>
     <script>
         document.getElementById('assessment-form').addEventListener('submit', function(e) {
             e.preventDefault();
