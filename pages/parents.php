@@ -45,18 +45,54 @@ $parents = $stmt_parents->fetchAll();
                 <div class="page-header-container">
         <h1 class="page-title">Parents</h1>
         <div class="page-controls">
-            <span style="color: var(--text-muted); font-size: 0.85rem; display:flex; align-items:center; gap:0.25rem;">Showing <strong style="color:var(--text-dark);">10</strong> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
-            <button class="control-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg> Filter</button>
-            <button class="control-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg> Export</button>
+            <span style="color: var(--text-muted); font-size: 0.85rem; display:flex; align-items:center; gap:0.25rem;">Showing <strong id="showing-counter" style="color:var(--text-dark);"><?= count($parents) ?></strong> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+            <button class="control-btn" onclick="document.getElementById('filterPanel').style.display = document.getElementById('filterPanel').style.display === 'none' ? 'flex' : 'none';"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg> Filter</button>
+            <button class="control-btn" onclick="exportTableToPDF('dataTable', 'parents.pdf')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg> Export</button>
             <button class="control-btn btn-primary" onclick="openAddParentModal()">+ Add New Parent</button>
         </div>
     </div>
 
-
+    <div id="filterPanel" style="display: none; background: #fff; border: 1px solid var(--border-light); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Type</label>
+            <select id="filterType" class="form-control" onchange="applyPageFilters()" style="min-width: 150px;">
+                <option value="">All</option>
+                <option value="Primary">Primary</option>
+                <option value="Secondary">Secondary</option>
+            </select>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Relationship</label>
+            <input type="text" id="filterRelation" class="form-control" placeholder="E.g. Mother..." onkeyup="applyPageFilters()" style="min-width: 150px;">
+        </div>
+    </div>
+    
+    <script>
+    function applyPageFilters() {
+        const fType = document.getElementById('filterType').value.toLowerCase();
+        const fRel = document.getElementById('filterRelation').value.toLowerCase();
+        const trs = document.querySelectorAll('#dataTable tbody tr');
+        let count = 0;
+        
+        trs.forEach(tr => {
+            if (tr.children.length < 4) return; // Skip "no records" row
+            const rowRel = tr.children[2].textContent.toLowerCase();
+            const rowType = tr.children[3].textContent.toLowerCase();
+            
+            if (rowType.includes(fType) && rowRel.includes(fRel)) {
+                tr.style.display = '';
+                count++;
+            } else {
+                tr.style.display = 'none';
+            }
+        });
+        document.getElementById('showing-counter').innerText = count;
+    }
+    </script>
 
             <div class="content-card">
                 <div class="table-responsive" style="overflow-x: auto;">
-                    <table class="data-table" style="min-width: max-content;">
+                    <table class="data-table" id="dataTable" style="min-width: max-content;">
                         <thead>
                             <tr>
                                 <th>Parent / Guardian</th>

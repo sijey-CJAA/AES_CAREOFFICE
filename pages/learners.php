@@ -194,7 +194,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         Total: <strong id="display-count" style="color:var(--text-dark);"><?= $grade_counts['All'] ?></strong>
                     </span>
                     <button class="control-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg> Filter</button>
-                    <button class="control-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg> Export</button>
+                    <button class="control-btn" onclick="exportTableToPDF('dataTable', 'learners.pdf')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg> Export</button>
                     <button class="control-btn btn-primary" onclick="openAddLearnerModal()">+ Add New Learner</button>
                 </div>
             </div>
@@ -268,7 +268,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 <!-- Learner Table -->
                 <div class="table-responsive" style="overflow-x: auto;">
-                    <table class="data-table" style="min-width: max-content;">
+                    <table class="data-table" id="dataTable" style="min-width: max-content;">
                         <thead>
                             <tr>
                                 <th>Full Name</th>

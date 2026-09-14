@@ -75,7 +75,7 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
                 <div class="page-controls">
                     <span style="color: var(--text-muted); font-size: 0.85rem; display:flex; align-items:center; gap:0.25rem;">Showing <strong style="color:var(--text-dark);">10</strong> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
                     <button class="control-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg> Filter</button>
-                    <button class="control-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg> Export</button>
+                    <button class="control-btn" onclick="exportActiveTab()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg> Export</button>
                 </div>
             </div>
 
@@ -91,7 +91,7 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
                 <!-- Learners Tab -->
                 <div id="tab-learners" class="tab-content active">
                     <div class="table-responsive" style="overflow-x: auto;">
-                        <table class="data-table" style="min-width: max-content;">
+                        <table class="data-table" id="dataTableLearners" style="min-width: max-content;">
                             <thead>
                                 <tr>
                                     <th>Full Name</th>
@@ -123,7 +123,7 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
                 <!-- Parents Tab -->
                 <div id="tab-parents" class="tab-content">
                     <div class="table-responsive" style="overflow-x: auto;">
-                        <table class="data-table" style="min-width: max-content;">
+                        <table class="data-table" id="dataTableParents" style="min-width: max-content;">
                             <thead>
                                 <tr>
                                     <th>Parent Name</th>
@@ -155,7 +155,7 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
                 <!-- Assessments Tab -->
                 <div id="tab-assessments" class="tab-content">
                     <div class="table-responsive" style="overflow-x: auto;">
-                        <table class="data-table" style="min-width: max-content;">
+                        <table class="data-table" id="dataTableAssessments" style="min-width: max-content;">
                             <thead>
                                 <tr>
                                     <th>Record No.</th>
@@ -187,7 +187,7 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
                 <!-- Cases Tab -->
                 <div id="tab-cases" class="tab-content">
                     <div class="table-responsive" style="overflow-x: auto;">
-                        <table class="data-table" style="min-width: max-content;">
+                        <table class="data-table" id="dataTableCases" style="min-width: max-content;">
                             <thead>
                                 <tr>
                                     <th>Case No.</th>
@@ -227,6 +227,19 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script src="<?= BASE_URL ?>/assets/js/main.js"></script>
     <script>
+        function exportActiveTab() {
+            const activeTab = document.querySelector('.tab-content.active');
+            if (activeTab) {
+                const table = activeTab.querySelector('.data-table');
+                if (table) {
+                    const id = table.getAttribute('id');
+                    if (id) {
+                        exportTableToPDF(id, 'archive_export.pdf');
+                    }
+                }
+            }
+        }
+        
         function switchTab(tabName) {
             // Remove active from all tabs and contents
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
