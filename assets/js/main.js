@@ -1,5 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
     
+    // Initialize Tom Select on all form-control select elements
+    document.querySelectorAll('select.form-control').forEach((el) => {
+        new TomSelect(el, {
+            create: false,
+            dropdownParent: 'body',
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
+        });
+    });
+
     const learnerForm = document.getElementById('learner-form');
     if (learnerForm) {
         learnerForm.addEventListener('submit', function(e) {

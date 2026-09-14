@@ -18,6 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $status = get_post('status');
     $assessment_provider = get_post('assessment_provider');
     $findings = get_post('findings');
+    $diagnosis = get_post('diagnosis');
     $recommendations = get_post('recommendations');
 
     if (empty($student_id) || empty($record_number) || empty($date)) {
@@ -27,11 +28,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     try {
         $stmt = $pdo->prepare("
-            INSERT INTO assessment_records (student_id, record_number, school_year, date, grade_section, contact_number, status, assessment_provider, findings, recommendations) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO assessment_records (student_id, record_number, school_year, date, grade_section, contact_number, status, assessment_provider, findings, diagnosis, recommendations) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
-            $student_id, $record_number, $school_year, $date, $grade_section, $contact_number, $status, $assessment_provider, $findings, $recommendations
+            $student_id, $record_number, $school_year, $date, $grade_section, $contact_number, $status, $assessment_provider, $findings, $diagnosis, $recommendations
         ]);
 
         echo json_encode(['status' => 'success', 'message' => 'Assessment record successfully saved!']);

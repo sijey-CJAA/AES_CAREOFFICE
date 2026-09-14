@@ -40,6 +40,7 @@ $today_date = date('Y-m-d');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Case Register | AES Care Office</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
 </head>
 <body>
 
@@ -55,26 +56,62 @@ $today_date = date('Y-m-d');
             <span style="color: var(--text-muted); font-size: 0.85rem; display:flex; align-items:center; gap:0.25rem;">Showing <strong style="color:var(--text-dark);">10</strong> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
             <button class="control-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg> Filter</button>
             <button class="control-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg> Export</button>
-            <button class="control-btn btn-primary" onclick="document.getElementById('add-case-section').style.display = document.getElementById('add-case-section').style.display === 'none' ? 'block' : 'none'">+ Add New Case</button>
+            <button class="control-btn btn-primary" onclick="openAddCaseModal()">+ Add New Case</button>
         </div>
     </div>
 
-            <div id="add-case-section" class="dashboard-card" style="display: none; margin-bottom: 2rem; max-width: 100%;">
-                <form id="case-form">
-                    <div class="form-section">
-                        <h3>Add New Case Record</h3>
-                        <div class="form-group full-width" style="margin-bottom: 1.5rem;">
-                            <label for="student_id">Student Name</label>
-                            <select id="student_id" name="student_id" class="form-control" required>
-                                <option value="">-- Select Student --</option>
-                                <?php foreach($students as $student): ?>
-                                    <option value="<?php echo $student['id']; ?>">
-                                        <?php echo htmlspecialchars($student['full_name']); ?> (LRN: <?php echo htmlspecialchars($student['lrn']); ?>)
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+    <!-- ── Add Case Modal ────────────────────────────────────────────────── -->
+    <div id="addCaseModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>Add New Case Record</h2>
+                <button class="modal-close" onclick="closeAddCaseModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                
+                <!-- STEP 1: Drill-down UI -->
+                <div id="add-step-1">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label>Select Grade Level</label>
+                        <select id="drill_grade" class="form-control" onchange="loadSectionsForDrill(this.value)">
+                            <option value="">-- Select Grade --</option>
+                            <option value="Kindergarten">Kindergarten</option>
+                            <option value="Grade 1">Grade 1</option>
+                            <option value="Grade 2">Grade 2</option>
+                            <option value="Grade 3">Grade 3</option>
+                            <option value="Grade 4">Grade 4</option>
+                            <option value="Grade 5">Grade 5</option>
+                            <option value="Grade 6">Grade 6</option>
+                        </select>
+                    </div>
+
+                    <div id="drill_section_container" style="display:none; margin-bottom: 1.5rem;">
+                        <label>Select Section</label>
+                        <select id="drill_section" class="form-control" onchange="loadStudentsForDrill(this.value)">
+                            <option value="">-- Select Section --</option>
+                        </select>
+                    </div>
+
+                    <div id="drill_student_container" style="display:none; margin-bottom: 1.5rem;">
+                        <label>Select Student</label>
+                        <div id="drill_student_list" style="display: grid; gap: 0.5rem; max-height: 250px; overflow-y: auto; padding: 0.5rem; border: 1px solid var(--border-light); border-radius: 6px; background: #f8fafc;">
+                            <!-- Student rows populated via JS -->
                         </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: The Case Form -->
+                <div id="add-step-2" style="display: none;">
+                    <form id="case-form">
+                        <input type="hidden" id="student_id" name="student_id">
+                        
                         <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label>Student Name</label>
+                                <input type="text" id="display_student_name" class="form-control" readonly style="background: #f1f5f9; font-weight: 600;">
+                            </div>
                             <div class="form-group">
                                 <label for="case_number">Case Number</label>
                                 <input type="text" id="case_number" name="case_number" class="form-control" value="<?php echo $next_case_number; ?>" readonly required>
@@ -97,7 +134,7 @@ $today_date = date('Y-m-d');
                             </div>
                             <div class="form-group">
                                 <label for="grade_section">Grade & Section</label>
-                                <input type="text" id="grade_section" name="grade_section" class="form-control">
+                                <input type="text" id="grade_section" name="grade_section" class="form-control" readonly style="background: #f1f5f9;">
                             </div>
                             <div class="form-group">
                                 <label for="case_type">Case Type</label>
@@ -131,15 +168,19 @@ $today_date = date('Y-m-d');
                                 <textarea id="actions_taken" name="actions_taken" class="form-control"></textarea>
                             </div>
                         </div>
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem;">
-                        <div id="case-response" style="margin-top: 0; padding: 0.5rem 1rem; flex: 1; display:none; border-radius:6px;"></div>
-                        <button type="submit" class="submit-btn" id="case-btn">
-                            Save Record
-                        </button>
-                    </div>
-                </form>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
+                            <button type="button" class="submit-btn" style="background: #94a3b8; color: white;" onclick="backToStep1()">Back to Selection</button>
+                            <div style="display: flex; gap: 1rem; align-items: center; flex: 1; justify-content: flex-end;">
+                                <div id="case-response" style="margin-top: 0; padding: 0.5rem 1rem; display:none; border-radius:6px;"></div>
+                                <button type="submit" class="submit-btn" id="case-btn">Save Record</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
+        </div>
+    </div>
 
             <div class="content-card">
                 <div class="table-responsive" style="overflow-x: auto;">
@@ -301,8 +342,137 @@ $today_date = date('Y-m-d');
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script src="<?= BASE_URL ?>/assets/js/main.js"></script>
     <script>
+        // --- Add Case Modal Logic ---
+        function openAddCaseModal() {
+            // Reset forms
+            document.getElementById('case-form').reset();
+            document.getElementById('add-step-1').style.display = 'block';
+            document.getElementById('add-step-2').style.display = 'none';
+            document.getElementById('drill_grade').value = '';
+            document.getElementById('drill_section_container').style.display = 'none';
+            document.getElementById('drill_student_container').style.display = 'none';
+            
+            // Auto-compute school year
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth(); // 0-11 (Aug is 7)
+            let sy = '';
+            if (month >= 7) {
+                sy = year + '-' + (year + 1);
+            } else {
+                sy = (year - 1) + '-' + year;
+            }
+            const sySelect = document.getElementById('school_year');
+            for(let i=0; i<sySelect.options.length; i++){
+                if(sySelect.options[i].value === sy){
+                    sySelect.selectedIndex = i;
+                    break;
+                }
+            }
+
+            document.getElementById('addCaseModal').classList.add('active');
+        }
+
+        function closeAddCaseModal() {
+            document.getElementById('addCaseModal').classList.remove('active');
+        }
+
+        function backToStep1() {
+            document.getElementById('add-step-2').style.display = 'none';
+            document.getElementById('add-step-1').style.display = 'block';
+        }
+
+        function loadSectionsForDrill(grade) {
+            const sectionContainer = document.getElementById('drill_section_container');
+            const studentContainer = document.getElementById('drill_student_container');
+            const sectionSelect = document.getElementById('drill_section');
+            
+            sectionSelect.innerHTML = '<option value="">-- Select Section --</option>';
+            if (sectionSelect.tomselect) sectionSelect.tomselect.sync();
+            studentContainer.style.display = 'none';
+
+            if (!grade) {
+                sectionContainer.style.display = 'none';
+                return;
+            }
+
+            fetch('<?= BASE_URL ?>/api/api_get_sections_by_grade.php?grade_level=' + encodeURIComponent(grade))
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success' && data.data.length > 0) {
+                        data.data.forEach(sec => {
+                            const opt = document.createElement('option');
+                            opt.value = sec;
+                            opt.textContent = sec;
+                            sectionSelect.appendChild(opt);
+                        });
+                        if (sectionSelect.tomselect) sectionSelect.tomselect.sync();
+                        sectionContainer.style.display = 'block';
+                    } else {
+                        sectionContainer.style.display = 'none';
+                        alert('No sections found for this grade.');
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+
+        function loadStudentsForDrill(section) {
+            const grade = document.getElementById('drill_grade').value;
+            const studentContainer = document.getElementById('drill_student_container');
+            const studentList = document.getElementById('drill_student_list');
+            
+            studentList.innerHTML = '';
+            
+            if (!section) {
+                studentContainer.style.display = 'none';
+                return;
+            }
+
+            fetch(`<?= BASE_URL ?>/api/api_get_students_by_section.php?grade_level=${encodeURIComponent(grade)}&section=${encodeURIComponent(section)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success' && data.data.length > 0) {
+                        data.data.forEach(s => {
+                            const div = document.createElement('div');
+                            div.style.padding = '0.5rem';
+                            div.style.background = '#fff';
+                            div.style.border = '1px solid var(--border-light)';
+                            div.style.borderRadius = '4px';
+                            div.style.cursor = 'pointer';
+                            div.style.display = 'flex';
+                            div.style.justifyContent = 'space-between';
+                            
+                            // Make it clickable like a button
+                            div.onmouseover = () => div.style.borderColor = 'var(--primary)';
+                            div.onmouseout = () => div.style.borderColor = 'var(--border-light)';
+                            
+                            div.innerHTML = `<span><strong>${s.full_name}</strong> <small style="color:var(--text-muted);">(LRN: ${s.lrn})</small></span>
+                                             <button type="button" style="background:var(--primary);color:white;border:none;border-radius:4px;padding:0.25rem 0.5rem;font-size:0.75rem;cursor:pointer;">Select</button>`;
+                            
+                            div.onclick = () => selectStudentForCase(s.id, s.full_name, grade, section);
+                            
+                            studentList.appendChild(div);
+                        });
+                        studentContainer.style.display = 'block';
+                    } else {
+                        studentList.innerHTML = '<div style="padding: 0.5rem; color: var(--text-muted);">No students found in this section.</div>';
+                        studentContainer.style.display = 'block';
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+
+        function selectStudentForCase(id, name, grade, section) {
+            document.getElementById('student_id').value = id;
+            document.getElementById('display_student_name').value = name;
+            document.getElementById('grade_section').value = `${grade} - ${section}`;
+            
+            document.getElementById('add-step-1').style.display = 'none';
+            document.getElementById('add-step-2').style.display = 'block';
+        }
         document.getElementById('case-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const btn = document.getElementById('case-btn');

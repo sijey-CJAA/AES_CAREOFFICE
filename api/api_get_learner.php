@@ -8,8 +8,14 @@ if (isset($_GET['id'])) {
     $stmt = $pdo->prepare("SELECT * FROM students WHERE id = ?");
     $stmt->execute([$_GET['id']]);
     $learner = $stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if ($learner) {
+        $stmt_p = $pdo->prepare("SELECT * FROM parents WHERE student_id = ? AND deleted_at IS NULL");
+        $stmt_p->execute([$learner['id']]);
+        $parents = $stmt_p->fetchAll(PDO::FETCH_ASSOC);
+
+        $learner['parents'] = $parents;
+
         echo json_encode(['status' => 'success', 'data' => $learner]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Learner not found']);

@@ -68,18 +68,7 @@ $total_cases = $stmt_cases->fetchColumn();
                     </div>
                 </a>
 
-                <!-- Total Parents -->
-                <a href="<?= BASE_URL ?>/pages/parents.php" style="text-decoration: none; color: inherit;">
-                    <div style="background: white; border: 1px solid var(--border-light); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: transform 0.2s; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
-                        <div style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.1); color: #10b981; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                        </div>
-                        <div>
-                            <div style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Total Parents</div>
-                            <div style="font-size: 1.8rem; font-weight: 800; color: var(--text-dark);"><?php echo $total_parents; ?></div>
-                        </div>
-                    </div>
-                </a>
+
 
                 <!-- Assessment Records -->
                 <a href="<?= BASE_URL ?>/pages/assessments.php" style="text-decoration: none; color: inherit;">

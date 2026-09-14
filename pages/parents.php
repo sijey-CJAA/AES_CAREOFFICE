@@ -48,121 +48,11 @@ $parents = $stmt_parents->fetchAll();
             <span style="color: var(--text-muted); font-size: 0.85rem; display:flex; align-items:center; gap:0.25rem;">Showing <strong style="color:var(--text-dark);">10</strong> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
             <button class="control-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg> Filter</button>
             <button class="control-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg> Export</button>
-            <button class="control-btn btn-primary" onclick="document.getElementById('add-parent-section').style.display = document.getElementById('add-parent-section').style.display === 'none' ? 'block' : 'none'">+ Add New Parent</button>
+            <button class="control-btn btn-primary" onclick="openAddParentModal()">+ Add New Parent</button>
         </div>
     </div>
 
-            <div id="add-parent-section" class="dashboard-card" style="display: none; margin-bottom: 2rem; max-width: 100%;">
-                <form id="parent-form">
-                    
-                    <!-- Link Parent to Student -->
-                    <div class="form-section" style="background: var(--bg-light); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-light);">
-                        <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--primary);">Link to Learner</h3>
-                        <div class="form-group full-width">
-                            <label for="student_id">Select Learner</label>
-                            <select id="student_id" name="student_id" class="form-control" required>
-                                <option value="" disabled selected>-- Select a learner from the database --</option>
-                                <?php foreach($students as $student): ?>
-                                    <option value="<?php echo $student['id']; ?>">
-                                        <?php echo htmlspecialchars($student['full_name']); ?> (LRN: <?php echo htmlspecialchars($student['lrn']); ?>)
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                    </div>
 
-                    <div class="form-section">
-                        <h3>II. Parent / Guardian Information (Primary)</h3>
-                        <div class="form-grid">
-                            <div class="form-group full-width">
-                                <label for="p1_name">Full Name</label>
-                                <input type="text" id="p1_name" name="p1_name" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="p1_relationship">Relationship to Learner</label>
-                                <input type="text" id="p1_relationship" name="p1_relationship" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="p1_mobile">Mobile Number</label>
-                                <input type="text" id="p1_mobile" name="p1_mobile" class="form-control" required>
-                            </div>
-                            <div class="form-group full-width">
-                                <label for="p1_address">Home Address</label>
-                                <textarea id="p1_address" name="p1_address" class="form-control" required></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label for="p1_telephone">Telephone Number</label>
-                                <input type="text" id="p1_telephone" name="p1_telephone" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label for="p1_email">Email Address</label>
-                                <input type="email" id="p1_email" name="p1_email" class="form-control">
-                            </div>
-                            <div class="form-group full-width">
-                                <label for="p1_workplace">Workplace</label>
-                                <input type="text" id="p1_workplace" name="p1_workplace" class="form-control">
-                            </div>
-                            <div class="form-group full-width">
-                                <label for="p1_workplace_address">Workplace Address</label>
-                                <textarea id="p1_workplace_address" name="p1_workplace_address" class="form-control"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label for="p1_emergency">Emergency Contact Number</label>
-                                <input type="text" id="p1_emergency" name="p1_emergency" class="form-control" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h3>Secondary Parent / Guardian (Optional)</h3>
-                        <div class="form-grid">
-                            <div class="form-group full-width">
-                                <label for="p2_name">Full Name</label>
-                                <input type="text" id="p2_name" name="p2_name" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label for="p2_relationship">Relationship to Learner</label>
-                                <input type="text" id="p2_relationship" name="p2_relationship" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label for="p2_mobile">Mobile Number</label>
-                                <input type="text" id="p2_mobile" name="p2_mobile" class="form-control">
-                            </div>
-                            <div class="form-group full-width">
-                                <label for="p2_address">Home Address</label>
-                                <textarea id="p2_address" name="p2_address" class="form-control"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label for="p2_telephone">Telephone Number</label>
-                                <input type="text" id="p2_telephone" name="p2_telephone" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label for="p2_email">Email Address</label>
-                                <input type="email" id="p2_email" name="p2_email" class="form-control">
-                            </div>
-                            <div class="form-group full-width">
-                                <label for="p2_workplace">Workplace</label>
-                                <input type="text" id="p2_workplace" name="p2_workplace" class="form-control">
-                            </div>
-                            <div class="form-group full-width">
-                                <label for="p2_workplace_address">Workplace Address</label>
-                                <textarea id="p2_workplace_address" name="p2_workplace_address" class="form-control"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label for="p2_emergency">Emergency Contact Number</label>
-                                <input type="text" id="p2_emergency" name="p2_emergency" class="form-control">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem;">
-                        <div id="parent-response" style="margin-top: 0; padding: 0.5rem 1rem; flex: 1; display:none; border-radius:6px;"></div>
-                        <button type="submit" class="submit-btn">
-                            Save Parent Record
-                        </button>
-                    </div>
-                </form>
-            </div>
 
             <div class="content-card">
                 <div class="table-responsive" style="overflow-x: auto;">
@@ -225,6 +115,120 @@ $parents = $stmt_parents->fetchAll();
                 <p>&copy; <?php echo date("Y"); ?> AES Care Office. All rights reserved.</p>
             </footer>
         </main>
+    </div>
+
+    <!-- Add Parent Modal -->
+    <div id="addParentModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Parent / Guardian</h2>
+                <button class="modal-close" onclick="closeAddParentModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="parent-form">
+                    <div class="form-group full-width" style="margin-bottom:1.25rem;">
+                        <label for="student_id">Link to Learner</label>
+                        <select id="student_id" name="student_id" class="form-control" required>
+                            <option value="" disabled selected>-- Select a learner --</option>
+                            <?php foreach($students as $student): ?>
+                                <option value="<?php echo $student['id']; ?>">
+                                    <?php echo htmlspecialchars($student['full_name']); ?> (LRN: <?php echo htmlspecialchars($student['lrn']); ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <h4 style="font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--primary);margin-bottom:1rem;">Primary Parent / Guardian</h4>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="p1_name">Full Name</label>
+                            <input type="text" id="p1_name" name="p1_name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="p1_relationship">Relationship</label>
+                            <input type="text" id="p1_relationship" name="p1_relationship" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="p1_mobile">Mobile Number</label>
+                            <input type="text" id="p1_mobile" name="p1_mobile" class="form-control" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="p1_address">Home Address</label>
+                            <textarea id="p1_address" name="p1_address" class="form-control" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="p1_telephone">Telephone</label>
+                            <input type="text" id="p1_telephone" name="p1_telephone" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="p1_email">Email Address</label>
+                            <input type="email" id="p1_email" name="p1_email" class="form-control">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="p1_workplace">Workplace</label>
+                            <input type="text" id="p1_workplace" name="p1_workplace" class="form-control">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="p1_workplace_address">Workplace Address</label>
+                            <textarea id="p1_workplace_address" name="p1_workplace_address" class="form-control"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="p1_emergency">Emergency Contact</label>
+                            <input type="text" id="p1_emergency" name="p1_emergency" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
+                    <h4 style="font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:1rem;">Secondary Parent / Guardian <span style="font-weight:400;">(Optional)</span></h4>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="p2_name">Full Name</label>
+                            <input type="text" id="p2_name" name="p2_name" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="p2_relationship">Relationship</label>
+                            <input type="text" id="p2_relationship" name="p2_relationship" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="p2_mobile">Mobile Number</label>
+                            <input type="text" id="p2_mobile" name="p2_mobile" class="form-control">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="p2_address">Home Address</label>
+                            <textarea id="p2_address" name="p2_address" class="form-control"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="p2_telephone">Telephone</label>
+                            <input type="text" id="p2_telephone" name="p2_telephone" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="p2_email">Email Address</label>
+                            <input type="email" id="p2_email" name="p2_email" class="form-control">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="p2_workplace">Workplace</label>
+                            <input type="text" id="p2_workplace" name="p2_workplace" class="form-control">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="p2_workplace_address">Workplace Address</label>
+                            <textarea id="p2_workplace_address" name="p2_workplace_address" class="form-control"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="p2_emergency">Emergency Contact</label>
+                            <input type="text" id="p2_emergency" name="p2_emergency" class="form-control">
+                        </div>
+                    </div>
+
+                    <div style="display:flex;justify-content:flex-end;align-items:center;gap:1rem;margin-top:1.5rem;">
+                        <div id="parent-response" style="flex:1;display:none;padding:0.5rem 1rem;border-radius:6px;"></div>
+                        <button type="button" onclick="closeAddParentModal()" style="background:white;border:1px solid var(--border-color);padding:0.75rem 1.5rem;border-radius:8px;font-weight:600;cursor:pointer;color:var(--text-muted);">Cancel</button>
+                        <button type="submit" class="submit-btn">Save Parent Record</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Edit Parent Modal -->
@@ -315,6 +319,40 @@ $parents = $stmt_parents->fetchAll();
 
     <script src="<?= BASE_URL ?>/assets/js/main.js"></script>
     <script>
+        function openAddParentModal() {
+            document.getElementById('addParentModal').classList.add('active');
+        }
+        function closeAddParentModal() {
+            document.getElementById('addParentModal').classList.remove('active');
+            document.getElementById('parent-response').style.display = 'none';
+        }
+        // Close on backdrop click
+        document.getElementById('addParentModal').addEventListener('click', function(e) {
+            if (e.target === this) closeAddParentModal();
+        });
+
+        document.getElementById('parent-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = this.querySelector('[type="submit"]');
+            const orig = btn.innerHTML;
+            btn.innerHTML = 'Saving...';
+            btn.disabled = true;
+            const resp = document.getElementById('parent-response');
+            resp.style.display = 'none'; resp.className = '';
+            fetch('<?= BASE_URL ?>/api/process_parent.php', { method:'POST', body: new FormData(this) })
+                .then(r => r.json())
+                .then(data => {
+                    resp.style.display = 'block';
+                    resp.innerHTML = data.message;
+                    if (data.status === 'success') {
+                        resp.className = 'msg-success';
+                        setTimeout(() => { window.location.reload(); }, 900);
+                    } else { resp.className = 'msg-error'; }
+                })
+                .catch(() => { resp.style.display='block'; resp.className='msg-error'; resp.innerHTML='Unexpected error.'; })
+                .finally(() => { btn.innerHTML = orig; btn.disabled = false; });
+        });
+
         function openEditParentModal(id) {
             fetch('<?= BASE_URL ?>/api/api_get_parent.php?id=' + id)
                 .then(response => response.json())

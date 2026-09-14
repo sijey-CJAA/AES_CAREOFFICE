@@ -31,8 +31,9 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deleted Records | AES Care Office</title>
+    <title>Archive | AES Care Office</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <style>
         .tabs {
             display: flex;
@@ -223,6 +224,7 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script src="<?= BASE_URL ?>/assets/js/main.js"></script>
     <script>
         function switchTab(tabName) {

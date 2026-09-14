@@ -15,6 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $status = trim($_POST['edit_status'] ?? '');
     $assessment_provider = trim($_POST['edit_assessment_provider'] ?? '');
     $findings = trim($_POST['edit_findings'] ?? '');
+    $diagnosis = trim($_POST['edit_diagnosis'] ?? '');
     $recommendations = trim($_POST['edit_recommendations'] ?? '');
 
     if (empty($id) || empty($student_id) || empty($record_number) || empty($date)) {
@@ -27,13 +28,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             UPDATE assessment_records 
             SET student_id = ?, record_number = ?, school_year = ?, date = ?, 
                 grade_section = ?, contact_number = ?, status = ?, assessment_provider = ?, 
-                findings = ?, recommendations = ?
+                findings = ?, diagnosis = ?, recommendations = ?
             WHERE id = ?
         ");
         $stmt->execute([
             $student_id, $record_number, $school_year, $date, 
             $grade_section, $contact_number, $status, $assessment_provider, 
-            $findings, $recommendations, 
+            $findings, $diagnosis, $recommendations, 
             $id
         ]);
 
