@@ -452,7 +452,7 @@ $today_date = date('Y-m-d');
                             div.innerHTML = `<span><strong>${s.full_name}</strong> <small style="color:var(--text-muted);">(LRN: ${s.lrn})</small></span>
                                              <button type="button" style="background:var(--primary);color:white;border:none;border-radius:4px;padding:0.25rem 0.5rem;font-size:0.75rem;cursor:pointer;">Select</button>`;
                             
-                            div.onclick = () => selectStudentForCase(s.id, s.full_name, grade, section);
+                            div.onclick = () => selectStudentForCase(s.id, s.full_name, grade, section, s.school_year);
                             
                             studentList.appendChild(div);
                         });
@@ -465,10 +465,16 @@ $today_date = date('Y-m-d');
                 .catch(err => console.error(err));
         }
 
-        function selectStudentForCase(id, name, grade, section) {
+        function selectStudentForCase(id, name, grade, section, schoolYear) {
             document.getElementById('student_id').value = id;
             document.getElementById('display_student_name').value = name;
             document.getElementById('grade_section').value = `${grade} - ${section}`;
+            
+            const syEl = document.getElementById('school_year');
+            if (schoolYear) {
+                if (syEl.tomselect) syEl.tomselect.setValue(schoolYear);
+                else syEl.value = schoolYear;
+            }
             
             document.getElementById('add-step-1').style.display = 'none';
             document.getElementById('add-step-2').style.display = 'block';

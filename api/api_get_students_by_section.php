@@ -19,6 +19,7 @@ try {
             s.full_name, 
             s.lrn, 
             s.status,
+            s.school_year,
             (SELECT mobile_number FROM parents p WHERE p.student_id = s.id AND p.parent_type = 'Primary' AND p.deleted_at IS NULL LIMIT 1) as contact_number
         FROM students s 
         WHERE s.grade_level = ? AND s.section = ? AND s.deleted_at IS NULL 
