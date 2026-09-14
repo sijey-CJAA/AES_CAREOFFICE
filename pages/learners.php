@@ -273,6 +273,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <tr>
                                 <th>Full Name</th>
                                 <th>LRN</th>
+                                <th>School Year</th>
                                 <th>Grade Level</th>
                                 <th>Section</th>
                                 <th>Date of Birth</th>
@@ -343,6 +344,19 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <div class="form-group">
                             <label for="section">Section</label>
                             <input type="text" id="section" name="section" class="form-control" placeholder="e.g. Einstein" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="school_year">School Year</label>
+                            <select id="school_year" name="school_year" class="form-control" required>
+                                <?php
+                                $start_year = 2024;
+                                $end_year = date("Y") + 1;
+                                for ($y = $start_year; $y <= $end_year; $y++) {
+                                    $sy = $y . '-' . ($y + 1);
+                                    echo "<option value=\"$sy\">$sy</option>";
+                                }
+                                ?>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="blood_type">Blood Type (if known)</label>
@@ -474,6 +488,19 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <input type="text" id="edit_section" name="edit_section" class="form-control" placeholder="e.g. Einstein" required>
                         </div>
                         <div class="form-group">
+                            <label for="edit_school_year">School Year</label>
+                            <select id="edit_school_year" name="edit_school_year" class="form-control" required>
+                                <?php
+                                $start_year = 2024;
+                                $end_year = date("Y") + 1;
+                                for ($y = $start_year; $y <= $end_year; $y++) {
+                                    $sy = $y . '-' . ($y + 1);
+                                    echo "<option value=\"$sy\">$sy</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label for="edit_blood_type">Blood Type (if known)</label>
                             <input type="text" id="edit_blood_type" name="edit_blood_type" class="form-control">
                         </div>
@@ -580,6 +607,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
                     <div><strong>Full Name:</strong> <span id="view_full_name"></span></div>
                     <div><strong>LRN:</strong> <span id="view_lrn"></span></div>
+                    <div><strong>School Year:</strong> <span id="view_school_year"></span></div>
                     <div><strong>Grade & Section:</strong> <span id="view_grade_section"></span></div>
                     <div><strong>Date of Birth:</strong> <span id="view_dob"></span></div>
                     <div><strong>Blood Type:</strong> <span id="view_blood_type"></span></div>
@@ -745,6 +773,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return `<tr onclick="viewLearnerModal(${s.id})" style="cursor:pointer;" class="clickable-row">
                 <td style="font-weight:500;color:var(--text-dark);">${esc(s.full_name)}</td>
                 <td style="color:var(--text-muted);">${esc(s.lrn)}</td>
+                <td>${esc(s.school_year || '')}</td>
                 <td>${esc(s.grade_level || s.grade_section || '')}</td>
                 <td>${esc(s.section || '')}</td>
                 <td>${esc(dob)}</td>
@@ -793,6 +822,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         document.getElementById('edit_learner_id').value    = learner.id;
                         document.getElementById('edit_learner_name').value  = learner.full_name;
                         document.getElementById('edit_lrn').value           = learner.lrn;
+                        document.getElementById('edit_school_year').value   = learner.school_year || '';
                         document.getElementById('edit_dob').value           = learner.date_of_birth;
                         document.getElementById('edit_grade_level').value   = learner.grade_level || '';
                         document.getElementById('edit_section').value       = learner.section || '';
@@ -907,6 +937,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         
                         document.getElementById('view_full_name').textContent = learner.full_name;
                         document.getElementById('view_lrn').textContent = learner.lrn;
+                        document.getElementById('view_school_year').textContent = learner.school_year || 'N/A';
                         document.getElementById('view_grade_section').textContent = `${learner.grade_level || learner.grade_section} - ${learner.section}`;
                         document.getElementById('view_dob').textContent = learner.date_of_birth ? new Date(learner.date_of_birth).toLocaleDateString('en-US', {month:'long', day:'2-digit', year:'numeric'}) : 'N/A';
                         document.getElementById('view_blood_type').textContent = learner.blood_type || 'N/A';

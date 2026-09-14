@@ -18,6 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $lrn          = get_post('lrn');
     $grade_level  = get_post('grade_level');
     $section      = get_post('section');
+    $school_year  = get_post('school_year');
     $dob          = get_post('dob');
     $blood_type   = get_post('blood_type');
     $home_address = get_post('home_address');
@@ -37,8 +38,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 
-    if (empty($section)) {
-        echo json_encode(['status' => 'error', 'message' => 'Please enter the Section name.']);
+    if (empty($section) || empty($school_year)) {
+        echo json_encode(['status' => 'error', 'message' => 'Please enter the Section name and School Year.']);
         exit;
     }
 
@@ -46,11 +47,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $pdo->beginTransaction();
 
         $stmt_student = $pdo->prepare("
-            INSERT INTO students (full_name, lrn, grade_level, section, date_of_birth, home_address, blood_type, allergies, medications, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO students (full_name, lrn, grade_level, section, school_year, date_of_birth, home_address, blood_type, allergies, medications, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt_student->execute([
-            $learner_name, $lrn, $grade_level, $section, $dob,
+            $learner_name, $lrn, $grade_level, $section, $school_year, $dob,
             $home_address, $blood_type, $allergies, $medications, $status
         ]);
         

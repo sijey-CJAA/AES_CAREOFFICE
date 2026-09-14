@@ -12,6 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $lrn          = trim($_POST['edit_lrn']          ?? '');
     $grade_level  = trim($_POST['edit_grade_level']  ?? '');
     $section      = trim($_POST['edit_section']      ?? '');
+    $school_year  = trim($_POST['edit_school_year']  ?? '');
     $dob          = trim($_POST['edit_dob']          ?? '');
     $blood_type   = trim($_POST['edit_blood_type']   ?? '');
     $home_address = trim($_POST['edit_home_address'] ?? '');
@@ -30,8 +31,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 
-    if (empty($section)) {
-        echo json_encode(['status' => 'error', 'message' => 'Please enter the Section name.']);
+    if (empty($section) || empty($school_year)) {
+        echo json_encode(['status' => 'error', 'message' => 'Please enter the Section name and School Year.']);
         exit;
     }
 
@@ -40,12 +41,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $stmt = $pdo->prepare("
             UPDATE students
-            SET full_name = ?, lrn = ?, grade_level = ?, section = ?, date_of_birth = ?,
+            SET full_name = ?, lrn = ?, grade_level = ?, section = ?, school_year = ?, date_of_birth = ?,
                 home_address = ?, blood_type = ?, allergies = ?, medications = ?, status = ?
             WHERE id = ?
         ");
         $stmt->execute([
-            $learner_name, $lrn, $grade_level, $section, $dob,
+            $learner_name, $lrn, $grade_level, $section, $school_year, $dob,
             $home_address, $blood_type, $allergies, $medications, $status,
             $id
         ]);
