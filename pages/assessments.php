@@ -64,7 +64,7 @@ $today_date = date('Y-m-d');
         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
             <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">School Year</label>
             <select id="filterSchoolYear" class="form-control" onchange="applyPageFilters()" style="min-width: 150px;">
-                <option value="">All</option>
+                <option value="all">All School Years</option>
                 <option value="2021-2022">2021-2022</option>
                 <option value="2022-2023">2022-2023</option>
                 <option value="2023-2024">2023-2024</option>
@@ -81,7 +81,9 @@ $today_date = date('Y-m-d');
     
     <script>
     function applyPageFilters() {
-        const sy = document.getElementById('filterSchoolYear').value.toLowerCase();
+        let sy = document.getElementById('filterSchoolYear').value.toLowerCase();
+        if (sy === 'all') sy = '';
+        
         const st = document.getElementById('filterStatus').value.toLowerCase();
         const trs = document.querySelectorAll('#dataTable tbody tr');
         let count = 0;
@@ -524,6 +526,21 @@ $today_date = date('Y-m-d');
                     }
                 })
                 .catch(err => console.error(err));
+        }
+
+        function filterDrillStudents() {
+            const input = document.getElementById('drill_student_search').value.toLowerCase();
+            const list = document.getElementById('drill_student_list');
+            const items = list.getElementsByTagName('div');
+            
+            for (let i = 0; i < items.length; i++) {
+                const text = items[i].textContent.toLowerCase();
+                if (text.includes(input)) {
+                    items[i].style.display = 'flex';
+                } else {
+                    items[i].style.display = 'none';
+                }
+            }
         }
 
         function selectStudentForAssessment(id, name, grade, section, status, contactNumber, schoolYear) {

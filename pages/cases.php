@@ -26,6 +26,32 @@ $stmt_cases = $pdo->query("
 ");
 $cases = $stmt_cases->fetchAll();
 
+// Calculate Analytics
+$total_cases_count = count($cases);
+$referred_count = 0;
+$closed_count = 0;
+$ongoing_count = 0;
+$followup_count = 0;
+$other_count = 0;
+$case_type_counts = [];
+
+foreach($cases as $c) {
+    $out = $c['outcome_disposition'];
+    if ($out === 'Referred') $referred_count++;
+    elseif ($out === 'Closed/Resolved') $closed_count++;
+    elseif ($out === 'Ongoing') $ongoing_count++;
+    elseif ($out === 'To Follow-Up') $followup_count++;
+    else $other_count++;
+    
+    $type = $c['case_type'] ?: 'Unknown';
+    if (!isset($case_type_counts[$type])) {
+        $case_type_counts[$type] = 0;
+    }
+    $case_type_counts[$type]++;
+}
+
+arsort($case_type_counts);
+
 // Generate next case number
 $stmt_last = $pdo->query("SELECT MAX(id) FROM case_register");
 $last_id = $stmt_last->fetchColumn() ?: 0;
@@ -60,11 +86,51 @@ $today_date = date('Y-m-d');
         </div>
     </div>
     
+    <!-- Analytics Grid -->
+    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <div onclick="filterByOutcome('')" style="background: white; border: 1px solid var(--border-light); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+            <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Total Cases</span>
+            <span style="font-size: 1.8rem; font-weight: 800; color: var(--primary);"><?= $total_cases_count ?></span>
+        </div>
+        <div onclick="filterByOutcome('Closed/Resolved')" style="background: white; border: 1px solid var(--border-light); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+            <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Closed / Resolved</span>
+            <span style="font-size: 1.8rem; font-weight: 800; color: #166534;"><?= $closed_count ?></span>
+        </div>
+        <div onclick="filterByOutcome('Referred')" style="background: white; border: 1px solid var(--border-light); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+            <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Referred</span>
+            <span style="font-size: 1.8rem; font-weight: 800; color: #1e40af;"><?= $referred_count ?></span>
+        </div>
+        <div onclick="filterByOutcome('Ongoing')" style="background: white; border: 1px solid var(--border-light); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+            <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Ongoing</span>
+            <span style="font-size: 1.8rem; font-weight: 800; color: #92400e;"><?= $ongoing_count ?></span>
+        </div>
+        <div onclick="filterByOutcome('To Follow-Up')" style="background: white; border: 1px solid var(--border-light); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+            <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">To Follow-Up</span>
+            <span style="font-size: 1.8rem; font-weight: 800; color: #8b5cf6;"><?= $followup_count ?></span>
+        </div>
+        <?php if($other_count > 0): ?>
+        <div style="background: white; border: 1px solid var(--border-light); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+            <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Other Outcomes</span>
+            <span style="font-size: 1.8rem; font-weight: 800; color: #475569;"><?= $other_count ?></span>
+        </div>
+        <?php endif; ?>
+    </div>
+
+    <h3 style="font-size: 1.1rem; color: var(--text-dark); margin-bottom: 1rem;">Cases by Type</h3>
+    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <?php foreach($case_type_counts as $type => $count): ?>
+        <div onclick="filterByCaseType('<?= htmlspecialchars($type) ?>')" style="background: white; border: 1px solid var(--border-light); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+            <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></span>
+            <span style="font-size: 1.8rem; font-weight: 800; color: var(--primary);"><?= $count ?></span>
+        </div>
+        <?php endforeach; ?>
+    </div>
+    
     <div id="filterPanel" style="display: none; background: #fff; border: 1px solid var(--border-light); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; gap: 1rem; align-items: center; flex-wrap: wrap;">
         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
             <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">School Year</label>
             <select id="filterSchoolYear" class="form-control" onchange="applyPageFilters()" style="min-width: 150px;">
-                <option value="">All</option>
+                <option value="all">All School Years</option>
                 <option value="2021-2022">2021-2022</option>
                 <option value="2022-2023">2022-2023</option>
                 <option value="2023-2024">2023-2024</option>
@@ -74,24 +140,52 @@ $today_date = date('Y-m-d');
             </select>
         </div>
         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Case Type</label>
+            <input type="text" id="filterCaseType" class="form-control" placeholder="Type case type..." onkeyup="applyPageFilters()" style="min-width: 150px;">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
             <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Outcome</label>
             <input type="text" id="filterStatus" class="form-control" placeholder="Type outcome..." onkeyup="applyPageFilters()" style="min-width: 150px;">
         </div>
     </div>
     
     <script>
+    function filterByOutcome(outcome) {
+        document.getElementById('filterStatus').value = outcome;
+        document.getElementById('filterCaseType').value = '';
+        applyPageFilters();
+        
+        if (outcome !== '') {
+            document.getElementById('filterPanel').style.display = 'flex';
+        }
+    }
+
+    function filterByCaseType(type) {
+        document.getElementById('filterCaseType').value = type;
+        document.getElementById('filterStatus').value = '';
+        applyPageFilters();
+        
+        if (type !== '') {
+            document.getElementById('filterPanel').style.display = 'flex';
+        }
+    }
+
     function applyPageFilters() {
-        const sy = document.getElementById('filterSchoolYear').value.toLowerCase();
+        let sy = document.getElementById('filterSchoolYear').value.toLowerCase();
+        if (sy === 'all') sy = '';
+        
         const st = document.getElementById('filterStatus').value.toLowerCase();
+        const ct = document.getElementById('filterCaseType').value.toLowerCase();
         const trs = document.querySelectorAll('#dataTable tbody tr');
         let count = 0;
         
         trs.forEach(tr => {
             if (tr.children.length < 4) return; // Skip "no records" row
             const rowSy = tr.children[2].textContent.toLowerCase();
+            const rowCt = tr.children[5].textContent.toLowerCase();
             const rowSt = tr.children[8].textContent.toLowerCase();
             
-            if (rowSy.includes(sy) && rowSt.includes(st)) {
+            if (rowSy.includes(sy) && rowSt.includes(st) && rowCt.includes(ct)) {
                 tr.style.display = '';
                 count++;
             } else {
@@ -137,7 +231,10 @@ $today_date = date('Y-m-d');
                     </div>
 
                     <div id="drill_student_container" style="display:none; margin-bottom: 1.5rem;">
-                        <label>Select Student</label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <label style="margin: 0;">Select Student</label>
+                            <input type="text" id="drill_student_search" class="form-control" placeholder="Search name or LRN..." onkeyup="filterDrillStudents()" style="width: 200px; padding: 0.3rem 0.5rem; font-size: 0.85rem;">
+                        </div>
                         <div id="drill_student_list" style="display: grid; gap: 0.5rem; max-height: 250px; overflow-y: auto; padding: 0.5rem; border: 1px solid var(--border-light); border-radius: 6px; background: #f8fafc;">
                             <!-- Student rows populated via JS -->
                         </div>
@@ -195,12 +292,14 @@ $today_date = date('Y-m-d');
                             </div>
                             <div class="form-group">
                                 <label for="outcome_disposition">Outcome/Disposition</label>
-                                <select id="outcome_disposition" name="outcome_disposition" class="form-control" required>
+                                <select id="outcome_disposition" name="outcome_disposition" class="form-control" required onchange="if(this.value==='Other'){document.getElementById('outcome_disposition_other').style.display='block';document.getElementById('outcome_disposition_other').required=true;}else{document.getElementById('outcome_disposition_other').style.display='none';document.getElementById('outcome_disposition_other').required=false;}">
                                     <option value="Ongoing">Ongoing</option>
                                     <option value="To Follow-Up">To Follow-Up</option>
                                     <option value="Referred">Referred</option>
                                     <option value="Closed/Resolved">Closed/Resolved</option>
+                                    <option value="Other">Other</option>
                                 </select>
+                                <input type="text" id="outcome_disposition_other" name="outcome_disposition_other" class="form-control" style="display:none; margin-top:0.5rem;" placeholder="Specify outcome...">
                             </div>
                             <div class="form-group full-width">
                                 <label for="brief_description">Brief Description</label>
@@ -239,7 +338,6 @@ $today_date = date('Y-m-d');
                                 <th>Brief Description</th>
                                 <th>Actions Taken</th>
                                 <th>Outcome</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -249,7 +347,7 @@ $today_date = date('Y-m-d');
                             </tr>
                             <?php else: ?>
                                 <?php foreach($cases as $case): ?>
-                                <tr>
+                                <tr onclick="openEditCaseModal(<?php echo $case['id']; ?>)" style="cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
                                     <td style="color: var(--text-muted);"><?php echo htmlspecialchars($case['case_number']); ?></td>
                                     <td style="font-weight: 500; color: var(--text-dark);"><?php echo htmlspecialchars($case['student_name'] ?? 'Unknown'); ?></td>
                                     <td><?php echo htmlspecialchars($case['school_year']); ?></td>
@@ -269,11 +367,6 @@ $today_date = date('Y-m-d');
                                         <span style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: <?php echo $bg; ?>; color: <?php echo $color; ?>;">
                                             <?php echo htmlspecialchars($outcome); ?>
                                         </span>
-                                    </td>
-                                    <td>
-                                        <button onclick="openEditCaseModal(<?php echo $case['id']; ?>)" style="background: #f1f5f9; color: var(--primary); border: 1px solid #cbd5e1; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
-                                            Edit
-                                        </button>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -355,12 +448,14 @@ $today_date = date('Y-m-d');
                             </div>
                         <div class="form-group">
                             <label for="edit_outcome_disposition">Outcome/Disposition</label>
-                            <select id="edit_outcome_disposition" name="edit_outcome_disposition" class="form-control" required>
+                            <select id="edit_outcome_disposition" name="edit_outcome_disposition" class="form-control" required onchange="if(this.value==='Other'){document.getElementById('edit_outcome_disposition_other').style.display='block';document.getElementById('edit_outcome_disposition_other').required=true;}else{document.getElementById('edit_outcome_disposition_other').style.display='none';document.getElementById('edit_outcome_disposition_other').required=false;}">
                                 <option value="Ongoing">Ongoing</option>
                                 <option value="To Follow-Up">To Follow-Up</option>
                                 <option value="Referred">Referred</option>
                                 <option value="Closed/Resolved">Closed/Resolved</option>
+                                <option value="Other">Other</option>
                             </select>
+                            <input type="text" id="edit_outcome_disposition_other" name="edit_outcome_disposition_other" class="form-control" style="display:none; margin-top:0.5rem;" placeholder="Specify outcome...">
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_brief_description">Brief Description</label>
@@ -509,6 +604,21 @@ $today_date = date('Y-m-d');
                 .catch(err => console.error(err));
         }
 
+        function filterDrillStudents() {
+            const input = document.getElementById('drill_student_search').value.toLowerCase();
+            const list = document.getElementById('drill_student_list');
+            const items = list.getElementsByTagName('div');
+            
+            for (let i = 0; i < items.length; i++) {
+                const text = items[i].textContent.toLowerCase();
+                if (text.includes(input)) {
+                    items[i].style.display = 'flex';
+                } else {
+                    items[i].style.display = 'none';
+                }
+            }
+        }
+
         function selectStudentForCase(id, name, grade, section, schoolYear) {
             document.getElementById('student_id').value = id;
             document.getElementById('display_student_name').value = name;
@@ -604,7 +714,29 @@ $today_date = date('Y-m-d');
                         
                         document.getElementById('edit_brief_description').value = record.brief_description;
                         document.getElementById('edit_actions_taken').value = record.actions_taken;
-                        document.getElementById('edit_outcome_disposition').value = record.outcome_disposition;
+                        
+                        const outcomeSelect = document.getElementById('edit_outcome_disposition');
+                        const outcomeOther = document.getElementById('edit_outcome_disposition_other');
+                        
+                        let isOutcomeStandard = false;
+                        for (let i = 0; i < outcomeSelect.options.length; i++) {
+                            if (outcomeSelect.options[i].value === record.outcome_disposition && record.outcome_disposition !== 'Other') {
+                                isOutcomeStandard = true;
+                                break;
+                            }
+                        }
+
+                        if (isOutcomeStandard) {
+                            outcomeSelect.value = record.outcome_disposition;
+                            outcomeOther.style.display = 'none';
+                            outcomeOther.required = false;
+                            outcomeOther.value = '';
+                        } else {
+                            outcomeSelect.value = 'Other';
+                            outcomeOther.style.display = 'block';
+                            outcomeOther.required = true;
+                            outcomeOther.value = record.outcome_disposition;
+                        }
                         
                         document.getElementById('editCaseModal').classList.add('active');
                     } else {

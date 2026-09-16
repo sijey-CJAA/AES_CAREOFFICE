@@ -18,6 +18,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $brief_description = trim($_POST['edit_brief_description'] ?? '');
     $actions_taken = trim($_POST['edit_actions_taken'] ?? '');
     $outcome_disposition = trim($_POST['edit_outcome_disposition'] ?? '');
+    if ($outcome_disposition === 'Other') {
+        $outcome_disposition = trim($_POST['edit_outcome_disposition_other'] ?? '');
+    }
 
     if (empty($id) || empty($student_id) || empty($case_number) || empty($date)) {
         echo json_encode(['status' => 'error', 'message' => 'Please fill in all required fields.']);

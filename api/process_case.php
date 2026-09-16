@@ -21,6 +21,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $brief_description = get_post('brief_description');
     $actions_taken = get_post('actions_taken');
     $outcome_disposition = get_post('outcome_disposition');
+    if ($outcome_disposition === 'Other') {
+        $outcome_disposition = get_post('outcome_disposition_other');
+    }
 
     if (empty($student_id) || empty($case_number) || empty($date)) {
         echo json_encode(['status' => 'error', 'message' => 'Please fill in all required fields.']);
