@@ -1,14 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --primary: #3b82f6;
-    --primary-hover: #2563eb;
-    --bg-main: #f8fafc;
+    --primary: #16A34A;
+    --primary-hover: #15803D;
+    --bg-main: #F9FAFB;
     --bg-sidebar: #ffffff;
     --text-dark: #0f172a;
     --text-muted: #64748b;
     --text-light: #94a3b8;
-    --border-color: #f1f5f9;
+    --border-color: #D1D5DB;
     --success-bg: #dcfce7;
     --success-text: #166534;
     --warning-bg: #fef3c7;
@@ -125,7 +125,7 @@ body {
 .sidebar-toggle:hover {
     background: var(--primary);
     color: white;
-    box-shadow: 0 4px 10px rgba(37,99,235,0.25);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
     border-color: var(--primary);
 }
 
@@ -168,7 +168,7 @@ body {
 .nav-item.active {
     background-color: var(--primary);
     color: white;
-    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.28);
+    box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.28);
 }
 
 .nav-item svg {
@@ -566,8 +566,8 @@ select.form-control {
 }
 
 select.form-control:focus {
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2316a34a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 textarea.form-control {
@@ -729,7 +729,7 @@ textarea.form-control {
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s, transform 0.1s;
-    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.25);
+    box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.25);
 }
 
 .submit-btn:hover {

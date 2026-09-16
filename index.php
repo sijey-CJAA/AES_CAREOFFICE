@@ -60,7 +60,7 @@ $total_cases = $stmt_cases->fetchColumn();
                 <!-- Total Students -->
                 <a href="<?= BASE_URL ?>/pages/learners.php" style="text-decoration: none; color: inherit;">
                     <div style="background: white; border: 1px solid var(--border-light); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: transform 0.2s; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
-                        <div style="width: 50px; height: 50px; background: rgba(37, 99, 235, 0.1); color: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 50px; height: 50px; background: rgba(22, 163, 74, 0.1); color: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                         </div>
                         <div>

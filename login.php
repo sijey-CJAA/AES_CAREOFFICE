@@ -118,9 +118,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 <div style="display: flex; justify-content: center;">
                     <button type="submit" 
-                            style="width: 200px; padding: 1.15rem; border-radius: 30px; background: var(--primary); color: white; border: none; font-size: 1rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4); text-transform: uppercase;"
-                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(37, 99, 235, 0.5)'" 
-                            onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(37, 99, 235, 0.4)'">
+                            style="width: 200px; padding: 1.15rem; border-radius: 30px; background: var(--primary); color: white; border: none; font-size: 1rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4); text-transform: uppercase;"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(22, 163, 74, 0.5)'" 
+                            onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(22, 163, 74, 0.4)'">
                         Login
                     </button>
                 </div>

@@ -167,7 +167,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .section-filter-bar select:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
         }
         
         .section-pill {
@@ -241,7 +241,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php
                 // Icon colours per slot (All + 6 grades)
                 $card_styles = [
-                    'All'          => ['bg' => 'rgba(37,99,235,0.10)', 'color' => '#2563eb', 'emoji' => '👥'],
+                    'All'          => ['bg' => 'rgba(22, 163, 74, 0.10)', 'color' => '#15803D', 'emoji' => '👥'],
                     'Kindergarten' => ['bg' => '#f4cce8', 'color' => '#a64d79', 'emoji' => '🖍️'],
                     'Grade 1'      => ['bg' => '#cfe2f3', 'color' => '#0b5394', 'emoji' => '1️⃣'],
                     'Grade 2'      => ['bg' => '#ead1dc', 'color' => '#741b47', 'emoji' => '2️⃣'],
