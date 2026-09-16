@@ -610,31 +610,47 @@ $today_date = date('Y-m-d');
                     if (data.status === 'success') {
                         const record = data.data;
                         document.getElementById('edit_assessment_id').value = record.id;
-                        document.getElementById('edit_student_id').value = record.student_id;
+                        
+                        const editStudentId = document.getElementById('edit_student_id');
+                        if (editStudentId.tomselect) editStudentId.tomselect.setValue(record.student_id);
+                        else editStudentId.value = record.student_id;
+                        
                         document.getElementById('edit_record_number').value = record.record_number;
-                        document.getElementById('edit_school_year').value = record.school_year;
+                        
+                        const editSchoolYear = document.getElementById('edit_school_year');
+                        if (editSchoolYear.tomselect) editSchoolYear.tomselect.setValue(record.school_year);
+                        else editSchoolYear.value = record.school_year;
+                        
                         document.getElementById('edit_date').value = record.date;
                         document.getElementById('edit_grade_section').value = record.grade_section;
                         document.getElementById('edit_contact_number').value = record.contact_number;
-                        document.getElementById('edit_status').value = record.status;
+                        
+                        const editStatus = document.getElementById('edit_status');
+                        if (editStatus.tomselect) editStatus.tomselect.setValue(record.status);
+                        else editStatus.value = record.status;
+                        
                         document.getElementById('edit_assessment_provider').value = record.assessment_provider;
-                        document.getElementById('edit_findings').value = record.findings;
                         document.getElementById('edit_findings').value = record.findings;
                         
                         const diag = record.diagnosis || '';
                         const knownDiags = ['GDD', 'IDD', 'ADHD', 'Autism'];
+                        const editDiagSelect = document.getElementById('edit_diagnosis_select');
+                        
                         if (knownDiags.includes(diag)) {
-                            document.getElementById('edit_diagnosis_select').value = diag;
+                            if (editDiagSelect.tomselect) editDiagSelect.tomselect.setValue(diag);
+                            else editDiagSelect.value = diag;
                             document.getElementById('edit_diagnosis_other').style.display = 'none';
                             document.getElementById('edit_diagnosis_other').value = '';
                             document.getElementById('edit_diagnosis').value = diag;
                         } else if (diag === '') {
-                            document.getElementById('edit_diagnosis_select').value = '';
+                            if (editDiagSelect.tomselect) editDiagSelect.tomselect.setValue('');
+                            else editDiagSelect.value = '';
                             document.getElementById('edit_diagnosis_other').style.display = 'none';
                             document.getElementById('edit_diagnosis_other').value = '';
                             document.getElementById('edit_diagnosis').value = '';
                         } else {
-                            document.getElementById('edit_diagnosis_select').value = 'Other';
+                            if (editDiagSelect.tomselect) editDiagSelect.tomselect.setValue('Other');
+                            else editDiagSelect.value = 'Other';
                             document.getElementById('edit_diagnosis_other').style.display = 'block';
                             document.getElementById('edit_diagnosis_other').value = diag;
                             document.getElementById('edit_diagnosis').value = diag;

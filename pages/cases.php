@@ -683,11 +683,20 @@ $today_date = date('Y-m-d');
                     if (data.status === 'success') {
                         const record = data.data;
                         document.getElementById('edit_case_id').value = record.id;
-                        document.getElementById('edit_student_id').value = record.student_id;
+                        
+                        const editStudentId = document.getElementById('edit_student_id');
+                        if (editStudentId.tomselect) editStudentId.tomselect.setValue(record.student_id);
+                        else editStudentId.value = record.student_id;
+                        
                         document.getElementById('edit_case_number').value = record.case_number;
-                        document.getElementById('edit_school_year').value = record.school_year;
+                        
+                        const editSchoolYear = document.getElementById('edit_school_year');
+                        if (editSchoolYear.tomselect) editSchoolYear.tomselect.setValue(record.school_year);
+                        else editSchoolYear.value = record.school_year;
+                        
                         document.getElementById('edit_date').value = record.date;
                         document.getElementById('edit_grade_section').value = record.grade_section;
+                        
                         const caseTypeSelect = document.getElementById('edit_case_type');
                         const caseTypeOther = document.getElementById('edit_case_type_other');
                         
@@ -701,12 +710,14 @@ $today_date = date('Y-m-d');
                         }
 
                         if (isStandard) {
-                            caseTypeSelect.value = record.case_type;
+                            if (caseTypeSelect.tomselect) caseTypeSelect.tomselect.setValue(record.case_type);
+                            else caseTypeSelect.value = record.case_type;
                             caseTypeOther.style.display = 'none';
                             caseTypeOther.required = false;
                             caseTypeOther.value = '';
                         } else {
-                            caseTypeSelect.value = 'Other';
+                            if (caseTypeSelect.tomselect) caseTypeSelect.tomselect.setValue('Other');
+                            else caseTypeSelect.value = 'Other';
                             caseTypeOther.style.display = 'block';
                             caseTypeOther.required = true;
                             caseTypeOther.value = record.case_type;
@@ -727,12 +738,14 @@ $today_date = date('Y-m-d');
                         }
 
                         if (isOutcomeStandard) {
-                            outcomeSelect.value = record.outcome_disposition;
+                            if (outcomeSelect.tomselect) outcomeSelect.tomselect.setValue(record.outcome_disposition);
+                            else outcomeSelect.value = record.outcome_disposition;
                             outcomeOther.style.display = 'none';
                             outcomeOther.required = false;
                             outcomeOther.value = '';
                         } else {
-                            outcomeSelect.value = 'Other';
+                            if (outcomeSelect.tomselect) outcomeSelect.tomselect.setValue('Other');
+                            else outcomeSelect.value = 'Other';
                             outcomeOther.style.display = 'block';
                             outcomeOther.required = true;
                             outcomeOther.value = record.outcome_disposition;
