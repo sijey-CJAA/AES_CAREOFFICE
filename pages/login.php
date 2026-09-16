@@ -1,7 +1,7 @@
 <?php
 // login.php
 session_start();
-require_once 'config/db.php';
+require_once '../config/db.php';
 
 $error = '';
 
@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="<?= BASE_URL ?>/login.php">
+            <form method="POST" action="<?= BASE_URL ?>/pages/login.php">
                 <div style="margin-bottom: 1.25rem;">
                     <input type="email" id="email" name="email" placeholder="Email Address" required autofocus 
                            style="width: 100%; padding: 1.15rem 1.5rem; border-radius: 30px; border: 1.5px solid #e2e8f0; font-size: 1rem; color: var(--text-dark); outline: none; transition: border-color 0.2s;"

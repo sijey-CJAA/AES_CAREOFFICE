@@ -50,7 +50,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         
         <div style="margin-top: auto;"></div>
         
-        <a href="<?= BASE_URL ?>/logout.php" class="nav-item" data-tooltip="Logout">
+        <a href="<?= BASE_URL ?>/pages/logout.php" class="nav-item" data-tooltip="Logout">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
             <span class="nav-text">Logout</span>
         </a>

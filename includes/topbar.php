@@ -24,7 +24,7 @@
                         Change Password
                     </a>
                     <hr style="border: none; border-top: 1px solid var(--border-color); margin: 0.5rem 0;">
-                    <a href="<?= BASE_URL ?>/logout.php" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--danger-text); text-decoration: none; border-radius: 8px; font-size: 0.9rem; font-weight: 500;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='transparent'">
+                    <a href="<?= BASE_URL ?>/pages/logout.php" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--danger-text); text-decoration: none; border-radius: 8px; font-size: 0.9rem; font-weight: 500;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='transparent'">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                         Log Out
                     </a>

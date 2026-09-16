@@ -14,7 +14,7 @@ if (!defined('BASE_URL')) {
 }
 
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header('Location: ' . BASE_URL . '/login.php');
+    header('Location: ' . BASE_URL . '/pages/login.php');
     exit;
 }
 ?>
