@@ -248,17 +248,16 @@ $today_date = date('Y-m-d');
                                 <th>Findings</th>
                                 <th>Diagnosis</th>
                                 <th>Recommendations</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if(empty($assessments)): ?>
                             <tr>
-                                <td colspan="12" style="text-align: center; color: var(--text-muted); padding: 2rem;">No assessment records found.</td>
+                                <td colspan="11" style="text-align: center; color: var(--text-muted); padding: 2rem;">No assessment records found.</td>
                             </tr>
                             <?php else: ?>
                                 <?php foreach($assessments as $record): ?>
-                                <tr>
+                                <tr onclick="openEditAssessmentModal(<?php echo $record['id']; ?>)" style="cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--bg-main)'" onmouseout="this.style.backgroundColor='transparent'">
                                     <td style="color: var(--text-muted);"><?php echo htmlspecialchars($record['record_number']); ?></td>
                                     <td style="font-weight: 500; color: var(--text-dark);"><?php echo htmlspecialchars($record['student_name'] ?? 'Unknown'); ?></td>
                                     <td><?php echo htmlspecialchars(date('M d, Y', strtotime($record['date']))); ?></td>
@@ -270,11 +269,6 @@ $today_date = date('Y-m-d');
                                     <td><?php echo htmlspecialchars(substr($record['findings'], 0, 30)) . (strlen($record['findings']) > 30 ? '...' : ''); ?></td>
                                     <td><?php echo htmlspecialchars(substr($record['diagnosis'] ?? '', 0, 30)) . (strlen($record['diagnosis'] ?? '') > 30 ? '...' : ''); ?></td>
                                     <td><?php echo htmlspecialchars(substr($record['recommendations'], 0, 30)) . (strlen($record['recommendations']) > 30 ? '...' : ''); ?></td>
-                                    <td>
-                                        <button onclick="openEditAssessmentModal(<?php echo $record['id']; ?>)" style="background: #f1f5f9; color: var(--primary); border: 1px solid #cbd5e1; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
-                                            Edit
-                                        </button>
-                                    </td>
                                 </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>

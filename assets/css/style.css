@@ -631,6 +631,7 @@ textarea.form-control {
     flex-direction: column;
     transform: scale(0.95);
     transition: transform 0.2s ease;
+    overflow: hidden;
 }
 
 .modal-overlay.active .modal-content {
@@ -670,6 +671,8 @@ textarea.form-control {
 
 .modal-body {
     padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
 }
 
 /* Pagination placeholder */
