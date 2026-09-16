@@ -106,7 +106,7 @@ $today_date = date('Y-m-d');
 
     <!-- ── Add Assessment Modal ────────────────────────────────────────────────── -->
     <div id="addAssessmentModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-content" style="max-width: 1000px;">
             <div class="modal-header">
                 <h2>Add New Assessment Record</h2>
                 <button class="modal-close" onclick="closeAddAssessmentModal()">
@@ -285,7 +285,7 @@ $today_date = date('Y-m-d');
 
     <!-- Edit Assessment Modal -->
     <div id="editAssessmentModal" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 1500px;">
             <div class="modal-header">
                 <h2>Edit Assessment Record</h2>
                 <button class="modal-close" onclick="closeEditAssessmentModal()">

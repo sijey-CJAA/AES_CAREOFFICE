@@ -198,7 +198,7 @@ $today_date = date('Y-m-d');
 
     <!-- ── Add Case Modal ────────────────────────────────────────────────── -->
     <div id="addCaseModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-content" style="max-width: 1000px;">
             <div class="modal-header">
                 <h2>Add New Case Record</h2>
                 <button class="modal-close" onclick="closeAddCaseModal()">
@@ -384,7 +384,7 @@ $today_date = date('Y-m-d');
 
     <!-- Edit Case Modal -->
     <div id="editCaseModal" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 1500px;">
             <div class="modal-header">
                 <h2>Edit Case Record</h2>
                 <button class="modal-close" onclick="closeEditCaseModal()">
