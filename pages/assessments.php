@@ -137,7 +137,10 @@ $today_date = date('Y-m-d');
                     </div>
 
                     <div id="drill_student_container" style="display:none; margin-bottom: 1.5rem;">
-                        <label>Select Student</label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <label style="margin: 0;">Select Student</label>
+                            <input type="text" id="drill_student_search" class="form-control" placeholder="Search name or LRN..." onkeyup="filterDrillStudents()" style="width: 200px; padding: 0.3rem 0.5rem; font-size: 0.85rem;">
+                        </div>
                         <div id="drill_student_list" style="display: grid; gap: 0.5rem; max-height: 250px; overflow-y: auto; padding: 0.5rem; border: 1px solid var(--border-light); border-radius: 6px; background: #f8fafc;">
                             <!-- Student rows populated via JS -->
                         </div>
@@ -195,8 +198,17 @@ $today_date = date('Y-m-d');
                                 <textarea id="findings" name="findings" class="form-control"></textarea>
                             </div>
                             <div class="form-group full-width">
-                                <label for="diagnosis">Diagnosis</label>
-                                <textarea id="diagnosis" name="diagnosis" class="form-control"></textarea>
+                                <label for="diagnosis_select">Diagnosis</label>
+                                <select id="diagnosis_select" class="form-control" onchange="handleDiagnosisChange(this.value, 'add')">
+                                    <option value="">-- Select Diagnosis --</option>
+                                    <option value="GDD">GDD</option>
+                                    <option value="IDD">IDD</option>
+                                    <option value="ADHD">ADHD</option>
+                                    <option value="Autism">Autism</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <input type="text" id="diagnosis_other" class="form-control" placeholder="Please specify diagnosis" style="display: none; margin-top: 0.5rem;" oninput="document.getElementById('diagnosis').value = this.value">
+                                <input type="hidden" id="diagnosis" name="diagnosis">
                             </div>
                             <div class="form-group full-width">
                                 <label for="recommendations">Recommendations</label>
@@ -341,8 +353,17 @@ $today_date = date('Y-m-d');
                             <textarea id="edit_findings" name="edit_findings" class="form-control"></textarea>
                         </div>
                         <div class="form-group full-width">
-                            <label for="edit_diagnosis">Diagnosis</label>
-                            <textarea id="edit_diagnosis" name="edit_diagnosis" class="form-control"></textarea>
+                            <label for="edit_diagnosis_select">Diagnosis</label>
+                            <select id="edit_diagnosis_select" class="form-control" onchange="handleDiagnosisChange(this.value, 'edit')">
+                                <option value="">-- Select Diagnosis --</option>
+                                <option value="GDD">GDD</option>
+                                <option value="IDD">IDD</option>
+                                <option value="ADHD">ADHD</option>
+                                <option value="Autism">Autism</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <input type="text" id="edit_diagnosis_other" class="form-control" placeholder="Please specify diagnosis" style="display: none; margin-top: 0.5rem;" oninput="document.getElementById('edit_diagnosis').value = this.value">
+                            <input type="hidden" id="edit_diagnosis" name="edit_diagnosis">
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_recommendations">Recommendations</label>
@@ -395,7 +416,25 @@ $today_date = date('Y-m-d');
                 }
             }
 
+            document.getElementById('diagnosis_select').value = '';
+            document.getElementById('diagnosis_other').value = '';
+            document.getElementById('diagnosis_other').style.display = 'none';
+            document.getElementById('diagnosis').value = '';
+
             document.getElementById('addAssessmentModal').classList.add('active');
+        }
+
+        function handleDiagnosisChange(val, mode) {
+            const otherInput = document.getElementById(mode === 'add' ? 'diagnosis_other' : 'edit_diagnosis_other');
+            const hiddenInput = document.getElementById(mode === 'add' ? 'diagnosis' : 'edit_diagnosis');
+            
+            if (val === 'Other') {
+                otherInput.style.display = 'block';
+                hiddenInput.value = otherInput.value;
+            } else {
+                otherInput.style.display = 'none';
+                hiddenInput.value = val;
+            }
         }
 
         function closeAddAssessmentModal() {
@@ -563,7 +602,27 @@ $today_date = date('Y-m-d');
                         document.getElementById('edit_status').value = record.status;
                         document.getElementById('edit_assessment_provider').value = record.assessment_provider;
                         document.getElementById('edit_findings').value = record.findings;
-                        document.getElementById('edit_diagnosis').value = record.diagnosis || '';
+                        document.getElementById('edit_findings').value = record.findings;
+                        
+                        const diag = record.diagnosis || '';
+                        const knownDiags = ['GDD', 'IDD', 'ADHD', 'Autism'];
+                        if (knownDiags.includes(diag)) {
+                            document.getElementById('edit_diagnosis_select').value = diag;
+                            document.getElementById('edit_diagnosis_other').style.display = 'none';
+                            document.getElementById('edit_diagnosis_other').value = '';
+                            document.getElementById('edit_diagnosis').value = diag;
+                        } else if (diag === '') {
+                            document.getElementById('edit_diagnosis_select').value = '';
+                            document.getElementById('edit_diagnosis_other').style.display = 'none';
+                            document.getElementById('edit_diagnosis_other').value = '';
+                            document.getElementById('edit_diagnosis').value = '';
+                        } else {
+                            document.getElementById('edit_diagnosis_select').value = 'Other';
+                            document.getElementById('edit_diagnosis_other').style.display = 'block';
+                            document.getElementById('edit_diagnosis_other').value = diag;
+                            document.getElementById('edit_diagnosis').value = diag;
+                        }
+                        
                         document.getElementById('edit_recommendations').value = record.recommendations;
                         
                         document.getElementById('editAssessmentModal').classList.add('active');

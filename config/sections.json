@@ -1,0 +1,9 @@
+{
+    "Kindergarten": ["Platinum", "Silver"],
+    "Grade 1": ["Crystal", "Diamond", "Opal", "Sapphire"],
+    "Grade 2": ["Rainstone", "Turquoise", "Tourmaline", "Carnelian"],
+    "Grade 3": ["Opalite", "Jade", "Sunstone", "Tanzanite"],
+    "Grade 4": ["Alexandrite", "Fluorite", "Rose Quartz", "Zircon"],
+    "Grade 5": ["Emerald", "Morganite", "Ruby", "Topaz"],
+    "Grade 6": ["Amethyst", "Garnet", "Moonstone", "Pearl"]
+}

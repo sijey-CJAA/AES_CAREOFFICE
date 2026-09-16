@@ -6,6 +6,7 @@ require_once '../config/db.php';
 header('Content-Type: application/json');
 
 $ALLOWED_GRADES = ['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'];
+$GRADE_SECTIONS = json_decode(file_get_contents('../config/sections.json'), true);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -39,7 +40,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     if (empty($section) || empty($school_year)) {
-        echo json_encode(['status' => 'error', 'message' => 'Please enter the Section name and School Year.']);
+        echo json_encode(['status' => 'error', 'message' => 'Please select the Section and School Year.']);
+        exit;
+    }
+
+    if (!isset($GRADE_SECTIONS[$grade_level]) || !in_array($section, $GRADE_SECTIONS[$grade_level])) {
+        echo json_encode(['status' => 'error', 'message' => 'Please select a valid section for the selected grade level.']);
         exit;
     }
 
@@ -61,16 +67,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $p1_name = get_post('p1_name');
         if (!empty($p1_name)) {
             $stmt_p1 = $pdo->prepare("
-                INSERT INTO parents (student_id, parent_type, full_name, relationship, mobile_number, emergency_contact_number, home_address)
-                VALUES (?, 'Primary', ?, ?, ?, ?, ?)
+                INSERT INTO parents (student_id, parent_type, full_name, relationship, mobile_number, telephone_number, email_address, home_address, workplace, workplace_address, emergency_contact_number)
+                VALUES (?, 'Primary', ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt_p1->execute([
                 $student_id, 
                 $p1_name, 
                 get_post('p1_rel'), 
                 get_post('p1_mobile'), 
-                get_post('p1_emergency') === 'Yes' ? get_post('p1_mobile') : '', 
-                get_post('p1_address')
+                get_post('p1_telephone'),
+                get_post('p1_email'),
+                get_post('p1_address'),
+                get_post('p1_workplace'),
+                get_post('p1_workplace_address'),
+                get_post('p1_emergency')
             ]);
         }
 
@@ -78,18 +88,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $p2_name = get_post('p2_name');
         if (!empty($p2_name)) {
             $stmt_p2 = $pdo->prepare("
-                INSERT INTO parents (student_id, parent_type, full_name, relationship, mobile_number, emergency_contact_number, home_address)
-                VALUES (?, 'Secondary', ?, ?, ?, ?, ?)
+                INSERT INTO parents (student_id, parent_type, full_name, relationship, mobile_number, telephone_number, email_address, home_address, workplace, workplace_address, emergency_contact_number)
+                VALUES (?, 'Secondary', ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt_p2->execute([
                 $student_id, 
                 $p2_name, 
                 get_post('p2_rel'), 
                 get_post('p2_mobile'), 
-                get_post('p2_emergency') === 'Yes' ? get_post('p2_mobile') : '', 
-                get_post('p2_address')
+                get_post('p2_telephone'),
+                get_post('p2_email'),
+                get_post('p2_address'),
+                get_post('p2_workplace'),
+                get_post('p2_workplace_address'),
+                get_post('p2_emergency')
             ]);
         }
+
+
 
         $pdo->commit();
         echo json_encode(['status' => 'success', 'message' => 'Learner and parent records successfully saved!']);

@@ -5,6 +5,7 @@ require_once '../config/db.php';
 header('Content-Type: application/json');
 
 $ALLOWED_GRADES = ['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'];
+$GRADE_SECTIONS = json_decode(file_get_contents('../config/sections.json'), true);
 
 // Guard: return a clear error if migration hasn't been applied yet
 $check_col = $pdo->query("SHOW COLUMNS FROM `students` LIKE 'grade_level'")->fetch();
@@ -75,15 +76,8 @@ try {
 
     // Fetch distinct sections for the chosen grade (used to populate the section dropdown)
     $sections = [];
-    if ($grade_level !== 'All' && in_array($grade_level, $ALLOWED_GRADES)) {
-        $stmt_sec = $pdo->prepare("
-            SELECT DISTINCT section
-            FROM students
-            WHERE grade_level = ? AND deleted_at IS NULL
-            ORDER BY section ASC
-        ");
-        $stmt_sec->execute([$grade_level]);
-        $sections = $stmt_sec->fetchAll(PDO::FETCH_COLUMN);
+    if ($grade_level !== 'All' && array_key_exists($grade_level, $GRADE_SECTIONS)) {
+        $sections = $GRADE_SECTIONS[$grade_level];
     }
 
     echo json_encode([

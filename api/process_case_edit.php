@@ -12,6 +12,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $date = trim($_POST['edit_date'] ?? '');
     $grade_section = trim($_POST['edit_grade_section'] ?? '');
     $case_type = trim($_POST['edit_case_type'] ?? '');
+    if ($case_type === 'Other') {
+        $case_type = trim($_POST['edit_case_type_other'] ?? '');
+    }
     $brief_description = trim($_POST['edit_brief_description'] ?? '');
     $actions_taken = trim($_POST['edit_actions_taken'] ?? '');
     $outcome_disposition = trim($_POST['edit_outcome_disposition'] ?? '');

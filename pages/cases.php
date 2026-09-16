@@ -180,7 +180,7 @@ $today_date = date('Y-m-d');
                             </div>
                             <div class="form-group">
                                 <label for="case_type">Case Type</label>
-                                <select id="case_type" name="case_type" class="form-control" required>
+                                <select id="case_type" name="case_type" class="form-control" required onchange="if(this.value==='Other'){document.getElementById('case_type_other').style.display='block';document.getElementById('case_type_other').required=true;}else{document.getElementById('case_type_other').style.display='none';document.getElementById('case_type_other').required=false;}">
                                     <option value="Bullying">Bullying</option>
                                     <option value="Physical Violence/Altercation">Physical Violence/Altercation</option>
                                     <option value="Sexual Violence/Abuse">Sexual Violence/Abuse</option>
@@ -191,6 +191,7 @@ $today_date = date('Y-m-d');
                                     <option value="Family/Home Concern">Family/Home Concern</option>
                                     <option value="Other">Other</option>
                                 </select>
+                                <input type="text" id="case_type_other" name="case_type_other" class="form-control" style="display:none; margin-top:0.5rem;" placeholder="Specify case type...">
                             </div>
                             <div class="form-group">
                                 <label for="outcome_disposition">Outcome/Disposition</label>
@@ -337,20 +338,21 @@ $today_date = date('Y-m-d');
                             <label for="edit_grade_section">Grade & Section</label>
                             <input type="text" id="edit_grade_section" name="edit_grade_section" class="form-control">
                         </div>
-                        <div class="form-group">
-                            <label for="edit_case_type">Case Type</label>
-                            <select id="edit_case_type" name="edit_case_type" class="form-control" required>
-                                <option value="Bullying">Bullying</option>
-                                <option value="Physical Violence/Altercation">Physical Violence/Altercation</option>
-                                <option value="Sexual Violence/Abuse">Sexual Violence/Abuse</option>
-                                <option value="Verbal/Relational Conflict">Verbal/Relational Conflict</option>
-                                <option value="Behavioral Concern">Behavioral Concern</option>
-                                <option value="Emotional/Psychosocial Concern">Emotional/Psychosocial Concern</option>
-                                <option value="Academic Concern">Academic Concern</option>
-                                <option value="Family/Home Concern">Family/Home Concern</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
+                            <div class="form-group">
+                                <label for="edit_case_type">Case Type</label>
+                                <select id="edit_case_type" name="edit_case_type" class="form-control" required onchange="if(this.value==='Other'){document.getElementById('edit_case_type_other').style.display='block';document.getElementById('edit_case_type_other').required=true;}else{document.getElementById('edit_case_type_other').style.display='none';document.getElementById('edit_case_type_other').required=false;}">
+                                    <option value="Bullying">Bullying</option>
+                                    <option value="Physical Violence/Altercation">Physical Violence/Altercation</option>
+                                    <option value="Sexual Violence/Abuse">Sexual Violence/Abuse</option>
+                                    <option value="Verbal/Relational Conflict">Verbal/Relational Conflict</option>
+                                    <option value="Behavioral Concern">Behavioral Concern</option>
+                                    <option value="Emotional/Psychosocial Concern">Emotional/Psychosocial Concern</option>
+                                    <option value="Academic Concern">Academic Concern</option>
+                                    <option value="Family/Home Concern">Family/Home Concern</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <input type="text" id="edit_case_type_other" name="edit_case_type_other" class="form-control" style="display:none; margin-top:0.5rem;" placeholder="Specify case type...">
+                            </div>
                         <div class="form-group">
                             <label for="edit_outcome_disposition">Outcome/Disposition</label>
                             <select id="edit_outcome_disposition" name="edit_outcome_disposition" class="form-control" required>
@@ -576,7 +578,30 @@ $today_date = date('Y-m-d');
                         document.getElementById('edit_school_year').value = record.school_year;
                         document.getElementById('edit_date').value = record.date;
                         document.getElementById('edit_grade_section').value = record.grade_section;
-                        document.getElementById('edit_case_type').value = record.case_type;
+                        const caseTypeSelect = document.getElementById('edit_case_type');
+                        const caseTypeOther = document.getElementById('edit_case_type_other');
+                        
+                        // Check if the record.case_type exists in our dropdown options
+                        let isStandard = false;
+                        for (let i = 0; i < caseTypeSelect.options.length; i++) {
+                            if (caseTypeSelect.options[i].value === record.case_type && record.case_type !== 'Other') {
+                                isStandard = true;
+                                break;
+                            }
+                        }
+
+                        if (isStandard) {
+                            caseTypeSelect.value = record.case_type;
+                            caseTypeOther.style.display = 'none';
+                            caseTypeOther.required = false;
+                            caseTypeOther.value = '';
+                        } else {
+                            caseTypeSelect.value = 'Other';
+                            caseTypeOther.style.display = 'block';
+                            caseTypeOther.required = true;
+                            caseTypeOther.value = record.case_type;
+                        }
+                        
                         document.getElementById('edit_brief_description').value = record.brief_description;
                         document.getElementById('edit_actions_taken').value = record.actions_taken;
                         document.getElementById('edit_outcome_disposition').value = record.outcome_disposition;

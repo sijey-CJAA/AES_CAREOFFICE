@@ -15,6 +15,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $date = get_post('date');
     $grade_section = get_post('grade_section');
     $case_type = get_post('case_type');
+    if ($case_type === 'Other') {
+        $case_type = get_post('case_type_other');
+    }
     $brief_description = get_post('brief_description');
     $actions_taken = get_post('actions_taken');
     $outcome_disposition = get_post('outcome_disposition');

@@ -97,13 +97,13 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
         .grade-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(37,99,235,0.10);
-            border-left-color: var(--primary);
+            box-shadow: 0 6px 16px rgba(39, 78, 19, 0.10);
+            border-left-color: #274e13;
         }
         .grade-card.active {
-            border-left-color: var(--primary);
-            background: rgba(37, 99, 235, 0.05);
-            box-shadow: 0 4px 12px rgba(37,99,235,0.12);
+            border-left-color: #274e13;
+            background: rgba(39, 78, 19, 0.05);
+            box-shadow: 0 4px 12px rgba(39, 78, 19, 0.12);
         }
         .grade-card-icon {
             flex-shrink: 0;
@@ -135,7 +135,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
             line-height: 1.1;
         }
         .grade-card.active .grade-card-count {
-            color: var(--primary);
+            color: #274e13;
         }
 
         /* ── Section Filter Bar ─────────────────────────────────────────────── */
@@ -168,6 +168,34 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .section-pill {
+            border: 1px solid #666;
+            border-radius: 8px;
+            padding: 0.35rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #111;
+            cursor: pointer;
+            text-transform: uppercase;
+            background-color: transparent; /* overridden dynamically */
+            transition: opacity 0.2s, border-width 0.1s;
+        }
+        .section-pill:hover {
+            opacity: 0.8;
+        }
+        .section-pill.active {
+            border-width: 2px;
+            border-color: #000;
+            font-weight: 700;
+        }
+
+        /* Table headers green styling */
+        .data-table thead th {
+            background-color: #274e13 !important;
+            color: white !important;
+            text-transform: uppercase;
         }
 
         /* ── Table loading state ─────────────────────────────────────────────── */
@@ -213,14 +241,14 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php
                 // Icon colours per slot (All + 6 grades)
                 $card_styles = [
-                    'All'          => ['bg' => 'rgba(37,99,235,0.10)',   'color' => '#2563eb', 'emoji' => '👥'],
-                    'Kindergarten' => ['bg' => 'rgba(234,179,8,0.12)',   'color' => '#ca8a04', 'emoji' => '🖍️'],
-                    'Grade 1'      => ['bg' => 'rgba(16,185,129,0.12)',  'color' => '#059669', 'emoji' => '1️⃣'],
-                    'Grade 2'      => ['bg' => 'rgba(139,92,246,0.12)',  'color' => '#7c3aed', 'emoji' => '2️⃣'],
-                    'Grade 3'      => ['bg' => 'rgba(245,158,11,0.12)',  'color' => '#d97706', 'emoji' => '3️⃣'],
-                    'Grade 4'      => ['bg' => 'rgba(239,68,68,0.12)',   'color' => '#dc2626', 'emoji' => '4️⃣'],
-                    'Grade 5'      => ['bg' => 'rgba(236,72,153,0.12)', 'color' => '#db2777', 'emoji' => '5️⃣'],
-                    'Grade 6'      => ['bg' => 'rgba(20,184,166,0.12)',  'color' => '#0d9488', 'emoji' => '6️⃣'],
+                    'All'          => ['bg' => 'rgba(37,99,235,0.10)', 'color' => '#2563eb', 'emoji' => '👥'],
+                    'Kindergarten' => ['bg' => '#f4cce8', 'color' => '#a64d79', 'emoji' => '🖍️'],
+                    'Grade 1'      => ['bg' => '#cfe2f3', 'color' => '#0b5394', 'emoji' => '1️⃣'],
+                    'Grade 2'      => ['bg' => '#ead1dc', 'color' => '#741b47', 'emoji' => '2️⃣'],
+                    'Grade 3'      => ['bg' => '#fce5cd', 'color' => '#b45f06', 'emoji' => '3️⃣'],
+                    'Grade 4'      => ['bg' => '#d9ead3', 'color' => '#274e13', 'emoji' => '4️⃣'],
+                    'Grade 5'      => ['bg' => '#fff2cc', 'color' => '#bf9000', 'emoji' => '5️⃣'],
+                    'Grade 6'      => ['bg' => '#f4cccc', 'color' => '#990000', 'emoji' => '6️⃣'],
                 ];
                 $all_cards = array_merge(['All'], $ALLOWED_GRADES);
                 ?>
@@ -257,12 +285,16 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <?php endforeach; ?>
                 </div>
 
-                <!-- Section Filter (hidden when "All" is selected) -->
                 <div class="section-filter-bar" id="section-filter-bar" style="display: none;">
-                    <label for="section-select">Section:</label>
-                    <select id="section-select" onchange="applyFilters()">
-                        <option value="All">All Sections</option>
-                    </select>
+                    <div style="display: none;">
+                        <label for="section-select">Section:</label>
+                        <select id="section-select" onchange="applyFilters()">
+                            <option value="All">All Sections</option>
+                        </select>
+                    </div>
+                    <div id="section-pills" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-left: 0.5rem;">
+                        <!-- Dynamically filled with pills -->
+                    </div>
                 </div>
                 <?php endif; ?>
 
@@ -334,7 +366,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                         <div class="form-group">
                             <label for="grade_level">Grade Level</label>
-                            <select id="grade_level" name="grade_level" class="form-control" required>
+                            <select id="grade_level" name="grade_level" class="form-control" required onchange="updateSections('grade_level', 'section')">
                                 <option value="" disabled selected>Select Grade</option>
                                 <?php foreach ($ALLOWED_GRADES as $g): ?>
                                     <option value="<?= htmlspecialchars($g) ?>"><?= htmlspecialchars($g) ?></option>
@@ -343,7 +375,9 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                         <div class="form-group">
                             <label for="section">Section</label>
-                            <input type="text" id="section" name="section" class="form-control" placeholder="e.g. Einstein" required>
+                            <select id="section" name="section" class="form-control" required>
+                                <option value="" disabled selected>Select Section</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="school_year">School Year</label>
@@ -400,42 +434,70 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <input type="text" id="p1_mobile" name="p1_mobile" class="form-control" required>
                         </div>
                         <div class="form-group">
-                            <label for="p1_emergency">Emergency Contact?</label>
-                            <select id="p1_emergency" name="p1_emergency" class="form-control">
-                                <option value="Yes" selected>Yes</option>
-                                <option value="No">No</option>
-                            </select>
+                            <label for="p1_telephone">Telephone Number</label>
+                            <input type="text" id="p1_telephone" name="p1_telephone" class="form-control" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="p1_email">Email Address</label>
+                            <input type="email" id="p1_email" name="p1_email" class="form-control" required>
                         </div>
                         <div class="form-group full-width">
                             <label for="p1_address">Home Address</label>
-                            <textarea id="p1_address" name="p1_address" class="form-control"></textarea>
+                            <textarea id="p1_address" name="p1_address" class="form-control" required></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="p1_workplace">Workplace</label>
+                            <input type="text" id="p1_workplace" name="p1_workplace" class="form-control" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="p1_workplace_address">Workplace Address</label>
+                            <textarea id="p1_workplace_address" name="p1_workplace_address" class="form-control" required></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="p1_emergency">Emergency Contact Number</label>
+                            <input type="text" id="p1_emergency" name="p1_emergency" class="form-control" required>
                         </div>
 
                         <!-- Secondary Parent Section -->
-                        <h3 style="margin:1.5rem 0 0.5rem; color:var(--text-dark); border-bottom:1px solid var(--border-light); padding-bottom:0.5rem; grid-column: 1 / -1;">Secondary Parent Details (Optional)</h3>
+                        <h3 style="margin:1.5rem 0 0.5rem; color:var(--text-dark); border-bottom:1px solid var(--border-light); padding-bottom:0.5rem; grid-column: 1 / -1;">Secondary Parent Details</h3>
                         <div class="form-group full-width">
                             <label for="p2_name">Full Name</label>
-                            <input type="text" id="p2_name" name="p2_name" class="form-control">
+                            <input type="text" id="p2_name" name="p2_name" class="form-control" required>
                         </div>
                         <div class="form-group">
                             <label for="p2_rel">Relationship</label>
-                            <input type="text" id="p2_rel" name="p2_rel" class="form-control">
+                            <input type="text" id="p2_rel" name="p2_rel" class="form-control" required>
                         </div>
                         <div class="form-group">
                             <label for="p2_mobile">Mobile Number</label>
-                            <input type="text" id="p2_mobile" name="p2_mobile" class="form-control">
+                            <input type="text" id="p2_mobile" name="p2_mobile" class="form-control" required>
                         </div>
                         <div class="form-group">
-                            <label for="p2_emergency">Emergency Contact?</label>
-                            <select id="p2_emergency" name="p2_emergency" class="form-control">
-                                <option value="No" selected>No</option>
-                                <option value="Yes">Yes</option>
-                            </select>
+                            <label for="p2_telephone">Telephone Number</label>
+                            <input type="text" id="p2_telephone" name="p2_telephone" class="form-control" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="p2_email">Email Address</label>
+                            <input type="email" id="p2_email" name="p2_email" class="form-control" required>
                         </div>
                         <div class="form-group full-width">
                             <label for="p2_address">Home Address</label>
-                            <textarea id="p2_address" name="p2_address" class="form-control"></textarea>
+                            <textarea id="p2_address" name="p2_address" class="form-control" required></textarea>
                         </div>
+                        <div class="form-group full-width">
+                            <label for="p2_workplace">Workplace</label>
+                            <input type="text" id="p2_workplace" name="p2_workplace" class="form-control" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="p2_workplace_address">Workplace Address</label>
+                            <textarea id="p2_workplace_address" name="p2_workplace_address" class="form-control" required></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="p2_emergency">Emergency Contact Number</label>
+                            <input type="text" id="p2_emergency" name="p2_emergency" class="form-control" required>
+                        </div>
+
+
                     </div>
                     <div style="display:flex;justify-content:flex-end;align-items:center;gap:1rem;margin-top:2rem;">
                         <div id="learner-response" style="flex:1;display:none;padding:0.5rem 1rem;border-radius:6px;"></div>
@@ -475,7 +537,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <!-- Grade Level -->
                         <div class="form-group">
                             <label for="edit_grade_level">Grade Level</label>
-                            <select id="edit_grade_level" name="edit_grade_level" class="form-control" required>
+                            <select id="edit_grade_level" name="edit_grade_level" class="form-control" required onchange="updateSections('edit_grade_level', 'edit_section')">
                                 <option value="" disabled>Select Grade</option>
                                 <?php foreach ($ALLOWED_GRADES as $g): ?>
                                     <option value="<?= htmlspecialchars($g) ?>"><?= htmlspecialchars($g) ?></option>
@@ -485,7 +547,9 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <!-- Section -->
                         <div class="form-group">
                             <label for="edit_section">Section</label>
-                            <input type="text" id="edit_section" name="edit_section" class="form-control" placeholder="e.g. Einstein" required>
+                            <select id="edit_section" name="edit_section" class="form-control" required>
+                                <option value="" disabled selected>Select Section</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="edit_school_year">School Year</label>
@@ -543,43 +607,71 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <input type="text" id="edit_p1_mobile" name="edit_p1_mobile" class="form-control" required>
                         </div>
                         <div class="form-group">
-                            <label for="edit_p1_emergency">Emergency Contact?</label>
-                            <select id="edit_p1_emergency" name="edit_p1_emergency" class="form-control">
-                                <option value="Yes">Yes</option>
-                                <option value="No">No</option>
-                            </select>
+                            <label for="edit_p1_telephone">Telephone Number</label>
+                            <input type="text" id="edit_p1_telephone" name="edit_p1_telephone" class="form-control" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="edit_p1_email">Email Address</label>
+                            <input type="email" id="edit_p1_email" name="edit_p1_email" class="form-control" required>
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_p1_address">Home Address</label>
-                            <textarea id="edit_p1_address" name="edit_p1_address" class="form-control"></textarea>
+                            <textarea id="edit_p1_address" name="edit_p1_address" class="form-control" required></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="edit_p1_workplace">Workplace</label>
+                            <input type="text" id="edit_p1_workplace" name="edit_p1_workplace" class="form-control" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="edit_p1_workplace_address">Workplace Address</label>
+                            <textarea id="edit_p1_workplace_address" name="edit_p1_workplace_address" class="form-control" required></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="edit_p1_emergency">Emergency Contact Number</label>
+                            <input type="text" id="edit_p1_emergency" name="edit_p1_emergency" class="form-control" required>
                         </div>
 
                         <!-- Secondary Parent Section -->
-                        <h3 style="margin:1.5rem 0 0.5rem; color:var(--text-dark); border-bottom:1px solid var(--border-light); padding-bottom:0.5rem; grid-column: 1 / -1;">Secondary Parent Details (Optional)</h3>
+                        <h3 style="margin:1.5rem 0 0.5rem; color:var(--text-dark); border-bottom:1px solid var(--border-light); padding-bottom:0.5rem; grid-column: 1 / -1;">Secondary Parent Details</h3>
                         <input type="hidden" id="edit_p2_id" name="edit_p2_id">
                         <div class="form-group full-width">
                             <label for="edit_p2_name">Full Name</label>
-                            <input type="text" id="edit_p2_name" name="edit_p2_name" class="form-control">
+                            <input type="text" id="edit_p2_name" name="edit_p2_name" class="form-control" required>
                         </div>
                         <div class="form-group">
                             <label for="edit_p2_rel">Relationship</label>
-                            <input type="text" id="edit_p2_rel" name="edit_p2_rel" class="form-control">
+                            <input type="text" id="edit_p2_rel" name="edit_p2_rel" class="form-control" required>
                         </div>
                         <div class="form-group">
                             <label for="edit_p2_mobile">Mobile Number</label>
-                            <input type="text" id="edit_p2_mobile" name="edit_p2_mobile" class="form-control">
+                            <input type="text" id="edit_p2_mobile" name="edit_p2_mobile" class="form-control" required>
                         </div>
                         <div class="form-group">
-                            <label for="edit_p2_emergency">Emergency Contact?</label>
-                            <select id="edit_p2_emergency" name="edit_p2_emergency" class="form-control">
-                                <option value="No">No</option>
-                                <option value="Yes">Yes</option>
-                            </select>
+                            <label for="edit_p2_telephone">Telephone Number</label>
+                            <input type="text" id="edit_p2_telephone" name="edit_p2_telephone" class="form-control" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="edit_p2_email">Email Address</label>
+                            <input type="email" id="edit_p2_email" name="edit_p2_email" class="form-control" required>
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_p2_address">Home Address</label>
-                            <textarea id="edit_p2_address" name="edit_p2_address" class="form-control"></textarea>
+                            <textarea id="edit_p2_address" name="edit_p2_address" class="form-control" required></textarea>
                         </div>
+                        <div class="form-group full-width">
+                            <label for="edit_p2_workplace">Workplace</label>
+                            <input type="text" id="edit_p2_workplace" name="edit_p2_workplace" class="form-control" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="edit_p2_workplace_address">Workplace Address</label>
+                            <textarea id="edit_p2_workplace_address" name="edit_p2_workplace_address" class="form-control" required></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="edit_p2_emergency">Emergency Contact Number</label>
+                            <input type="text" id="edit_p2_emergency" name="edit_p2_emergency" class="form-control" required>
+                        </div>
+
+
                     </div>
                     <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem;">
                         <div id="edit-learner-response" style="margin-top: 0; padding: 0.5rem 1rem; flex: 1; display:none; border-radius:6px;"></div>
@@ -642,9 +734,61 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
+    <!-- ── Add Section Modal ────────────────────────────────────────────────── -->
+    <div id="addSectionModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Add New Section</h2>
+                <button class="modal-close" onclick="closeAddSectionModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="add-section-form">
+                    <input type="hidden" id="add_section_grade" name="grade_level">
+                    <div class="form-group full-width">
+                        <label for="new_section_name">Section Name</label>
+                        <input type="text" id="new_section_name" name="section_name" class="form-control" required placeholder="e.g. Ruby">
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem;">
+                        <div id="add-section-response" style="margin-top: 0; padding: 0.5rem 1rem; flex: 1; display:none; border-radius:6px; font-size:0.85rem;"></div>
+                        <button type="submit" class="submit-btn" id="add-section-btn">Add</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script src="<?= BASE_URL ?>/assets/js/main.js"></script>
     <script>
+        // ── Grades and Sections Mapping ────────────────────────────────────────
+        const gradeSections = <?= file_get_contents('../config/sections.json') ?>;
+
+        function updateSections(gradeElementId, sectionElementId) {
+            const gradeSelect = document.getElementById(gradeElementId);
+            const sectionSelect = document.getElementById(sectionElementId);
+            const selectedGrade = gradeSelect.value;
+            const sections = gradeSections[selectedGrade] || [];
+
+            if (sectionSelect.tomselect) {
+                const ts = sectionSelect.tomselect;
+                ts.clear();
+                ts.clearOptions();
+                ts.addOption({value: '', text: 'Select Section', disabled: true});
+                sections.forEach(s => ts.addOption({value: s, text: s}));
+                ts.refreshOptions(false);
+            } else {
+                sectionSelect.innerHTML = '<option value="" disabled selected>Select Section</option>';
+                sections.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = s;
+                    sectionSelect.appendChild(opt);
+                });
+            }
+        }
+
         // ── State ──────────────────────────────────────────────────────────────
         let currentGrade   = 'All';
         let currentSection = 'All';
@@ -734,18 +878,65 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
             });
         }
 
-        // ── Rebuild section dropdown ──────────────────────────────────────────
+        // ── Rebuild section dropdown and pills ────────────────────────────────
         function updateSectionDropdown(sections) {
             const sel = document.getElementById('section-select');
+            const pillsContainer = document.getElementById('section-pills');
+            
             const prevVal = sel.value;
             sel.innerHTML = '<option value="All">All Sections</option>';
+            pillsContainer.innerHTML = '';
+            
+            const gradeColors = {
+                'Kindergarten': '#f4cce8',
+                'Grade 1': '#cfe2f3',
+                'Grade 2': '#ead1dc',
+                'Grade 3': '#fce5cd',
+                'Grade 4': '#d9ead3',
+                'Grade 5': '#fff2cc',
+                'Grade 6': '#f4cccc'
+            };
+            const bgColor = gradeColors[currentGrade] || '#f1f5f9';
+
+            // Always render an "All Sections" pill
+            const allPill = document.createElement('button');
+            allPill.className = 'section-pill' + ('All' === currentSection ? ' active' : '');
+            allPill.textContent = 'ALL SECTIONS';
+            allPill.style.backgroundColor = 'All' === currentSection ? bgColor : 'transparent';
+            allPill.onclick = function() {
+                sel.value = 'All';
+                applyFilters();
+            };
+            pillsContainer.appendChild(allPill);
+
             sections.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s;
                 opt.textContent = s;
                 if (s === prevVal) opt.selected = true;
                 sel.appendChild(opt);
+                
+                const pill = document.createElement('button');
+                pill.className = 'section-pill' + (s === currentSection ? ' active' : '');
+                pill.textContent = s;
+                pill.style.backgroundColor = bgColor;
+                pill.onclick = function() {
+                    sel.value = s;
+                    applyFilters();
+                };
+                pillsContainer.appendChild(pill);
             });
+
+            // Add "+ ADD SECTION" button at the end
+            const addPill = document.createElement('button');
+            addPill.className = 'section-pill';
+            addPill.textContent = '+ ADD SECTION';
+            addPill.style.backgroundColor = '#fce4e4'; // Match the requested pinkish style
+            addPill.onclick = function() {
+                openAddSectionModal(currentGrade);
+            };
+            pillsContainer.appendChild(addPill);
+
             // Keep currentSection in sync
             currentSection = sel.value;
         }
@@ -762,11 +953,11 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             const dob = s.date_of_birth
                 ? new Date(s.date_of_birth).toLocaleDateString('en-US', {month:'short', day:'2-digit', year:'numeric'})
-                : 'N/A';
+                : '';
             const reg = new Date(s.created_at).toLocaleDateString('en-US', {month:'short', day:'2-digit', year:'numeric'});
 
             const truncate = (str, n) => {
-                if (!str) return 'None';
+                if (!str) return '';
                 return str.length > n ? str.substring(0, n) + '…' : str;
             };
 
@@ -777,14 +968,14 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <td>${esc(s.grade_level || s.grade_section || '')}</td>
                 <td>${esc(s.section || '')}</td>
                 <td>${esc(dob)}</td>
-                <td>${esc(s.blood_type || 'N/A')}</td>
+                <td>${esc(s.blood_type || '')}</td>
                 <td><span style="padding:0.25rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:600;background:${sc.bg};color:${sc.color};">${esc(s.status || 'Unknown / Not Indicated')}</span></td>
                 <td>${esc(truncate(s.home_address, 30))}</td>
                 <td>${esc(truncate(s.allergies, 30))}</td>
                 <td>${esc(truncate(s.medications, 30))}</td>
                 <td style="color:var(--text-muted);">${esc(reg)}</td>
-                <td>${esc(s.primary_parent || 'N/A')}</td>
-                <td>${esc(s.secondary_parent || 'N/A')}</td>
+                <td>${esc(s.primary_parent || '')}</td>
+                <td>${esc(s.secondary_parent || '')}</td>
             </tr>`;
         }
 
@@ -825,7 +1016,24 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         document.getElementById('edit_school_year').value   = learner.school_year || '';
                         document.getElementById('edit_dob').value           = learner.date_of_birth;
                         document.getElementById('edit_grade_level').value   = learner.grade_level || '';
+                        
+                        // Update grade level in TomSelect if available
+                        const editGradeLevelTs = document.getElementById('edit_grade_level').tomselect;
+                        if (editGradeLevelTs) {
+                            editGradeLevelTs.setValue(learner.grade_level || '');
+                        }
+
+                        // Populate the sections dropdown based on the newly selected grade
+                        updateSections('edit_grade_level', 'edit_section');
+
                         document.getElementById('edit_section').value       = learner.section || '';
+                        
+                        // Update section in TomSelect if available
+                        const editSectionTs = document.getElementById('edit_section').tomselect;
+                        if (editSectionTs) {
+                            editSectionTs.setValue(learner.section || '');
+                        }
+                        
                         document.getElementById('edit_blood_type').value    = learner.blood_type || '';
                         document.getElementById('edit_status').value        = learner.status || 'Unknown / Not Indicated';
                         document.getElementById('edit_home_address').value  = learner.home_address;
@@ -837,15 +1045,23 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         document.getElementById('edit_p1_name').value = '';
                         document.getElementById('edit_p1_rel').value = '';
                         document.getElementById('edit_p1_mobile').value = '';
-                        document.getElementById('edit_p1_emergency').value = 'No';
+                        document.getElementById('edit_p1_telephone').value = '';
+                        document.getElementById('edit_p1_email').value = '';
                         document.getElementById('edit_p1_address').value = '';
+                        document.getElementById('edit_p1_workplace').value = '';
+                        document.getElementById('edit_p1_workplace_address').value = '';
+                        document.getElementById('edit_p1_emergency').value = '';
 
                         document.getElementById('edit_p2_id').value = '';
                         document.getElementById('edit_p2_name').value = '';
                         document.getElementById('edit_p2_rel').value = '';
                         document.getElementById('edit_p2_mobile').value = '';
-                        document.getElementById('edit_p2_emergency').value = 'No';
+                        document.getElementById('edit_p2_telephone').value = '';
+                        document.getElementById('edit_p2_email').value = '';
                         document.getElementById('edit_p2_address').value = '';
+                        document.getElementById('edit_p2_workplace').value = '';
+                        document.getElementById('edit_p2_workplace_address').value = '';
+                        document.getElementById('edit_p2_emergency').value = '';
 
                         if (learner.parents) {
                             learner.parents.forEach(p => {
@@ -854,18 +1070,28 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     document.getElementById('edit_p1_name').value = p.full_name;
                                     document.getElementById('edit_p1_rel').value = p.relationship;
                                     document.getElementById('edit_p1_mobile').value = p.mobile_number;
-                                    document.getElementById('edit_p1_emergency').value = (p.emergency_contact_number && p.emergency_contact_number !== '') ? 'Yes' : 'No';
-                                    document.getElementById('edit_p1_address').value = p.home_address;
+                                    document.getElementById('edit_p1_telephone').value = p.telephone_number || '';
+                                    document.getElementById('edit_p1_email').value = p.email_address || '';
+                                    document.getElementById('edit_p1_address').value = p.home_address || '';
+                                    document.getElementById('edit_p1_workplace').value = p.workplace || '';
+                                    document.getElementById('edit_p1_workplace_address').value = p.workplace_address || '';
+                                    document.getElementById('edit_p1_emergency').value = p.emergency_contact_number || '';
                                 } else if (p.parent_type === 'Secondary') {
                                     document.getElementById('edit_p2_id').value = p.id;
                                     document.getElementById('edit_p2_name').value = p.full_name;
                                     document.getElementById('edit_p2_rel').value = p.relationship;
                                     document.getElementById('edit_p2_mobile').value = p.mobile_number;
-                                    document.getElementById('edit_p2_emergency').value = (p.emergency_contact_number && p.emergency_contact_number !== '') ? 'Yes' : 'No';
-                                    document.getElementById('edit_p2_address').value = p.home_address;
+                                    document.getElementById('edit_p2_telephone').value = p.telephone_number || '';
+                                    document.getElementById('edit_p2_email').value = p.email_address || '';
+                                    document.getElementById('edit_p2_address').value = p.home_address || '';
+                                    document.getElementById('edit_p2_workplace').value = p.workplace || '';
+                                    document.getElementById('edit_p2_workplace_address').value = p.workplace_address || '';
+                                    document.getElementById('edit_p2_emergency').value = p.emergency_contact_number || '';
                                 }
                             });
                         }
+
+
 
                         document.getElementById('editLearnerModal').classList.add('active');
 
@@ -885,6 +1111,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         document.getElementById('edit-learner-form').addEventListener('submit', function(e) {
+            // ... (keep edit learner form listener as is)
             e.preventDefault();
             const btn = document.getElementById('edit-learner-btn');
             const originalText = btn.innerHTML;
@@ -924,6 +1151,68 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
             .finally(() => {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
+            });
+        });
+
+        // ── Add Section modal ──────────────────────────────────────────────────
+        function openAddSectionModal(grade) {
+            document.getElementById('add_section_grade').value = grade;
+            document.getElementById('new_section_name').value = '';
+            document.getElementById('add-section-response').style.display = 'none';
+            document.getElementById('addSectionModal').classList.add('active');
+        }
+
+        function closeAddSectionModal() {
+            document.getElementById('addSectionModal').classList.remove('active');
+        }
+
+        document.getElementById('add-section-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('add-section-btn');
+            btn.disabled = true;
+            btn.innerHTML = 'Adding...';
+
+            const responseDiv = document.getElementById('add-section-response');
+            responseDiv.style.display = 'none';
+
+            const formData = new FormData(this);
+
+            fetch(BASE_URL + '/api/process_add_section.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                responseDiv.style.display = 'block';
+                responseDiv.innerHTML = data.message;
+                
+                if (data.status === 'success') {
+                    responseDiv.className = 'msg-success';
+                    // Update our local sections map
+                    const grade = document.getElementById('add_section_grade').value;
+                    gradeSections[grade] = data.sections;
+                    
+                    // Trigger section dropdown update to re-render pills
+                    if (currentGrade === grade) {
+                        updateSectionDropdown(gradeSections[grade]);
+                    }
+                    
+                    setTimeout(() => {
+                        closeAddSectionModal();
+                    }, 800);
+                } else {
+                    responseDiv.className = 'msg-error';
+                }
+            })
+            .catch(err => {
+                responseDiv.style.display = 'block';
+                responseDiv.className = 'msg-error';
+                responseDiv.innerHTML = 'An unexpected error occurred.';
+                console.error(err);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = 'Add';
             });
         });
 
@@ -1071,23 +1360,25 @@ function buildLearnerRow($student) {
 
     $grade_level = htmlspecialchars($student['grade_level'] ?? $student['grade_section'] ?? '');
     $section     = htmlspecialchars($student['section'] ?? '');
-    $dob  = $student['date_of_birth'] ? date('M d, Y', strtotime($student['date_of_birth'])) : 'N/A';
+    $school_year = htmlspecialchars($student['school_year'] ?? '');
+    $dob  = $student['date_of_birth'] ? date('M d, Y', strtotime($student['date_of_birth'])) : '';
     $reg  = date('M d, Y', strtotime($student['created_at']));
     $addr = htmlspecialchars(substr($student['home_address'], 0, 30)) . (strlen($student['home_address']) > 30 ? '…' : '');
-    $alrg = htmlspecialchars(substr($student['allergies'] ?: 'None', 0, 30)) . (strlen($student['allergies'] ?: 'None') > 30 ? '…' : '');
-    $meds = htmlspecialchars(substr($student['medications'] ?: 'None', 0, 30)) . (strlen($student['medications'] ?: 'None') > 30 ? '…' : '');
+    $alrg = htmlspecialchars(substr($student['allergies'] ?: '', 0, 30)) . (strlen($student['allergies'] ?: '') > 30 ? '…' : '');
+    $meds = htmlspecialchars(substr($student['medications'] ?: '', 0, 30)) . (strlen($student['medications'] ?: '') > 30 ? '…' : '');
 
-    $p1 = htmlspecialchars($student['primary_parent'] ?? 'N/A');
-    $p2 = htmlspecialchars($student['secondary_parent'] ?? 'N/A');
+    $p1 = htmlspecialchars($student['primary_parent'] ?? '');
+    $p2 = htmlspecialchars($student['secondary_parent'] ?? '');
 
     return "
         <tr onclick='viewLearnerModal({$student['id']})' style='cursor:pointer;' class='clickable-row'>
             <td style='font-weight:500;color:var(--text-dark);'>" . htmlspecialchars($student['full_name']) . "</td>
             <td style='color:var(--text-muted);'>" . htmlspecialchars($student['lrn']) . "</td>
+            <td>{$school_year}</td>
             <td>{$grade_level}</td>
             <td>{$section}</td>
             <td>" . htmlspecialchars($dob) . "</td>
-            <td>" . htmlspecialchars($student['blood_type'] ?: 'N/A') . "</td>
+            <td>" . htmlspecialchars($student['blood_type'] ?: '') . "</td>
             <td><span style='padding:0.25rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:600;background:{$status_bg};color:{$status_color};'>" . htmlspecialchars($status) . "</span></td>
             <td>{$addr}</td>
             <td>{$alrg}</td>
