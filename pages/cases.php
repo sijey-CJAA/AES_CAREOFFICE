@@ -88,28 +88,28 @@ $today_date = date('Y-m-d');
     
     <!-- Analytics Grid -->
     <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-        <div onclick="filterByOutcome('')" style="background: white; border: 1px solid var(--border-light); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <div onclick="filterByOutcome('')" style="background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
             <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Total Cases</span>
             <span style="font-size: 1.8rem; font-weight: 800; color: var(--primary);"><?= $total_cases_count ?></span>
         </div>
-        <div onclick="filterByOutcome('Closed/Resolved')" style="background: white; border: 1px solid var(--border-light); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <div onclick="filterByOutcome('Closed/Resolved')" style="background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
             <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Closed / Resolved</span>
             <span style="font-size: 1.8rem; font-weight: 800; color: #166534;"><?= $closed_count ?></span>
         </div>
-        <div onclick="filterByOutcome('Referred')" style="background: white; border: 1px solid var(--border-light); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <div onclick="filterByOutcome('Referred')" style="background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
             <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Referred</span>
             <span style="font-size: 1.8rem; font-weight: 800; color: #1e40af;"><?= $referred_count ?></span>
         </div>
-        <div onclick="filterByOutcome('Ongoing')" style="background: white; border: 1px solid var(--border-light); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <div onclick="filterByOutcome('Ongoing')" style="background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
             <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Ongoing</span>
             <span style="font-size: 1.8rem; font-weight: 800; color: #92400e;"><?= $ongoing_count ?></span>
         </div>
-        <div onclick="filterByOutcome('To Follow-Up')" style="background: white; border: 1px solid var(--border-light); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <div onclick="filterByOutcome('To Follow-Up')" style="background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
             <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">To Follow-Up</span>
             <span style="font-size: 1.8rem; font-weight: 800; color: #8b5cf6;"><?= $followup_count ?></span>
         </div>
         <?php if($other_count > 0): ?>
-        <div style="background: white; border: 1px solid var(--border-light); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <div style="background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
             <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">Other Outcomes</span>
             <span style="font-size: 1.8rem; font-weight: 800; color: #475569;"><?= $other_count ?></span>
         </div>
@@ -119,14 +119,14 @@ $today_date = date('Y-m-d');
     <h3 style="font-size: 1.1rem; color: var(--text-dark); margin-bottom: 1rem;">Cases by Type</h3>
     <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
         <?php foreach($case_type_counts as $type => $count): ?>
-        <div onclick="filterByCaseType('<?= htmlspecialchars($type) ?>')" style="background: white; border: 1px solid var(--border-light); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <div onclick="filterByCaseType('<?= htmlspecialchars($type) ?>')" style="background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 1.2rem; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
             <span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($type) ?></span>
             <span style="font-size: 1.8rem; font-weight: 800; color: var(--primary);"><?= $count ?></span>
         </div>
         <?php endforeach; ?>
     </div>
     
-    <div id="filterPanel" style="display: none; background: #fff; border: 1px solid var(--border-light); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; gap: 1rem; align-items: center; flex-wrap: wrap;">
+    <div id="filterPanel" style="display: none; background: #fff; border: 1px solid var(--border-color); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; gap: 1rem; align-items: center; flex-wrap: wrap;">
         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
             <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">School Year</label>
             <select id="filterSchoolYear" class="form-control" onchange="applyPageFilters()" style="min-width: 150px;">

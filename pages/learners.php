@@ -171,31 +171,37 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
         
         .section-pill {
-            border: 1px solid #666;
-            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
             padding: 0.35rem 1rem;
             font-size: 0.85rem;
-            font-weight: 500;
-            color: #111;
+            font-weight: 600;
+            color: var(--text-muted);
             cursor: pointer;
             text-transform: uppercase;
-            background-color: transparent; /* overridden dynamically */
-            transition: opacity 0.2s, border-width 0.1s;
+            background-color: white;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         .section-pill:hover {
-            opacity: 0.8;
+            border-color: var(--primary);
+            color: var(--text-dark);
         }
         .section-pill.active {
-            border-width: 2px;
-            border-color: #000;
-            font-weight: 700;
+            border-color: var(--primary);
+            background-color: rgba(0, 135, 90, 0.05);
+            color: var(--primary);
         }
 
         /* Table headers green styling */
         .data-table thead th {
-            background-color: #274e13 !important;
+            background-color: var(--primary) !important;
             color: white !important;
             text-transform: uppercase;
+            font-weight: 600;
         }
 
         /* ── Table loading state ─────────────────────────────────────────────── */
@@ -241,7 +247,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php
                 // Icon colours per slot (All + 6 grades)
                 $card_styles = [
-                    'All'          => ['bg' => 'rgba(22, 163, 74, 0.10)', 'color' => '#15803D', 'emoji' => '👥'],
+                    'All'          => ['bg' => 'rgba(0, 135, 90, 0.10)', 'color' => 'var(--primary)', 'emoji' => '👥'],
                     'Kindergarten' => ['bg' => '#f4cce8', 'color' => '#a64d79', 'emoji' => '🖍️'],
                     'Grade 1'      => ['bg' => '#cfe2f3', 'color' => '#0b5394', 'emoji' => '1️⃣'],
                     'Grade 2'      => ['bg' => '#ead1dc', 'color' => '#741b47', 'emoji' => '2️⃣'],
@@ -688,47 +694,130 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <!-- ── View Learner Modal ────────────────────────────────────────────────── -->
     <div id="viewLearnerModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 800px;">
-            <div class="modal-header">
-                <h2>Learner Full Information</h2>
-                <button class="modal-close" onclick="closeViewLearnerModal()">
+        <div class="modal-content" style="max-width: 700px; padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 4px; height: 24px; background: var(--primary); border-radius: 4px;"></div>
+                    <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-dark);">Learner Full Information</h2>
+                </div>
+                <button class="modal-close" onclick="closeViewLearnerModal()" style="background: none; border: none; cursor: pointer; color: var(--text-muted);">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
-            <div class="modal-body" style="padding-bottom: 2rem;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
-                    <div><strong>Full Name:</strong> <span id="view_full_name"></span></div>
-                    <div><strong>LRN:</strong> <span id="view_lrn"></span></div>
-                    <div><strong>School Year:</strong> <span id="view_school_year"></span></div>
-                    <div><strong>Grade & Section:</strong> <span id="view_grade_section"></span></div>
-                    <div><strong>Date of Birth:</strong> <span id="view_dob"></span></div>
-                    <div><strong>Blood Type:</strong> <span id="view_blood_type"></span></div>
-                    <div><strong>Status:</strong> <span id="view_status"></span></div>
-                    <div style="grid-column: 1 / -1;"><strong>Home Address:</strong> <span id="view_address"></span></div>
-                    <div style="grid-column: 1 / -1;"><strong>Allergies:</strong> <span id="view_allergies"></span></div>
-                    <div style="grid-column: 1 / -1;"><strong>Medications:</strong> <span id="view_medications"></span></div>
+            <div class="modal-body" style="padding-bottom: 0;">
+                
+                <!-- Student Profile -->
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.5px;">Student Profile</div>
+                <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; background: #fafafa;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Full Name</span>
+                            <span id="view_full_name" style="font-size: 0.95rem; font-weight: 600; color: var(--text-dark);"></span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">LRN</span>
+                            <span id="view_lrn" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">School Year</span>
+                            <span id="view_school_year" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Grade & Section</span>
+                            <span id="view_grade_section" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Date of Birth</span>
+                            <span id="view_dob" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Blood Type</span>
+                            <span id="view_blood_type" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Status</span>
+                            <span id="view_status" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                    </div>
+                    <div style="border-top: 1px dashed var(--border-color); padding-top: 1.5rem; display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Home Address</span>
+                            <span id="view_address" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                    </div>
+                    <div style="border-top: 1px dashed var(--border-color); padding-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Allergies</span>
+                            <span id="view_allergies" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Medications</span>
+                            <span id="view_medications" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                    </div>
                 </div>
 
-                <h3 style="border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem; margin-bottom: 1rem;">Primary Parent</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
-                    <div><strong>Name:</strong> <span id="view_p1_name"></span></div>
-                    <div><strong>Relationship:</strong> <span id="view_p1_rel"></span></div>
-                    <div><strong>Mobile Number:</strong> <span id="view_p1_mobile"></span></div>
-                    <div><strong>Emergency Contact:</strong> <span id="view_p1_emergency"></span></div>
-                    <div style="grid-column: 1 / -1;"><strong>Home Address:</strong> <span id="view_p1_address"></span></div>
+                <!-- Primary Parent -->
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.5px;">Primary Parent</div>
+                <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; background: #fafafa;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Name</span>
+                            <span id="view_p1_name" style="font-size: 0.95rem; font-weight: 600; color: var(--text-dark);"></span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Relationship</span>
+                            <span id="view_p1_rel" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Mobile Number</span>
+                            <span id="view_p1_mobile" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Emergency Contact</span>
+                            <span id="view_p1_emergency" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                    </div>
+                    <div style="border-top: 1px dashed var(--border-color); padding-top: 1.5rem; display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Home Address</span>
+                            <span id="view_p1_address" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                    </div>
                 </div>
 
-                <h3 style="border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem; margin-bottom: 1rem;">Secondary Parent</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
-                    <div><strong>Name:</strong> <span id="view_p2_name"></span></div>
-                    <div><strong>Relationship:</strong> <span id="view_p2_rel"></span></div>
-                    <div><strong>Mobile Number:</strong> <span id="view_p2_mobile"></span></div>
-                    <div><strong>Emergency Contact:</strong> <span id="view_p2_emergency"></span></div>
-                    <div style="grid-column: 1 / -1;"><strong>Home Address:</strong> <span id="view_p2_address"></span></div>
+                <!-- Secondary Parent -->
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.5px;">Secondary Parent</div>
+                <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; background: #fafafa;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Name</span>
+                            <span id="view_p2_name" style="font-size: 0.95rem; font-weight: 600; color: var(--text-dark);"></span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Relationship</span>
+                            <span id="view_p2_rel" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Mobile Number</span>
+                            <span id="view_p2_mobile" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Emergency Contact</span>
+                            <span id="view_p2_emergency" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                    </div>
+                    <div style="border-top: 1px dashed var(--border-color); padding-top: 1.5rem; display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">Home Address</span>
+                            <span id="view_p2_address" style="font-size: 0.95rem; color: var(--text-dark);"></span>
+                        </div>
+                    </div>
                 </div>
 
-                <div style="display: flex; justify-content: flex-end;">
-                    <button id="view_edit_btn" class="submit-btn" style="padding: 0.75rem 2rem;">Edit Details</button>
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                    <button class="control-btn" onclick="closeViewLearnerModal()" style="padding: 0.75rem 1.5rem;">Close</button>
+                    <button id="view_edit_btn" class="submit-btn" style="padding: 0.75rem 2rem; border-radius: 8px;">Edit Details</button>
                 </div>
             </div>
         </div>

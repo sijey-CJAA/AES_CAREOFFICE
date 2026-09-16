@@ -1,14 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --primary: #16A34A;
-    --primary-hover: #15803D;
-    --bg-main: #F9FAFB;
+    --primary: #00875A;
+    --primary-hover: #059669;
+    --bg-main: #F8FAFC;
     --bg-sidebar: #ffffff;
     --text-dark: #0f172a;
     --text-muted: #64748b;
     --text-light: #94a3b8;
-    --border-color: #D1D5DB;
+    --border-color: #E2E8F0;
     --success-bg: #dcfce7;
     --success-text: #166534;
     --warning-bg: #fef3c7;
@@ -125,7 +125,7 @@ body {
 .sidebar-toggle:hover {
     background: var(--primary);
     color: white;
-    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     border-color: var(--primary);
 }
 
@@ -168,7 +168,8 @@ body {
 .nav-item.active {
     background-color: var(--primary);
     color: white;
-    box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.28);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-radius: 9999px;
 }
 
 .nav-item svg {
@@ -258,10 +259,11 @@ body {
     display: flex;
     align-items: center;
     background: white;
-    padding: 0.75rem 1rem;
-    border-radius: 20px;
+    padding: 0.75rem 1.25rem;
+    border-radius: 9999px;
     width: 350px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid var(--border-color);
 }
 
 .search-bar svg {
@@ -374,7 +376,7 @@ body {
     font-weight: 500;
     color: var(--text-dark);
     cursor: pointer;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .control-btn svg {
@@ -394,10 +396,11 @@ body {
 /* White Card Container for Tables */
 .content-card {
     background: white;
-    border-radius: 16px;
+    border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
 }
 
 /* Data Tables */
@@ -566,8 +569,8 @@ select.form-control {
 }
 
 select.form-control:focus {
-    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2316a34a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    box-shadow: 0 0 0 3px rgba(0, 135, 90, 0.2);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300875A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 textarea.form-control {
@@ -587,8 +590,8 @@ textarea.form-control {
 .login-card {
     background: white;
     padding: 3rem 2rem;
-    border-radius: 16px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     width: 100%;
     max-width: 400px;
     border: 1px solid var(--border-color);
@@ -601,7 +604,7 @@ textarea.form-control {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.4);
+    background: rgba(0,0,0,0.4);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
@@ -609,7 +612,7 @@ textarea.form-control {
     z-index: 1000;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
+    transition: opacity 0.2s, visibility 0.2s;
 }
 
 .modal-overlay.active {
@@ -619,14 +622,15 @@ textarea.form-control {
 
 .modal-content {
     background: white;
-    border-radius: 16px;
-    width: 95%;
-    max-width: 1100px;
-    max-height: 95vh;
-    overflow-y: auto;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    transform: translateY(20px);
-    transition: transform 0.3s ease;
+    width: 90%;
+    max-width: 600px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.95);
+    transition: transform 0.2s ease;
 }
 
 .modal-overlay.active .modal-content {
@@ -729,7 +733,7 @@ textarea.form-control {
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s, transform 0.1s;
-    box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.25);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .submit-btn:hover {
