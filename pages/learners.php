@@ -360,19 +360,19 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="learner_name">Learner's Full Name</label>
-                            <input type="text" id="learner_name" name="learner_name" class="form-control" required>
+                            <input type="text" id="learner_name" name="learner_name" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="lrn">Learner Reference Number (LRN)</label>
-                            <input type="text" id="lrn" name="lrn" class="form-control" required>
+                            <input type="text" id="lrn" name="lrn" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="dob">Date of Birth</label>
-                            <input type="date" id="dob" name="dob" class="form-control" required>
+                            <input type="date" id="dob" name="dob" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="grade_level">Grade Level</label>
-                            <select id="grade_level" name="grade_level" class="form-control" required onchange="updateSections('grade_level', 'section')">
+                            <select id="grade_level" name="grade_level" class="form-control" onchange="updateSections('grade_level', 'section')">
                                 <option value="" disabled selected>Select Grade</option>
                                 <?php foreach ($ALLOWED_GRADES as $g): ?>
                                     <option value="<?= htmlspecialchars($g) ?>"><?= htmlspecialchars($g) ?></option>
@@ -381,13 +381,13 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                         <div class="form-group">
                             <label for="section">Section</label>
-                            <select id="section" name="section" class="form-control" required>
+                            <select id="section" name="section" class="form-control">
                                 <option value="" disabled selected>Select Section</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="school_year">School Year</label>
-                            <select id="school_year" name="school_year" class="form-control" required>
+                            <select id="school_year" name="school_year" class="form-control">
                                 <?php
                                 $start_year = 2024;
                                 $end_year = date("Y") + 1;
@@ -414,7 +414,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                         <div class="form-group full-width">
                             <label for="home_address">Home Address</label>
-                            <textarea id="home_address" name="home_address" class="form-control" required></textarea>
+                            <textarea id="home_address" name="home_address" class="form-control"></textarea>
                         </div>
                         <div class="form-group full-width">
                             <label for="allergies">Allergies / Medical Conditions</label>
@@ -429,78 +429,78 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <h3 style="margin:1.5rem 0 0.5rem; color:var(--text-dark); border-bottom:1px solid var(--border-light); padding-bottom:0.5rem; grid-column: 1 / -1;">Primary Parent Details</h3>
                         <div class="form-group full-width">
                             <label for="p1_name">Full Name</label>
-                            <input type="text" id="p1_name" name="p1_name" class="form-control" required>
+                            <input type="text" id="p1_name" name="p1_name" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="p1_rel">Relationship</label>
-                            <input type="text" id="p1_rel" name="p1_rel" class="form-control" placeholder="e.g. Mother, Father" required>
+                            <input type="text" id="p1_rel" name="p1_rel" class="form-control" placeholder="e.g. Mother, Father">
                         </div>
                         <div class="form-group">
                             <label for="p1_mobile">Mobile Number</label>
-                            <input type="text" id="p1_mobile" name="p1_mobile" class="form-control" required>
+                            <input type="text" id="p1_mobile" name="p1_mobile" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="p1_telephone">Telephone Number</label>
-                            <input type="text" id="p1_telephone" name="p1_telephone" class="form-control" required>
+                            <input type="text" id="p1_telephone" name="p1_telephone" class="form-control">
                         </div>
                         <div class="form-group full-width">
                             <label for="p1_email">Email Address</label>
-                            <input type="email" id="p1_email" name="p1_email" class="form-control" required>
+                            <input type="email" id="p1_email" name="p1_email" class="form-control">
                         </div>
                         <div class="form-group full-width">
                             <label for="p1_address">Home Address</label>
-                            <textarea id="p1_address" name="p1_address" class="form-control" required></textarea>
+                            <textarea id="p1_address" name="p1_address" class="form-control"></textarea>
                         </div>
                         <div class="form-group full-width">
                             <label for="p1_workplace">Workplace</label>
-                            <input type="text" id="p1_workplace" name="p1_workplace" class="form-control" required>
+                            <input type="text" id="p1_workplace" name="p1_workplace" class="form-control">
                         </div>
                         <div class="form-group full-width">
                             <label for="p1_workplace_address">Workplace Address</label>
-                            <textarea id="p1_workplace_address" name="p1_workplace_address" class="form-control" required></textarea>
+                            <textarea id="p1_workplace_address" name="p1_workplace_address" class="form-control"></textarea>
                         </div>
                         <div class="form-group full-width">
                             <label for="p1_emergency">Emergency Contact Number</label>
-                            <input type="text" id="p1_emergency" name="p1_emergency" class="form-control" required>
+                            <input type="text" id="p1_emergency" name="p1_emergency" class="form-control">
                         </div>
 
                         <!-- Secondary Parent Section -->
                         <h3 style="margin:1.5rem 0 0.5rem; color:var(--text-dark); border-bottom:1px solid var(--border-light); padding-bottom:0.5rem; grid-column: 1 / -1;">Secondary Parent Details</h3>
                         <div class="form-group full-width">
                             <label for="p2_name">Full Name</label>
-                            <input type="text" id="p2_name" name="p2_name" class="form-control" required>
+                            <input type="text" id="p2_name" name="p2_name" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="p2_rel">Relationship</label>
-                            <input type="text" id="p2_rel" name="p2_rel" class="form-control" required>
+                            <input type="text" id="p2_rel" name="p2_rel" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="p2_mobile">Mobile Number</label>
-                            <input type="text" id="p2_mobile" name="p2_mobile" class="form-control" required>
+                            <input type="text" id="p2_mobile" name="p2_mobile" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="p2_telephone">Telephone Number</label>
-                            <input type="text" id="p2_telephone" name="p2_telephone" class="form-control" required>
+                            <input type="text" id="p2_telephone" name="p2_telephone" class="form-control">
                         </div>
                         <div class="form-group full-width">
                             <label for="p2_email">Email Address</label>
-                            <input type="email" id="p2_email" name="p2_email" class="form-control" required>
+                            <input type="email" id="p2_email" name="p2_email" class="form-control">
                         </div>
                         <div class="form-group full-width">
                             <label for="p2_address">Home Address</label>
-                            <textarea id="p2_address" name="p2_address" class="form-control" required></textarea>
+                            <textarea id="p2_address" name="p2_address" class="form-control"></textarea>
                         </div>
                         <div class="form-group full-width">
                             <label for="p2_workplace">Workplace</label>
-                            <input type="text" id="p2_workplace" name="p2_workplace" class="form-control" required>
+                            <input type="text" id="p2_workplace" name="p2_workplace" class="form-control">
                         </div>
                         <div class="form-group full-width">
                             <label for="p2_workplace_address">Workplace Address</label>
-                            <textarea id="p2_workplace_address" name="p2_workplace_address" class="form-control" required></textarea>
+                            <textarea id="p2_workplace_address" name="p2_workplace_address" class="form-control"></textarea>
                         </div>
                         <div class="form-group full-width">
                             <label for="p2_emergency">Emergency Contact Number</label>
-                            <input type="text" id="p2_emergency" name="p2_emergency" class="form-control" required>
+                            <input type="text" id="p2_emergency" name="p2_emergency" class="form-control">
                         </div>
 
 
@@ -530,20 +530,20 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="edit_learner_name">Learner's Full Name</label>
-                            <input type="text" id="edit_learner_name" name="edit_learner_name" class="form-control" required>
+                            <input type="text" id="edit_learner_name" name="edit_learner_name" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="edit_lrn">Learner Reference Number (LRN)</label>
-                            <input type="text" id="edit_lrn" name="edit_lrn" class="form-control" required>
+                            <input type="text" id="edit_lrn" name="edit_lrn" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="edit_dob">Date of Birth</label>
-                            <input type="date" id="edit_dob" name="edit_dob" class="form-control" required>
+                            <input type="date" id="edit_dob" name="edit_dob" class="form-control">
                         </div>
                         <!-- Grade Level -->
                         <div class="form-group">
                             <label for="edit_grade_level">Grade Level</label>
-                            <select id="edit_grade_level" name="edit_grade_level" class="form-control" required onchange="updateSections('edit_grade_level', 'edit_section')">
+                            <select id="edit_grade_level" name="edit_grade_level" class="form-control" onchange="updateSections('edit_grade_level', 'edit_section')">
                                 <option value="" disabled>Select Grade</option>
                                 <?php foreach ($ALLOWED_GRADES as $g): ?>
                                     <option value="<?= htmlspecialchars($g) ?>"><?= htmlspecialchars($g) ?></option>
@@ -553,13 +553,13 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <!-- Section -->
                         <div class="form-group">
                             <label for="edit_section">Section</label>
-                            <select id="edit_section" name="edit_section" class="form-control" required>
+                            <select id="edit_section" name="edit_section" class="form-control">
                                 <option value="" disabled selected>Select Section</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="edit_school_year">School Year</label>
-                            <select id="edit_school_year" name="edit_school_year" class="form-control" required>
+                            <select id="edit_school_year" name="edit_school_year" class="form-control">
                                 <?php
                                 $start_year = 2024;
                                 $end_year = date("Y") + 1;
@@ -586,7 +586,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_home_address">Home Address</label>
-                            <textarea id="edit_home_address" name="edit_home_address" class="form-control" required></textarea>
+                            <textarea id="edit_home_address" name="edit_home_address" class="form-control"></textarea>
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_allergies">Allergies / Medical Conditions</label>
@@ -602,39 +602,39 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <input type="hidden" id="edit_p1_id" name="edit_p1_id">
                         <div class="form-group full-width">
                             <label for="edit_p1_name">Full Name</label>
-                            <input type="text" id="edit_p1_name" name="edit_p1_name" class="form-control" required>
+                            <input type="text" id="edit_p1_name" name="edit_p1_name" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="edit_p1_rel">Relationship</label>
-                            <input type="text" id="edit_p1_rel" name="edit_p1_rel" class="form-control" placeholder="e.g. Mother, Father" required>
+                            <input type="text" id="edit_p1_rel" name="edit_p1_rel" class="form-control" placeholder="e.g. Mother, Father">
                         </div>
                         <div class="form-group">
                             <label for="edit_p1_mobile">Mobile Number</label>
-                            <input type="text" id="edit_p1_mobile" name="edit_p1_mobile" class="form-control" required>
+                            <input type="text" id="edit_p1_mobile" name="edit_p1_mobile" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="edit_p1_telephone">Telephone Number</label>
-                            <input type="text" id="edit_p1_telephone" name="edit_p1_telephone" class="form-control" required>
+                            <input type="text" id="edit_p1_telephone" name="edit_p1_telephone" class="form-control">
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_p1_email">Email Address</label>
-                            <input type="email" id="edit_p1_email" name="edit_p1_email" class="form-control" required>
+                            <input type="email" id="edit_p1_email" name="edit_p1_email" class="form-control">
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_p1_address">Home Address</label>
-                            <textarea id="edit_p1_address" name="edit_p1_address" class="form-control" required></textarea>
+                            <textarea id="edit_p1_address" name="edit_p1_address" class="form-control"></textarea>
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_p1_workplace">Workplace</label>
-                            <input type="text" id="edit_p1_workplace" name="edit_p1_workplace" class="form-control" required>
+                            <input type="text" id="edit_p1_workplace" name="edit_p1_workplace" class="form-control">
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_p1_workplace_address">Workplace Address</label>
-                            <textarea id="edit_p1_workplace_address" name="edit_p1_workplace_address" class="form-control" required></textarea>
+                            <textarea id="edit_p1_workplace_address" name="edit_p1_workplace_address" class="form-control"></textarea>
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_p1_emergency">Emergency Contact Number</label>
-                            <input type="text" id="edit_p1_emergency" name="edit_p1_emergency" class="form-control" required>
+                            <input type="text" id="edit_p1_emergency" name="edit_p1_emergency" class="form-control">
                         </div>
 
                         <!-- Secondary Parent Section -->
@@ -642,39 +642,39 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <input type="hidden" id="edit_p2_id" name="edit_p2_id">
                         <div class="form-group full-width">
                             <label for="edit_p2_name">Full Name</label>
-                            <input type="text" id="edit_p2_name" name="edit_p2_name" class="form-control" required>
+                            <input type="text" id="edit_p2_name" name="edit_p2_name" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="edit_p2_rel">Relationship</label>
-                            <input type="text" id="edit_p2_rel" name="edit_p2_rel" class="form-control" required>
+                            <input type="text" id="edit_p2_rel" name="edit_p2_rel" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="edit_p2_mobile">Mobile Number</label>
-                            <input type="text" id="edit_p2_mobile" name="edit_p2_mobile" class="form-control" required>
+                            <input type="text" id="edit_p2_mobile" name="edit_p2_mobile" class="form-control">
                         </div>
                         <div class="form-group">
                             <label for="edit_p2_telephone">Telephone Number</label>
-                            <input type="text" id="edit_p2_telephone" name="edit_p2_telephone" class="form-control" required>
+                            <input type="text" id="edit_p2_telephone" name="edit_p2_telephone" class="form-control">
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_p2_email">Email Address</label>
-                            <input type="email" id="edit_p2_email" name="edit_p2_email" class="form-control" required>
+                            <input type="email" id="edit_p2_email" name="edit_p2_email" class="form-control">
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_p2_address">Home Address</label>
-                            <textarea id="edit_p2_address" name="edit_p2_address" class="form-control" required></textarea>
+                            <textarea id="edit_p2_address" name="edit_p2_address" class="form-control"></textarea>
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_p2_workplace">Workplace</label>
-                            <input type="text" id="edit_p2_workplace" name="edit_p2_workplace" class="form-control" required>
+                            <input type="text" id="edit_p2_workplace" name="edit_p2_workplace" class="form-control">
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_p2_workplace_address">Workplace Address</label>
-                            <textarea id="edit_p2_workplace_address" name="edit_p2_workplace_address" class="form-control" required></textarea>
+                            <textarea id="edit_p2_workplace_address" name="edit_p2_workplace_address" class="form-control"></textarea>
                         </div>
                         <div class="form-group full-width">
                             <label for="edit_p2_emergency">Emergency Contact Number</label>
-                            <input type="text" id="edit_p2_emergency" name="edit_p2_emergency" class="form-control" required>
+                            <input type="text" id="edit_p2_emergency" name="edit_p2_emergency" class="form-control">
                         </div>
 
 
@@ -837,7 +837,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <input type="hidden" id="add_section_grade" name="grade_level">
                     <div class="form-group full-width">
                         <label for="new_section_name">Section Name</label>
-                        <input type="text" id="new_section_name" name="section_name" class="form-control" required placeholder="e.g. Ruby">
+                        <input type="text" id="new_section_name" name="section_name" class="form-control" placeholder="e.g. Ruby">
                     </div>
                     <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem;">
                         <div id="add-section-response" style="margin-top: 0; padding: 0.5rem 1rem; flex: 1; display:none; border-radius:6px; font-size:0.85rem;"></div>

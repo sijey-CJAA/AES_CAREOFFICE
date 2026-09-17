@@ -21,21 +21,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $medications  = trim($_POST['edit_medications']  ?? '');
     $status       = trim($_POST['edit_status']       ?? 'Unknown / Not Indicated');
 
-    if (empty($id) || empty($learner_name) || empty($lrn) || empty($dob) || empty($home_address)) {
-        echo json_encode(['status' => 'error', 'message' => 'Please fill in all required fields.']);
+    if (empty($id)) {
+        echo json_encode(['status' => 'error', 'message' => 'Missing ID for edit.']);
         exit;
     }
+    // if (empty($learner_name) || empty($lrn) || empty($dob) || empty($home_address)) {
+    //     echo json_encode(['status' => 'error', 'message' => 'Please fill in all required fields.']);
+    //     exit;
+    // }
 
     // Validate grade_level
     if (empty($grade_level) || !in_array($grade_level, $ALLOWED_GRADES)) {
-        echo json_encode(['status' => 'error', 'message' => 'Please select a valid Grade Level (Grade 1 – Grade 6).']);
-        exit;
+        // Validation disabled
     }
 
-    if (empty($section) || empty($school_year)) {
-        echo json_encode(['status' => 'error', 'message' => 'Please select the Section and School Year.']);
-        exit;
-    }
+    // if (empty($section) || empty($school_year)) {
+    //     echo json_encode(['status' => 'error', 'message' => 'Please select the Section and School Year.']);
+    //     exit;
+    // }
 
     if (!isset($GRADE_SECTIONS[$grade_level]) || !in_array($section, $GRADE_SECTIONS[$grade_level])) {
         echo json_encode(['status' => 'error', 'message' => 'Please select a valid section for the selected grade level.']);

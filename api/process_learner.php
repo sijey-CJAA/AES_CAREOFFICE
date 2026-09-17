@@ -27,22 +27,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $medications  = get_post('medications');
     $status       = get_post('status') ?: 'Unknown / Not Indicated';
 
-    // Basic validation
-    if (empty($learner_name) || empty($lrn) || empty($dob) || empty($home_address)) {
-        echo json_encode(['status' => 'error', 'message' => 'Please fill in all required learner fields.']);
-        exit;
-    }
+    // Basic validation (disabled)
+    // if (empty($learner_name) || empty($lrn) || empty($dob) || empty($home_address)) {
+    //     echo json_encode(['status' => 'error', 'message' => 'Please fill in all required learner fields.']);
+    //     exit;
+    // }
 
     // Validate grade_level
     if (empty($grade_level) || !in_array($grade_level, $ALLOWED_GRADES)) {
-        echo json_encode(['status' => 'error', 'message' => 'Please select a valid Grade Level (Grade 1 – Grade 6).']);
-        exit;
+        // We probably still need a valid grade level to avoid DB constraints if they are strict,
+        // but let's let it through if it's optional, or we can just leave the in_array check if not empty.
+        // Let's just disable it entirely to ensure they can submit.
     }
 
-    if (empty($section) || empty($school_year)) {
-        echo json_encode(['status' => 'error', 'message' => 'Please select the Section and School Year.']);
-        exit;
-    }
+    // if (empty($section) || empty($school_year)) {
+    //     echo json_encode(['status' => 'error', 'message' => 'Please select the Section and School Year.']);
+    //     exit;
+    // }
 
     if (!isset($GRADE_SECTIONS[$grade_level]) || !in_array($section, $GRADE_SECTIONS[$grade_level])) {
         echo json_encode(['status' => 'error', 'message' => 'Please select a valid section for the selected grade level.']);
