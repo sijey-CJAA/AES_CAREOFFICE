@@ -12,7 +12,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Helper function to safely get POST data
     function get_post($key) {
-        return isset($_POST[$key]) ? trim($_POST[$key]) : null;
+        if (isset($_POST[$key])) {
+            $val = trim($_POST[$key]);
+            return $val === '' ? null : $val;
+        }
+        return null;
     }
 
     $learner_name = get_post('learner_name');
@@ -113,7 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     } catch (PDOException $e) {
         $pdo->rollBack();
-        echo json_encode(['status' => 'error', 'message' => 'Database error: Could not save records.']);
+        echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
     }
 
 } else {

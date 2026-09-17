@@ -8,18 +8,27 @@ $ALLOWED_GRADES = ['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', '
 $GRADE_SECTIONS = json_decode(file_get_contents('../config/sections.json'), true);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $id           = isset($_POST['edit_learner_id']) ? intval($_POST['edit_learner_id']) : 0;
-    $learner_name = trim($_POST['edit_learner_name'] ?? '');
-    $lrn          = trim($_POST['edit_lrn']          ?? '');
-    $grade_level  = trim($_POST['edit_grade_level']  ?? '');
-    $section      = trim($_POST['edit_section']      ?? '');
-    $school_year  = trim($_POST['edit_school_year']  ?? '');
-    $dob          = trim($_POST['edit_dob']          ?? '');
-    $blood_type   = trim($_POST['edit_blood_type']   ?? '');
-    $home_address = trim($_POST['edit_home_address'] ?? '');
-    $allergies    = trim($_POST['edit_allergies']    ?? '');
-    $medications  = trim($_POST['edit_medications']  ?? '');
-    $status       = trim($_POST['edit_status']       ?? 'Unknown / Not Indicated');
+    // Helper function to safely get POST data
+    function get_post($key) {
+        if (isset($_POST[$key])) {
+            $val = trim($_POST[$key]);
+            return $val === '' ? null : $val;
+        }
+        return null;
+    }
+
+    $id           = get_post('edit_id') ?? get_post('edit_learner_id');
+    $learner_name = get_post('edit_learner_name');
+    $lrn          = get_post('edit_lrn');
+    $grade_level  = get_post('edit_grade_level');
+    $section      = get_post('edit_section');
+    $school_year  = get_post('edit_school_year');
+    $dob          = get_post('edit_dob');
+    $blood_type   = get_post('edit_blood_type');
+    $home_address = get_post('edit_home_address');
+    $allergies    = get_post('edit_allergies');
+    $medications  = get_post('edit_medications');
+    $status       = get_post('edit_status') ?: 'Unknown / Not Indicated';
 
     if (empty($id)) {
         echo json_encode(['status' => 'error', 'message' => 'Missing ID for edit.']);
@@ -48,66 +57,79 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         $pdo->beginTransaction();
 
-        $stmt = $pdo->prepare("
-            UPDATE students
-            SET full_name = ?, lrn = ?, grade_level = ?, section = ?, school_year = ?, date_of_birth = ?,
-                home_address = ?, blood_type = ?, allergies = ?, medications = ?, status = ?
+        $stmt_student = $pdo->prepare("
+            UPDATE students SET 
+                full_name = ?, lrn = ?, grade_level = ?, section = ?, school_year = ?, 
+                date_of_birth = ?, home_address = ?, blood_type = ?, allergies = ?, medications = ?, status = ?
             WHERE id = ?
         ");
-        $stmt->execute([
+        $stmt_student->execute([
             $learner_name, $lrn, $grade_level, $section, $school_year, $dob,
-            $home_address, $blood_type, $allergies, $medications, $status,
-            $id
+            $home_address, $blood_type, $allergies, $medications, $status, $id
         ]);
-
-        // Helper to get POST data
-        function get_post($key) { return isset($_POST[$key]) ? trim($_POST[$key]) : null; }
-
-        // Update Primary Parent
+        
+        // Primary Parent
         $p1_id = get_post('edit_p1_id');
         $p1_name = get_post('edit_p1_name');
+        
         if (!empty($p1_id)) {
-            $stmt_p1 = $pdo->prepare("UPDATE parents SET full_name=?, relationship=?, mobile_number=?, telephone_number=?, email_address=?, home_address=?, workplace=?, workplace_address=?, emergency_contact_number=? WHERE id=? AND student_id=?");
+            $stmt_p1 = $pdo->prepare("
+                UPDATE parents SET 
+                    full_name = ?, relationship = ?, mobile_number = ?, telephone_number = ?, email_address = ?, 
+                    home_address = ?, workplace = ?, workplace_address = ?, emergency_contact_number = ?
+                WHERE id = ?
+            ");
             $stmt_p1->execute([
-                $p1_name, get_post('edit_p1_rel'), get_post('edit_p1_mobile'), get_post('edit_p1_telephone'), get_post('edit_p1_email'),
-                get_post('edit_p1_address'), get_post('edit_p1_workplace'), get_post('edit_p1_workplace_address'), get_post('edit_p1_emergency'),
-                $p1_id, $id
+                $p1_name, get_post('edit_p1_rel'), get_post('edit_p1_mobile'), get_post('edit_p1_telephone'),
+                get_post('edit_p1_email'), get_post('edit_p1_address'), get_post('edit_p1_workplace'),
+                get_post('edit_p1_workplace_address'), get_post('edit_p1_emergency'), $p1_id
             ]);
         } else if (!empty($p1_name)) {
-            // Did not exist before, insert new
-            $stmt_p1_in = $pdo->prepare("INSERT INTO parents (student_id, parent_type, full_name, relationship, mobile_number, telephone_number, email_address, home_address, workplace, workplace_address, emergency_contact_number) VALUES (?, 'Primary', ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt_p1_in->execute([
-                $id, $p1_name, get_post('edit_p1_rel'), get_post('edit_p1_mobile'), get_post('edit_p1_telephone'), get_post('edit_p1_email'),
-                get_post('edit_p1_address'), get_post('edit_p1_workplace'), get_post('edit_p1_workplace_address'), get_post('edit_p1_emergency')
+             $stmt_p1_new = $pdo->prepare("
+                INSERT INTO parents (student_id, parent_type, full_name, relationship, mobile_number, telephone_number, email_address, home_address, workplace, workplace_address, emergency_contact_number)
+                VALUES (?, 'Primary', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt_p1_new->execute([
+                $id, $p1_name, get_post('edit_p1_rel'), get_post('edit_p1_mobile'), get_post('edit_p1_telephone'),
+                get_post('edit_p1_email'), get_post('edit_p1_address'), get_post('edit_p1_workplace'),
+                get_post('edit_p1_workplace_address'), get_post('edit_p1_emergency')
             ]);
         }
 
-        // Update Secondary Parent
+        // Secondary Parent
         $p2_id = get_post('edit_p2_id');
         $p2_name = get_post('edit_p2_name');
+        
         if (!empty($p2_id)) {
-            $stmt_p2 = $pdo->prepare("UPDATE parents SET full_name=?, relationship=?, mobile_number=?, telephone_number=?, email_address=?, home_address=?, workplace=?, workplace_address=?, emergency_contact_number=? WHERE id=? AND student_id=?");
+            $stmt_p2 = $pdo->prepare("
+                UPDATE parents SET 
+                    full_name = ?, relationship = ?, mobile_number = ?, telephone_number = ?, email_address = ?, 
+                    home_address = ?, workplace = ?, workplace_address = ?, emergency_contact_number = ?
+                WHERE id = ?
+            ");
             $stmt_p2->execute([
-                $p2_name, get_post('edit_p2_rel'), get_post('edit_p2_mobile'), get_post('edit_p2_telephone'), get_post('edit_p2_email'),
-                get_post('edit_p2_address'), get_post('edit_p2_workplace'), get_post('edit_p2_workplace_address'), get_post('edit_p2_emergency'),
-                $p2_id, $id
+                $p2_name, get_post('edit_p2_rel'), get_post('edit_p2_mobile'), get_post('edit_p2_telephone'),
+                get_post('edit_p2_email'), get_post('edit_p2_address'), get_post('edit_p2_workplace'),
+                get_post('edit_p2_workplace_address'), get_post('edit_p2_emergency'), $p2_id
             ]);
         } else if (!empty($p2_name)) {
-            $stmt_p2_in = $pdo->prepare("INSERT INTO parents (student_id, parent_type, full_name, relationship, mobile_number, telephone_number, email_address, home_address, workplace, workplace_address, emergency_contact_number) VALUES (?, 'Secondary', ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt_p2_in->execute([
-                $id, $p2_name, get_post('edit_p2_rel'), get_post('edit_p2_mobile'), get_post('edit_p2_telephone'), get_post('edit_p2_email'),
-                get_post('edit_p2_address'), get_post('edit_p2_workplace'), get_post('edit_p2_workplace_address'), get_post('edit_p2_emergency')
+             $stmt_p2_new = $pdo->prepare("
+                INSERT INTO parents (student_id, parent_type, full_name, relationship, mobile_number, telephone_number, email_address, home_address, workplace, workplace_address, emergency_contact_number)
+                VALUES (?, 'Secondary', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt_p2_new->execute([
+                $id, $p2_name, get_post('edit_p2_rel'), get_post('edit_p2_mobile'), get_post('edit_p2_telephone'),
+                get_post('edit_p2_email'), get_post('edit_p2_address'), get_post('edit_p2_workplace'),
+                get_post('edit_p2_workplace_address'), get_post('edit_p2_emergency')
             ]);
         }
 
-
-
         $pdo->commit();
-        echo json_encode(['status' => 'success', 'message' => 'Learner and parent records successfully updated!']);
+        echo json_encode(['status' => 'success', 'message' => 'Learner records successfully updated!']);
 
     } catch (PDOException $e) {
         $pdo->rollBack();
-        echo json_encode(['status' => 'error', 'message' => 'Database error: Could not update records.']);
+        echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
     }
 
 } else {
