@@ -56,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         echo json_encode(['status' => 'success', 'message' => 'Case record successfully updated!']);
     } catch(PDOException $e) {
-        if ($e->getCode() == 23000) {
+        if ($e->getCode() == 23000 && strpos($e->getMessage(), 'Duplicate entry') !== false) {
             echo json_encode(['status' => 'error', 'message' => 'Case Number already exists.']);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
