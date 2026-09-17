@@ -55,7 +55,7 @@ arsort($case_type_counts);
 // Generate next case number
 $stmt_last = $pdo->query("SELECT MAX(id) FROM case_register");
 $last_id = $stmt_last->fetchColumn() ?: 0;
-$next_case_number = 'AES-' . str_pad($last_id + 1, 4, '0', STR_PAD_LEFT);
+$next_case_number = 'AES-CR-' . str_pad($last_id + 1, 3, '0', STR_PAD_LEFT);
 
 $today_date = date('Y-m-d');
 ?>

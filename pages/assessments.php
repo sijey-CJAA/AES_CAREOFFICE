@@ -29,7 +29,7 @@ $assessments = $stmt_assessments->fetchAll();
 // Generate next record number
 $stmt_last = $pdo->query("SELECT MAX(id) FROM assessment_records");
 $last_id = $stmt_last->fetchColumn() ?: 0;
-$next_record_number = 'AES-' . str_pad($last_id + 1, 4, '0', STR_PAD_LEFT);
+$next_record_number = 'AES-AR-' . str_pad($last_id + 1, 3, '0', STR_PAD_LEFT);
 
 $today_date = date('Y-m-d');
 ?>
@@ -184,7 +184,7 @@ $today_date = date('Y-m-d');
                                 <input type="text" id="grade_section" name="grade_section" class="form-control" readonly style="background: #f1f5f9;">
                             </div>
                             <div class="form-group">
-                                <label for="contact_number">Contact Number</label>
+                                <label for="contact_number">Parent Contact Number</label>
                                 <input type="text" id="contact_number" name="contact_number" class="form-control">
                             </div>
                             <div class="form-group">
@@ -242,7 +242,7 @@ $today_date = date('Y-m-d');
                                 <th>Date</th>
                                 <th>School Year</th>
                                 <th>Grade &amp; Section</th>
-                                <th>Contact Number</th>
+                                <th>Parent Contact Number</th>
                                 <th>Status</th>
                                 <th>Provider</th>
                                 <th>Findings</th>
@@ -333,7 +333,7 @@ $today_date = date('Y-m-d');
                             <input type="text" id="edit_grade_section" name="edit_grade_section" class="form-control">
                         </div>
                         <div class="form-group">
-                            <label for="edit_contact_number">Contact Number</label>
+                            <label for="edit_contact_number">Parent Contact Number</label>
                             <input type="text" id="edit_contact_number" name="edit_contact_number" class="form-control">
                         </div>
                         <div class="form-group">
