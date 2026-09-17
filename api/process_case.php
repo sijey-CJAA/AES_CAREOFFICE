@@ -5,7 +5,11 @@ require_once '../config/db.php';
 header('Content-Type: application/json');
 
 function get_post($key) {
-    return isset($_POST[$key]) ? trim($_POST[$key]) : '';
+    if (isset($_POST[$key])) {
+        $val = trim($_POST[$key]);
+        return $val === '' ? null : $val;
+    }
+    return null;
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -25,10 +29,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $outcome_disposition = get_post('outcome_disposition_other');
     }
 
-    if (empty($student_id) || empty($case_number) || empty($date)) {
-        echo json_encode(['status' => 'error', 'message' => 'Please fill in all required fields.']);
+    if (empty($student_id)) {
+        echo json_encode(['status' => 'error', 'message' => 'Missing student ID.']);
         exit;
     }
+    // if (empty($student_id) || empty($case_number) || empty($date)) {
+    //     echo json_encode(['status' => 'error', 'message' => 'Please fill in all required fields.']);
+    //     exit;
+    // }
 
     try {
         $stmt = $pdo->prepare("
@@ -44,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($e->getCode() == 23000) {
             echo json_encode(['status' => 'error', 'message' => 'Case Number already exists.']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Database error: Could not save case record.']);
+            echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
         }
     }
 } else {

@@ -5,27 +5,39 @@ require_once '../config/db.php';
 header('Content-Type: application/json');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $id = isset($_POST['edit_case_id']) ? intval($_POST['edit_case_id']) : 0;
-    $student_id = trim($_POST['edit_student_id'] ?? '');
-    $case_number = trim($_POST['edit_case_number'] ?? '');
-    $school_year = trim($_POST['edit_school_year'] ?? '');
-    $date = trim($_POST['edit_date'] ?? '');
-    $grade_section = trim($_POST['edit_grade_section'] ?? '');
-    $case_type = trim($_POST['edit_case_type'] ?? '');
-    if ($case_type === 'Other') {
-        $case_type = trim($_POST['edit_case_type_other'] ?? '');
-    }
-    $brief_description = trim($_POST['edit_brief_description'] ?? '');
-    $actions_taken = trim($_POST['edit_actions_taken'] ?? '');
-    $outcome_disposition = trim($_POST['edit_outcome_disposition'] ?? '');
-    if ($outcome_disposition === 'Other') {
-        $outcome_disposition = trim($_POST['edit_outcome_disposition_other'] ?? '');
+    function get_post($key) {
+        if (isset($_POST[$key])) {
+            $val = trim($_POST[$key]);
+            return $val === '' ? null : $val;
+        }
+        return null;
     }
 
-    if (empty($id) || empty($student_id) || empty($case_number) || empty($date)) {
-        echo json_encode(['status' => 'error', 'message' => 'Please fill in all required fields.']);
+    $id = get_post('edit_case_id') ?? get_post('edit_id');
+    $student_id = get_post('edit_student_id');
+    $case_number = get_post('edit_case_number');
+    $school_year = get_post('edit_school_year');
+    $date = get_post('edit_date');
+    $grade_section = get_post('edit_grade_section');
+    $case_type = get_post('edit_case_type');
+    if ($case_type === 'Other') {
+        $case_type = get_post('edit_case_type_other');
+    }
+    $brief_description = get_post('edit_brief_description');
+    $actions_taken = get_post('edit_actions_taken');
+    $outcome_disposition = get_post('edit_outcome_disposition');
+    if ($outcome_disposition === 'Other') {
+        $outcome_disposition = get_post('edit_outcome_disposition_other');
+    }
+
+    if (empty($id)) {
+        echo json_encode(['status' => 'error', 'message' => 'Missing Case ID.']);
         exit;
     }
+    // if (empty($id) || empty($student_id) || empty($case_number) || empty($date)) {
+    //     echo json_encode(['status' => 'error', 'message' => 'Please fill in all required fields.']);
+    //     exit;
+    // }
 
     try {
         $stmt = $pdo->prepare("
@@ -47,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($e->getCode() == 23000) {
             echo json_encode(['status' => 'error', 'message' => 'Case Number already exists.']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Database error: Could not update case record.']);
+            echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
         }
     }
 } else {
