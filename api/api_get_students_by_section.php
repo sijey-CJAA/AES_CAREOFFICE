@@ -13,19 +13,25 @@ $grade = $_GET['grade_level'];
 $section = $_GET['section'];
 
 try {
-    $stmt = $pdo->prepare("
-        SELECT 
-            s.id, 
-            s.full_name, 
-            s.lrn, 
-            s.status,
-            s.school_year,
+    if ($grade === 'Graduates' && $section === 'ALL_GRADUATES') {
+        $stmt = $pdo->prepare("
+            SELECT s.id, s.full_name, s.lrn, s.status, s.school_year,
             (SELECT mobile_number FROM parents p WHERE p.student_id = s.id AND p.parent_type = 'Primary' AND p.deleted_at IS NULL LIMIT 1) as contact_number
-        FROM students s 
-        WHERE s.grade_level = ? AND s.section = ? AND s.deleted_at IS NULL 
-        ORDER BY s.full_name ASC
-    ");
-    $stmt->execute([$grade, $section]);
+            FROM students s 
+            WHERE s.status = 'Graduated' AND s.deleted_at IS NULL 
+            ORDER BY s.full_name ASC
+        ");
+        $stmt->execute();
+    } else {
+        $stmt = $pdo->prepare("
+            SELECT s.id, s.full_name, s.lrn, s.status, s.school_year,
+            (SELECT mobile_number FROM parents p WHERE p.student_id = s.id AND p.parent_type = 'Primary' AND p.deleted_at IS NULL LIMIT 1) as contact_number
+            FROM students s 
+            WHERE s.grade_level = ? AND s.section = ? AND s.deleted_at IS NULL AND (s.status != 'Graduated' OR s.status IS NULL)
+            ORDER BY s.full_name ASC
+        ");
+        $stmt->execute([$grade, $section]);
+    }
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode(['status' => 'success', 'data' => $students]);

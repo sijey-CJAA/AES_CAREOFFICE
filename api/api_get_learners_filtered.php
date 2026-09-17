@@ -29,7 +29,7 @@ foreach ($ALLOWED_GRADES as $g) {
 $stmt_counts = $pdo->query("
     SELECT grade_level, COUNT(*) as cnt
     FROM students
-    WHERE deleted_at IS NULL
+    WHERE deleted_at IS NULL AND (status != 'Graduated' OR status IS NULL)
     GROUP BY grade_level
 ");
 $total = 0;
@@ -47,7 +47,7 @@ $grade_level = isset($_GET['grade_level']) ? trim($_GET['grade_level']) : 'All';
 $section     = isset($_GET['section'])     ? trim($_GET['section'])     : 'All';
 
 // Build query
-$where  = ['s.deleted_at IS NULL'];
+$where  = ["s.deleted_at IS NULL AND (s.status != 'Graduated' OR s.status IS NULL)"];
 $params = [];
 
 if ($grade_level !== 'All' && in_array($grade_level, $ALLOWED_GRADES)) {

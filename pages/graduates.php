@@ -24,7 +24,7 @@ $grade_counts = ['All' => 0];
 foreach ($ALLOWED_GRADES as $g) { $grade_counts[$g] = 0; }
 
 if ($migration_done) {
-    $stmt_counts = $pdo->query("SELECT grade_level, COUNT(*) as cnt FROM students WHERE deleted_at IS NULL GROUP BY grade_level");
+    $stmt_counts = $pdo->query("SELECT grade_level, COUNT(*) as cnt FROM students WHERE deleted_at IS NULL AND status = 'Graduated' GROUP BY grade_level");
     while ($row = $stmt_counts->fetch(PDO::FETCH_ASSOC)) {
         if (array_key_exists($row['grade_level'], $grade_counts)) {
             $grade_counts[$row['grade_level']] = (int)$row['cnt'];
@@ -32,8 +32,8 @@ if ($migration_done) {
         $grade_counts['All'] += (int)$row['cnt'];
     }
 } else {
-    // Migration not yet applied — just count all active learners
-    $grade_counts['All'] = (int)$pdo->query("SELECT COUNT(*) FROM students WHERE deleted_at IS NULL")->fetchColumn();
+    // Migration not yet applied
+    $grade_counts['All'] = (int)$pdo->query("SELECT COUNT(*) FROM students WHERE deleted_at IS NULL AND status = 'Graduated'")->fetchColumn();
 }
 
 // ── Fetch all active students for initial render ───────────────────────────────
@@ -44,7 +44,7 @@ if ($migration_done) {
                          FROM students s
                          LEFT JOIN parents p1 ON s.id = p1.student_id AND p1.parent_type = 'Primary' AND p1.deleted_at IS NULL
                          LEFT JOIN parents p2 ON s.id = p2.student_id AND p2.parent_type = 'Secondary' AND p2.deleted_at IS NULL
-                         WHERE s.deleted_at IS NULL 
+                         WHERE s.deleted_at IS NULL AND s.status = 'Graduated'
                          ORDER BY s.grade_level, s.section, s.full_name ASC");
 } else {
     $stmt = $pdo->query("SELECT s.*, 
@@ -53,7 +53,7 @@ if ($migration_done) {
                          FROM students s
                          LEFT JOIN parents p1 ON s.id = p1.student_id AND p1.parent_type = 'Primary' AND p1.deleted_at IS NULL
                          LEFT JOIN parents p2 ON s.id = p2.student_id AND p2.parent_type = 'Secondary' AND p2.deleted_at IS NULL
-                         WHERE s.deleted_at IS NULL 
+                         WHERE s.deleted_at IS NULL AND s.status = 'Graduated'
                          ORDER BY s.grade_section, s.full_name ASC");
 }
 $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -813,8 +813,52 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                     </div>
                 </div>
+                </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <div id="past-records-section" style="margin-top: 2rem; border-top: 2px solid var(--border-color); padding-top: 1.5rem; display: none;">
+                    <h3 style="font-size: 1.1rem; color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        Past Guidance Records
+                    </h3>
+                    
+                    <h4 style="font-size: 0.95rem; color: var(--text-dark); margin-bottom: 0.75rem;">Assessment Records</h4>
+                    <div style="overflow-x: auto; margin-bottom: 1.5rem;">
+                        <table class="data-table" style="min-width: 100%; font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>Record #</th>
+                                    <th>Date</th>
+                                    <th>School Year</th>
+                                    <th>Status</th>
+                                    <th>Provider</th>
+                                </tr>
+                            </thead>
+                            <tbody id="view_assessments_body">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h4 style="font-size: 0.95rem; color: var(--text-dark); margin-bottom: 0.75rem;">Case Register</h4>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" style="min-width: 100%; font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>Case #</th>
+                                    <th>Date</th>
+                                    <th>School Year</th>
+                                    <th>Type</th>
+                                    <th>Outcome</th>
+                                </tr>
+                            </thead>
+                            <tbody id="view_cases_body">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; padding-top: 1.5rem; margin-top: 1.5rem; border-top: 1px solid var(--border-color);">
                     <button class="control-btn" onclick="closeViewLearnerModal()" style="padding: 0.75rem 1.5rem;">Close</button>
                     <button id="view_edit_btn" class="submit-btn" style="padding: 0.75rem 2rem; border-radius: 8px;">Edit Details</button>
                 </div>
@@ -1122,8 +1166,22 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             editSectionTs.setValue(learner.section || '');
                         }
                         
+                        const editSchoolYearTs = document.getElementById('edit_school_year').tomselect;
+                        if (editSchoolYearTs) {
+                            editSchoolYearTs.setValue(learner.school_year || '');
+                        } else {
+                            document.getElementById('edit_school_year').value = learner.school_year || '';
+                        }
+                        
                         document.getElementById('edit_blood_type').value    = learner.blood_type || '';
-                        document.getElementById('edit_status').value        = learner.status || 'Unknown / Not Indicated';
+                        
+                        const editStatusTs = document.getElementById('edit_status').tomselect;
+                        if (editStatusTs) {
+                            editStatusTs.setValue(learner.status || 'Unknown / Not Indicated');
+                        } else {
+                            document.getElementById('edit_status').value = learner.status || 'Unknown / Not Indicated';
+                        }
+                        
                         document.getElementById('edit_home_address').value  = learner.home_address;
                         document.getElementById('edit_allergies').value     = learner.allergies || '';
                         document.getElementById('edit_medications').value   = learner.medications || '';
@@ -1355,6 +1413,52 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     p2Address.textContent = p.home_address || 'N/A';
                                 }
                             });
+                        }
+
+                        // Past Records
+                        const recordsSection = document.getElementById('past-records-section');
+                        const viewAssessmentsBody = document.getElementById('view_assessments_body');
+                        const viewCasesBody = document.getElementById('view_cases_body');
+                        
+                        viewAssessmentsBody.innerHTML = '';
+                        viewCasesBody.innerHTML = '';
+                        
+                        if ((learner.assessments && learner.assessments.length > 0) || (learner.cases && learner.cases.length > 0)) {
+                            recordsSection.style.display = 'block';
+                            
+                            if (learner.assessments && learner.assessments.length > 0) {
+                                learner.assessments.forEach(a => {
+                                    viewAssessmentsBody.innerHTML += `
+                                        <tr>
+                                            <td style="color:var(--text-muted);">${a.record_number || 'N/A'}</td>
+                                            <td>${a.date || 'N/A'}</td>
+                                            <td>${a.school_year || 'N/A'}</td>
+                                            <td><span style="font-weight:600;font-size:0.75rem;padding:0.25rem 0.5rem;background:#f1f5f9;border-radius:4px;">${a.status || 'N/A'}</span></td>
+                                            <td>${a.assessment_provider || 'N/A'}</td>
+                                        </tr>
+                                    `;
+                                });
+                            } else {
+                                viewAssessmentsBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:1rem;">No assessment records found.</td></tr>';
+                            }
+
+                            if (learner.cases && learner.cases.length > 0) {
+                                learner.cases.forEach(c => {
+                                    viewCasesBody.innerHTML += `
+                                        <tr>
+                                            <td style="color:var(--text-muted);">${c.case_number || 'N/A'}</td>
+                                            <td>${c.date || 'N/A'}</td>
+                                            <td>${c.school_year || 'N/A'}</td>
+                                            <td>${c.case_type || 'N/A'}</td>
+                                            <td><span style="font-weight:600;font-size:0.75rem;padding:0.25rem 0.5rem;background:#f1f5f9;border-radius:4px;">${c.outcome_disposition || 'N/A'}</span></td>
+                                        </tr>
+                                    `;
+                                });
+                            } else {
+                                viewCasesBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:1rem;">No case register entries found.</td></tr>';
+                            }
+                        } else {
+                            recordsSection.style.display = 'none';
                         }
 
                         document.getElementById('view_edit_btn').onclick = function() {

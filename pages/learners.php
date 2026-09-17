@@ -24,7 +24,7 @@ $grade_counts = ['All' => 0];
 foreach ($ALLOWED_GRADES as $g) { $grade_counts[$g] = 0; }
 
 if ($migration_done) {
-    $stmt_counts = $pdo->query("SELECT grade_level, COUNT(*) as cnt FROM students WHERE deleted_at IS NULL GROUP BY grade_level");
+    $stmt_counts = $pdo->query("SELECT grade_level, COUNT(*) as cnt FROM students WHERE deleted_at IS NULL AND (status != 'Graduated' OR status IS NULL) GROUP BY grade_level");
     while ($row = $stmt_counts->fetch(PDO::FETCH_ASSOC)) {
         if (array_key_exists($row['grade_level'], $grade_counts)) {
             $grade_counts[$row['grade_level']] = (int)$row['cnt'];
@@ -33,7 +33,7 @@ if ($migration_done) {
     }
 } else {
     // Migration not yet applied — just count all active learners
-    $grade_counts['All'] = (int)$pdo->query("SELECT COUNT(*) FROM students WHERE deleted_at IS NULL")->fetchColumn();
+    $grade_counts['All'] = (int)$pdo->query("SELECT COUNT(*) FROM students WHERE deleted_at IS NULL AND (status != 'Graduated' OR status IS NULL)")->fetchColumn();
 }
 
 // ── Fetch all active students for initial render ───────────────────────────────
@@ -44,7 +44,7 @@ if ($migration_done) {
                          FROM students s
                          LEFT JOIN parents p1 ON s.id = p1.student_id AND p1.parent_type = 'Primary' AND p1.deleted_at IS NULL
                          LEFT JOIN parents p2 ON s.id = p2.student_id AND p2.parent_type = 'Secondary' AND p2.deleted_at IS NULL
-                         WHERE s.deleted_at IS NULL 
+                         WHERE s.deleted_at IS NULL AND (s.status != 'Graduated' OR s.status IS NULL)
                          ORDER BY s.grade_level, s.section, s.full_name ASC");
 } else {
     $stmt = $pdo->query("SELECT s.*, 
@@ -53,7 +53,7 @@ if ($migration_done) {
                          FROM students s
                          LEFT JOIN parents p1 ON s.id = p1.student_id AND p1.parent_type = 'Primary' AND p1.deleted_at IS NULL
                          LEFT JOIN parents p2 ON s.id = p2.student_id AND p2.parent_type = 'Secondary' AND p2.deleted_at IS NULL
-                         WHERE s.deleted_at IS NULL 
+                         WHERE s.deleted_at IS NULL AND (s.status != 'Graduated' OR s.status IS NULL)
                          ORDER BY s.grade_section, s.full_name ASC");
 }
 $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -1123,8 +1123,22 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             editSectionTs.setValue(learner.section || '');
                         }
                         
+                        const editSchoolYearTs = document.getElementById('edit_school_year').tomselect;
+                        if (editSchoolYearTs) {
+                            editSchoolYearTs.setValue(learner.school_year || '');
+                        } else {
+                            document.getElementById('edit_school_year').value = learner.school_year || '';
+                        }
+                        
                         document.getElementById('edit_blood_type').value    = learner.blood_type || '';
-                        document.getElementById('edit_status').value        = learner.status || 'Unknown / Not Indicated';
+                        
+                        const editStatusTs = document.getElementById('edit_status').tomselect;
+                        if (editStatusTs) {
+                            editStatusTs.setValue(learner.status || 'Unknown / Not Indicated');
+                        } else {
+                            document.getElementById('edit_status').value = learner.status || 'Unknown / Not Indicated';
+                        }
+                        
                         document.getElementById('edit_home_address').value  = learner.home_address;
                         document.getElementById('edit_allergies').value     = learner.allergies || '';
                         document.getElementById('edit_medications').value   = learner.medications || '';

@@ -220,6 +220,7 @@ $today_date = date('Y-m-d');
                             <option value="Grade 4">Grade 4</option>
                             <option value="Grade 5">Grade 5</option>
                             <option value="Grade 6">Grade 6</option>
+                            <option value="Graduates">Graduates</option>
                         </select>
                     </div>
 
@@ -526,19 +527,25 @@ $today_date = date('Y-m-d');
 
         function loadSectionsForDrill(grade) {
             const sectionContainer = document.getElementById('drill_section_container');
-            const studentContainer = document.getElementById('drill_student_container');
             const sectionSelect = document.getElementById('drill_section');
+            const studentContainer = document.getElementById('drill_student_container');
             
-            sectionSelect.innerHTML = '<option value="">-- Select Section --</option>';
-            if (sectionSelect.tomselect) sectionSelect.tomselect.sync();
             studentContainer.style.display = 'none';
+            if (sectionSelect.tomselect) sectionSelect.tomselect.clearOptions();
+            sectionSelect.innerHTML = '<option value="">-- Select Section --</option>';
 
             if (!grade) {
                 sectionContainer.style.display = 'none';
                 return;
             }
+            
+            if (grade === 'Graduates') {
+                sectionContainer.style.display = 'none';
+                loadStudentsForDrill('ALL_GRADUATES');
+                return;
+            }
 
-            fetch('<?= BASE_URL ?>/api/api_get_sections_by_grade.php?grade_level=' + encodeURIComponent(grade))
+            fetch(`<?= BASE_URL ?>/api/api_get_sections_by_grade.php?grade_level=${encodeURIComponent(grade)}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'success' && data.data.length > 0) {

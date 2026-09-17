@@ -31,10 +31,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             <span class="nav-text">Learners Information</span>
         </a>
-        <a href="<?= BASE_URL ?>/pages/graduates.php" class="nav-item <?php echo ($current_page == 'graduates.php') ? 'active' : ''; ?>" data-tooltip="Graduates">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
-            <span class="nav-text">Graduates</span>
-        </a>
 
         <div class="nav-label">GUIDANCE RECORDS</div>
         <a href="<?= BASE_URL ?>/pages/assessments.php" class="nav-item <?php echo ($current_page == 'assessments.php' || $current_page == 'view_assessments.php') ? 'active' : ''; ?>" data-tooltip="Assessment Records">
@@ -44,6 +40,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <a href="<?= BASE_URL ?>/pages/cases.php" class="nav-item <?php echo ($current_page == 'cases.php' || $current_page == 'view_cases.php') ? 'active' : ''; ?>" data-tooltip="Case Register">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
             <span class="nav-text">Case Register</span>
+        </a>
+        <a href="<?= BASE_URL ?>/pages/graduates.php" class="nav-item <?php echo ($current_page == 'graduates.php') ? 'active' : ''; ?>" data-tooltip="Graduates">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+            <span class="nav-text">Graduates</span>
         </a>
 
         <div class="nav-label">SYSTEM</div>
