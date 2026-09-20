@@ -20,7 +20,7 @@ if (isset($_GET['id'])) {
         $stmt_a->execute([$learner['id']]);
         $learner['assessments'] = $stmt_a->fetchAll(PDO::FETCH_ASSOC);
 
-        $stmt_c = $pdo->prepare("SELECT * FROM case_register WHERE student_id = ? AND deleted_at IS NULL ORDER BY date DESC");
+        $stmt_c = $pdo->prepare("SELECT c.* FROM case_register c JOIN case_students cs ON c.id = cs.case_id WHERE cs.student_id = ? AND c.deleted_at IS NULL ORDER BY c.date DESC");
         $stmt_c->execute([$learner['id']]);
         $learner['cases'] = $stmt_c->fetchAll(PDO::FETCH_ASSOC);
 

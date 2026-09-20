@@ -18,10 +18,14 @@ $students = $stmt_students->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch cases with student names
 $stmt_cases = $pdo->query("
-    SELECT c.*, s.full_name as student_name 
+    SELECT c.*, 
+           GROUP_CONCAT(s.full_name SEPARATOR ', ') as student_name,
+           GROUP_CONCAT(s.id SEPARATOR ',') as student_ids
     FROM case_register c
-    LEFT JOIN students s ON c.student_id = s.id
+    LEFT JOIN case_students cs ON c.id = cs.case_id
+    LEFT JOIN students s ON cs.student_id = s.id
     WHERE c.deleted_at IS NULL
+    GROUP BY c.id
     ORDER BY c.created_at DESC
 ");
 $cases = $stmt_cases->fetchAll();
@@ -207,50 +211,29 @@ $today_date = date('Y-m-d');
             </div>
             <div class="modal-body">
                 
-                <!-- STEP 1: Drill-down UI -->
+                <!-- STEP 1: Student Selection -->
                 <div id="add-step-1">
                     <div style="margin-bottom: 1.5rem;">
-                        <label>Select Grade Level</label>
-                        <select id="drill_grade" class="form-control" onchange="loadSectionsForDrill(this.value)">
-                            <option value="">-- Select Grade --</option>
-                            <option value="Kindergarten">Kindergarten</option>
-                            <option value="Grade 1">Grade 1</option>
-                            <option value="Grade 2">Grade 2</option>
-                            <option value="Grade 3">Grade 3</option>
-                            <option value="Grade 4">Grade 4</option>
-                            <option value="Grade 5">Grade 5</option>
-                            <option value="Grade 6">Grade 6</option>
-                            <option value="Graduates">Graduates</option>
-                        </select>
+                        <label>How many students are involved in this case?</label>
+                        <input type="number" id="num_students_involved" class="form-control" min="1" max="20" value="1" onchange="generateStudentSearchFields()" onkeyup="generateStudentSearchFields()">
                     </div>
 
-                    <div id="drill_section_container" style="display:none; margin-bottom: 1.5rem;">
-                        <label>Select Section</label>
-                        <select id="drill_section" class="form-control" onchange="loadStudentsForDrill(this.value)">
-                            <option value="">-- Select Section --</option>
-                        </select>
+                    <div id="student_search_fields_container" style="margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- Generated fields go here -->
                     </div>
 
-                    <div id="drill_student_container" style="display:none; margin-bottom: 1.5rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                            <label style="margin: 0;">Select Student</label>
-                            <input type="text" id="drill_student_search" class="form-control" placeholder="Search name or LRN..." onkeyup="filterDrillStudents()" style="width: 200px; padding: 0.3rem 0.5rem; font-size: 0.85rem;">
-                        </div>
-                        <div id="drill_student_list" style="display: grid; gap: 0.5rem; max-height: 250px; overflow-y: auto; padding: 0.5rem; border: 1px solid var(--border-light); border-radius: 6px; background: #f8fafc;">
-                            <!-- Student rows populated via JS -->
-                        </div>
-                    </div>
+                    <button type="button" class="submit-btn" style="padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; width: 100%;" onclick="proceedToStep2()">Proceed to Case Details</button>
                 </div>
 
                 <!-- STEP 2: The Case Form -->
                 <div id="add-step-2" style="display: none;">
                     <form id="case-form">
-                        <input type="hidden" id="student_id" name="student_id">
+                        <div id="step2_student_hidden_inputs"></div>
                         
                         <div class="form-grid">
                             <div class="form-group full-width">
-                                <label>Student Name</label>
-                                <input type="text" id="display_student_name" class="form-control" readonly style="background: #f1f5f9; font-weight: 600;">
+                                <label>Students Involved</label>
+                                <div id="display_student_names" style="background: #f1f5f9; padding: 0.75rem; border-radius: 6px; font-weight: 600; min-height: 40px; border: 1px solid var(--border-color);"></div>
                             </div>
                             <div class="form-group">
                                 <label for="case_number">Case Number</label>
@@ -274,7 +257,8 @@ $today_date = date('Y-m-d');
                             </div>
                             <div class="form-group">
                                 <label for="grade_section">Grade & Section</label>
-                                <input type="text" id="grade_section" name="grade_section" class="form-control" readonly style="background: #f1f5f9;">
+                                <input type="hidden" id="grade_section" name="grade_section" value="">
+                                <input type="text" class="form-control" value="Multiple (See Students)" readonly style="background: #f1f5f9;">
                             </div>
                             <div class="form-group">
                                 <label for="case_type">Case Type</label>
@@ -397,8 +381,8 @@ $today_date = date('Y-m-d');
                     <input type="hidden" id="edit_case_id" name="edit_case_id">
                     
                     <div class="form-group full-width" style="margin-bottom: 1.5rem;">
-                        <label for="edit_student_id">Student Name</label>
-                        <select id="edit_student_id" name="edit_student_id" class="form-control" required>
+                        <label for="edit_student_ids">Students Involved</label>
+                        <select id="edit_student_ids" name="edit_student_ids[]" class="form-control" multiple required>
                             <?php foreach($students as $student): ?>
                                 <option value="<?php echo $student['id']; ?>">
                                     <?php echo htmlspecialchars($student['full_name']); ?> (LRN: <?php echo htmlspecialchars($student['lrn']); ?>)
@@ -430,7 +414,8 @@ $today_date = date('Y-m-d');
                         </div>
                         <div class="form-group">
                             <label for="edit_grade_section">Grade & Section</label>
-                            <input type="text" id="edit_grade_section" name="edit_grade_section" class="form-control">
+                            <input type="hidden" id="edit_grade_section" name="edit_grade_section" value="">
+                            <input type="text" class="form-control" value="Multiple (See Students)" readonly style="background: #f1f5f9;">
                         </div>
                             <div class="form-group">
                                 <label for="edit_case_type">Case Type</label>
@@ -487,13 +472,11 @@ $today_date = date('Y-m-d');
     <script>
         // --- Add Case Modal Logic ---
         function openAddCaseModal() {
-            // Reset forms
             document.getElementById('case-form').reset();
             document.getElementById('add-step-1').style.display = 'block';
             document.getElementById('add-step-2').style.display = 'none';
-            document.getElementById('drill_grade').value = '';
-            document.getElementById('drill_section_container').style.display = 'none';
-            document.getElementById('drill_student_container').style.display = 'none';
+            document.getElementById('num_students_involved').value = 1;
+            generateStudentSearchFields();
             
             // Auto-compute school year
             const now = new Date();
@@ -525,117 +508,76 @@ $today_date = date('Y-m-d');
             document.getElementById('add-step-1').style.display = 'block';
         }
 
-        function loadSectionsForDrill(grade) {
-            const sectionContainer = document.getElementById('drill_section_container');
-            const sectionSelect = document.getElementById('drill_section');
-            const studentContainer = document.getElementById('drill_student_container');
-            
-            studentContainer.style.display = 'none';
-            if (sectionSelect.tomselect) sectionSelect.tomselect.clearOptions();
-            sectionSelect.innerHTML = '<option value="">-- Select Section --</option>';
+        const allStudents = <?php echo json_encode($students); ?>;
+        let activeTomSelects = [];
 
-            if (!grade) {
-                sectionContainer.style.display = 'none';
-                return;
-            }
+        function generateStudentSearchFields() {
+            let num = parseInt(document.getElementById('num_students_involved').value) || 1;
+            if (num < 1) num = 1;
+            if (num > 20) num = 20; // limit max
             
-            if (grade === 'Graduates') {
-                sectionContainer.style.display = 'none';
-                loadStudentsForDrill('ALL_GRADUATES');
-                return;
-            }
+            const container = document.getElementById('student_search_fields_container');
+            
+            // Destroy existing instances
+            activeTomSelects.forEach(ts => ts.destroy());
+            activeTomSelects = [];
+            
+            container.innerHTML = '';
+            
+            let optionsHtml = '<option value="">-- Search by Name or LRN --</option>';
+            allStudents.forEach(s => {
+                optionsHtml += `<option value="${s.id}">${s.full_name} (LRN: ${s.lrn})</option>`;
+            });
 
-            fetch(`<?= BASE_URL ?>/api/api_get_sections_by_grade.php?grade_level=${encodeURIComponent(grade)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'success' && data.data.length > 0) {
-                        data.data.forEach(sec => {
-                            const opt = document.createElement('option');
-                            opt.value = sec;
-                            opt.textContent = sec;
-                            sectionSelect.appendChild(opt);
-                        });
-                        if (sectionSelect.tomselect) sectionSelect.tomselect.sync();
-                        sectionContainer.style.display = 'block';
-                    } else {
-                        sectionContainer.style.display = 'none';
-                        alert('No sections found for this grade.');
-                    }
-                })
-                .catch(err => console.error(err));
+            for (let i = 1; i <= num; i++) {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Student ${i}</label>
+                    <select id="case_student_${i}" class="case-student-select form-control" required>
+                        ${optionsHtml}
+                    </select>
+                `;
+                container.appendChild(div);
+                
+                const ts = new TomSelect(`#case_student_${i}`, {
+                    create: false,
+                    sortField: { field: "text", direction: "asc" },
+                    placeholder: "-- Search by Name or LRN --"
+                });
+                activeTomSelects.push(ts);
+            }
         }
 
-        function loadStudentsForDrill(section) {
-            const grade = document.getElementById('drill_grade').value;
-            const studentContainer = document.getElementById('drill_student_container');
-            const studentList = document.getElementById('drill_student_list');
+        function proceedToStep2() {
+            const hiddenContainer = document.getElementById('step2_student_hidden_inputs');
+            const displayContainer = document.getElementById('display_student_names');
             
-            studentList.innerHTML = '';
+            hiddenContainer.innerHTML = '';
+            let selectedNames = [];
+            let isValid = true;
             
-            if (!section) {
-                studentContainer.style.display = 'none';
-                return;
-            }
-
-            fetch(`<?= BASE_URL ?>/api/api_get_students_by_section.php?grade_level=${encodeURIComponent(grade)}&section=${encodeURIComponent(section)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'success' && data.data.length > 0) {
-                        data.data.forEach(s => {
-                            const div = document.createElement('div');
-                            div.style.padding = '0.5rem';
-                            div.style.background = '#fff';
-                            div.style.border = '1px solid var(--border-light)';
-                            div.style.borderRadius = '4px';
-                            div.style.cursor = 'pointer';
-                            div.style.display = 'flex';
-                            div.style.justifyContent = 'space-between';
-                            
-                            // Make it clickable like a button
-                            div.onmouseover = () => div.style.borderColor = 'var(--primary)';
-                            div.onmouseout = () => div.style.borderColor = 'var(--border-light)';
-                            
-                            div.innerHTML = `<span><strong>${s.full_name}</strong> <small style="color:var(--text-muted);">(LRN: ${s.lrn})</small></span>
-                                             <button type="button" style="background:var(--primary);color:white;border:none;border-radius:4px;padding:0.25rem 0.5rem;font-size:0.75rem;cursor:pointer;">Select</button>`;
-                            
-                            div.onclick = () => selectStudentForCase(s.id, s.full_name, grade, section, s.school_year);
-                            
-                            studentList.appendChild(div);
-                        });
-                        studentContainer.style.display = 'block';
-                    } else {
-                        studentList.innerHTML = '<div style="padding: 0.5rem; color: var(--text-muted);">No students found in this section.</div>';
-                        studentContainer.style.display = 'block';
-                    }
-                })
-                .catch(err => console.error(err));
-        }
-
-        function filterDrillStudents() {
-            const input = document.getElementById('drill_student_search').value.toLowerCase();
-            const list = document.getElementById('drill_student_list');
-            const items = list.getElementsByTagName('div');
-            
-            for (let i = 0; i < items.length; i++) {
-                const text = items[i].textContent.toLowerCase();
-                if (text.includes(input)) {
-                    items[i].style.display = 'flex';
+            activeTomSelects.forEach(ts => {
+                const val = ts.getValue();
+                if (!val) {
+                    isValid = false;
                 } else {
-                    items[i].style.display = 'none';
+                    const option = ts.options[val];
+                    if(option) selectedNames.push(option.text);
+                    
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'student_ids[]';
+                    input.value = val;
+                    hiddenContainer.appendChild(input);
                 }
-            }
-        }
-
-        function selectStudentForCase(id, name, grade, section, schoolYear) {
-            document.getElementById('student_id').value = id;
-            document.getElementById('display_student_name').value = name;
-            document.getElementById('grade_section').value = `${grade} - ${section}`;
+            });
             
-            const syEl = document.getElementById('school_year');
-            if (schoolYear) {
-                if (syEl.tomselect) syEl.tomselect.setValue(schoolYear);
-                else syEl.value = schoolYear;
+            if (!isValid) {
+                alert("Please select a student for all fields.");
+                return;
             }
+            
+            displayContainer.innerHTML = selectedNames.join('<br>');
             
             document.getElementById('add-step-1').style.display = 'none';
             document.getElementById('add-step-2').style.display = 'block';
@@ -691,9 +633,11 @@ $today_date = date('Y-m-d');
                         const record = data.data;
                         document.getElementById('edit_case_id').value = record.id;
                         
-                        const editStudentId = document.getElementById('edit_student_id');
-                        if (editStudentId.tomselect) editStudentId.tomselect.setValue(record.student_id);
-                        else editStudentId.value = record.student_id;
+                        const editStudentIds = document.getElementById('edit_student_ids');
+                        if (editStudentIds.tomselect) editStudentIds.tomselect.setValue(record.student_ids);
+                        else {
+                            Array.from(editStudentIds.options).forEach(opt => opt.selected = record.student_ids && record.student_ids.includes(opt.value));
+                        }
                         
                         document.getElementById('edit_case_number').value = record.case_number;
                         

@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS `assessment_records` (
 -- Table for Guidance Office Case Register
 CREATE TABLE IF NOT EXISTS `case_register` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `student_id` int(11) NOT NULL,
+  `student_id` int(11) NULL,
   `case_number` varchar(50) DEFAULT NULL UNIQUE,
   `school_year` varchar(20) DEFAULT NULL,
   `date` date DEFAULT NULL,
@@ -87,6 +87,15 @@ CREATE TABLE IF NOT EXISTS `case_register` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
+  FOREIGN KEY (`student_id`) REFERENCES `students`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Junction table for Case Register and Students (many-to-many)
+CREATE TABLE IF NOT EXISTS `case_students` (
+  `case_id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  PRIMARY KEY (`case_id`, `student_id`),
+  FOREIGN KEY (`case_id`) REFERENCES `case_register`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`student_id`) REFERENCES `students`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
