@@ -99,3 +99,58 @@ CREATE TABLE IF NOT EXISTS `case_students` (
   FOREIGN KEY (`student_id`) REFERENCES `students`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+
+-- ==========================================
+-- CARS Module Tables
+-- ==========================================
+
+-- CARS Assessment Sessions
+CREATE TABLE IF NOT EXISTS `cars_assessment_sessions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `academic_year` varchar(50) DEFAULT NULL,
+  `grade_level` varchar(50) DEFAULT NULL,
+  `section_name` varchar(100) DEFAULT NULL,
+  `evaluator_id` int(11) DEFAULT NULL,
+  `assessed_at` date DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- CARS Student Evaluations
+CREATE TABLE IF NOT EXISTS `cars_student_evaluations` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `session_id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `q1` tinyint(1) NULL, `q2` tinyint(1) NULL, `q3` tinyint(1) NULL, `q4` tinyint(1) NULL,
+  `q5` tinyint(1) NULL, `q6` tinyint(1) NULL, `q7` tinyint(1) NULL, `q8` tinyint(1) NULL,
+  `q9` tinyint(1) NULL, `q10` tinyint(1) NULL, `q11` tinyint(1) NULL, `q12` tinyint(1) NULL,
+  `q13` tinyint(1) NULL, `q14` tinyint(1) NULL, `q15` tinyint(1) NULL, `q16` tinyint(1) NULL,
+  `q17` tinyint(1) NULL, `q18` tinyint(1) NULL, `q19` tinyint(1) NULL, `q20` tinyint(1) NULL,
+  `q21` tinyint(1) NULL, `q22` tinyint(1) NULL, `q23` tinyint(1) NULL, `q24` tinyint(1) NULL,
+  `externalizing_score` int(11) NULL,
+  `internalizing_score` int(11) NULL,
+  `social_score` int(11) NULL,
+  `academic_score` int(11) NULL,
+  `total_raw_score` int(11) NULL,
+  `t_score` int(11) NULL,
+  `percentile_rank` int(11) NULL,
+  `risk_status` enum('NO-RISK', 'AT-RISK', 'HIGH-RISK', 'INCOMPLETE') DEFAULT 'INCOMPLETE',
+  `tier_level` enum('Tier 1', 'Tier 2', 'Tier 3', 'Pending') DEFAULT 'Pending',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`session_id`) REFERENCES `cars_assessment_sessions`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`student_id`) REFERENCES `students`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- CARS Norm Tables Lookups
+CREATE TABLE IF NOT EXISTS `cars_norm_tables` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `grade_group` varchar(100) NOT NULL,
+  `raw_score` int(11) NOT NULL,
+  `t_score` int(11) NOT NULL,
+  `percentile` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_grade_raw` (`grade_group`, `raw_score`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
