@@ -375,7 +375,7 @@ $parents = $stmt_parents->fetchAll();
             btn.disabled = true;
             const resp = document.getElementById('parent-response');
             resp.style.display = 'none'; resp.className = '';
-            fetch('<?= BASE_URL ?>/api/process_parent.php', { method:'POST', body: new FormData(this) })
+            fetch('<?= BASE_URL ?>/api/process_parent.php', { method:'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: new FormData(this) })
                 .then(r => r.json())
                 .then(data => {
                     resp.style.display = 'block';
@@ -390,7 +390,9 @@ $parents = $stmt_parents->fetchAll();
         });
 
         function openEditParentModal(id) {
-            fetch('<?= BASE_URL ?>/api/api_get_parent.php?id=' + id)
+            fetch('<?= BASE_URL ?>/api/api_get_parent.php?id=' + id, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
@@ -439,6 +441,7 @@ $parents = $stmt_parents->fetchAll();
 
             fetch('<?= BASE_URL ?>/api/process_parent_edit.php', {
                 method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
             })
             .then(response => response.json())
@@ -475,6 +478,7 @@ $parents = $stmt_parents->fetchAll();
 
                 fetch('<?= BASE_URL ?>/api/process_delete.php', {
                     method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     body: formData
                 })
                 .then(response => response.json())

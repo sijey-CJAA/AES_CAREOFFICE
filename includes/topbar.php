@@ -121,6 +121,7 @@ document.getElementById('changePasswordForm')?.addEventListener('submit', functi
 
     fetch('<?= BASE_URL ?>/api/change_password.php', {
         method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
         body: formData
     })
     .then(res => res.json())

@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS `students` (
   `section` varchar(100) DEFAULT NULL,
   `school_year` varchar(50) DEFAULT NULL,
   `date_of_birth` date DEFAULT NULL,
+  `contact_number` varchar(50) DEFAULT NULL,
   `home_address` text DEFAULT NULL,
   `blood_type` varchar(10) DEFAULT NULL,
   `allergies` text DEFAULT NULL,
@@ -65,6 +66,7 @@ CREATE TABLE IF NOT EXISTS `assessment_records` (
   `status` varchar(50) DEFAULT NULL,
   `assessment_provider` varchar(100) DEFAULT NULL,
   `findings` text,
+  `diagnosis` varchar(100) DEFAULT NULL,
   `recommendations` text,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` timestamp NULL DEFAULT NULL,
@@ -75,7 +77,6 @@ CREATE TABLE IF NOT EXISTS `assessment_records` (
 -- Table for Guidance Office Case Register
 CREATE TABLE IF NOT EXISTS `case_register` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `student_id` int(11) NULL,
   `case_number` varchar(50) DEFAULT NULL UNIQUE,
   `school_year` varchar(20) DEFAULT NULL,
   `date` date DEFAULT NULL,
@@ -86,8 +87,7 @@ CREATE TABLE IF NOT EXISTS `case_register` (
   `outcome_disposition` varchar(50) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  FOREIGN KEY (`student_id`) REFERENCES `students`(`id`) ON DELETE CASCADE
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Junction table for Case Register and Students (many-to-many)

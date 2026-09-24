@@ -463,7 +463,9 @@ $today_date = date('Y-m-d');
                 return;
             }
 
-            fetch('<?= BASE_URL ?>/api/api_get_sections_by_grade.php?grade_level=' + encodeURIComponent(grade))
+            fetch('<?= BASE_URL ?>/api/api_get_sections_by_grade.php?grade_level=' + encodeURIComponent(grade), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'success' && data.data.length > 0) {
@@ -495,7 +497,9 @@ $today_date = date('Y-m-d');
                 return;
             }
 
-            fetch(`<?= BASE_URL ?>/api/api_get_students_by_section.php?grade_level=${encodeURIComponent(grade)}&section=${encodeURIComponent(section)}`)
+            fetch(`<?= BASE_URL ?>/api/api_get_students_by_section.php?grade_level=${encodeURIComponent(grade)}&section=${encodeURIComponent(section)}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === 'success' && data.data.length > 0) {
@@ -576,6 +580,7 @@ $today_date = date('Y-m-d');
 
             fetch('<?= BASE_URL ?>/api/process_assessment.php', {
                 method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
             })
             .then(response => response.json())
@@ -605,7 +610,9 @@ $today_date = date('Y-m-d');
         });
 
         function openEditAssessmentModal(id) {
-            fetch('<?= BASE_URL ?>/api/api_get_assessment.php?id=' + id)
+            fetch('<?= BASE_URL ?>/api/api_get_assessment.php?id=' + id, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
@@ -690,6 +697,7 @@ $today_date = date('Y-m-d');
 
             fetch('<?= BASE_URL ?>/api/process_assessment_edit.php', {
                 method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
             })
             .then(response => response.json())
@@ -726,6 +734,7 @@ $today_date = date('Y-m-d');
 
                 fetch('<?= BASE_URL ?>/api/process_delete.php', {
                     method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     body: formData
                 })
                 .then(response => response.json())

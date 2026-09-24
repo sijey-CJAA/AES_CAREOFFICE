@@ -258,6 +258,7 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
 
                 fetch('<?= BASE_URL ?>/api/process_restore.php', {
                     method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     body: formData
                 })
                 .then(response => response.json())

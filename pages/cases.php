@@ -597,6 +597,7 @@ $today_date = date('Y-m-d');
 
             fetch('<?= BASE_URL ?>/api/process_case.php', {
                 method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
             })
             .then(response => response.json())
@@ -626,7 +627,9 @@ $today_date = date('Y-m-d');
         });
 
         function openEditCaseModal(id) {
-            fetch('<?= BASE_URL ?>/api/api_get_case.php?id=' + id)
+            fetch('<?= BASE_URL ?>/api/api_get_case.php?id=' + id, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
@@ -733,6 +736,7 @@ $today_date = date('Y-m-d');
 
             fetch('<?= BASE_URL ?>/api/process_case_edit.php', {
                 method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
             })
             .then(response => response.json())
@@ -769,6 +773,7 @@ $today_date = date('Y-m-d');
 
                 fetch('<?= BASE_URL ?>/api/process_delete.php', {
                     method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     body: formData
                 })
                 .then(response => response.json())
