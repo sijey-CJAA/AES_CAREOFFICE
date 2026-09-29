@@ -6,7 +6,12 @@ require_once __DIR__ . '/../config/db.php';
 header('Content-Type: application/json');
 
 $ALLOWED_GRADES = ['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'];
-$GRADE_SECTIONS = json_decode(file_get_contents(__DIR__ . '/../config/sections.json'), true);
+$sections_data = file_get_contents(__DIR__ . '/../config/sections.json');
+if ($sections_data === false) {
+    echo json_encode(['status' => 'error', 'message' => 'Server is too busy. Please wait a few seconds and try again.']);
+    exit;
+}
+$GRADE_SECTIONS = json_decode($sections_data, true);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 

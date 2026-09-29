@@ -895,7 +895,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <script src="<?= BASE_URL ?>/assets/js/main.js"></script>
     <script>
         // ── Grades and Sections Mapping ────────────────────────────────────────
-        const gradeSections = <?= file_get_contents(__DIR__ . '/../config/sections.json') ?>;
+        const gradeSections = <?= file_get_contents(__DIR__ . '/../config/sections.json') ?: '{}' ?>;
 
         function updateSections(gradeElementId, sectionElementId) {
             const gradeSelect = document.getElementById(gradeElementId);

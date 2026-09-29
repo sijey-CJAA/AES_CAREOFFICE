@@ -18,7 +18,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 
-    $grade_sections = json_decode(file_get_contents($sections_file), true);
+    $sections_data = file_get_contents($sections_file);
+    if ($sections_data === false) {
+        echo json_encode(['status' => 'error', 'message' => 'Server is too busy. Please wait a few seconds and try again.']);
+        exit;
+    }
+    $grade_sections = json_decode($sections_data, true);
 
     if (!isset($grade_sections[$grade_level])) {
         echo json_encode(['status' => 'error', 'message' => 'Invalid Grade Level.']);
