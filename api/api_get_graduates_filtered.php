@@ -1,11 +1,11 @@
 <?php
-require_once '../config/auth.php';
-require_once '../config/db.php';
+require_once __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../config/db.php';
 
 header('Content-Type: application/json');
 
 $ALLOWED_GRADES = ['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'];
-$GRADE_SECTIONS = json_decode(file_get_contents('../config/sections.json'), true);
+$GRADE_SECTIONS = json_decode(file_get_contents(__DIR__ . '/../config/sections.json'), true);
 
 // Guard: return a clear error if migration hasn't been applied yet
 $check_col = $pdo->query("SHOW COLUMNS FROM `students` LIKE 'grade_level'")->fetch();

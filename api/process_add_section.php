@@ -1,5 +1,5 @@
 <?php
-require_once '../config/auth.php';
+require_once __DIR__ . '/../config/auth.php';
 
 header('Content-Type: application/json');
 
@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 
-    $sections_file = '../config/sections.json';
+    $sections_file = __DIR__ . '/../config/sections.json';
     if (!file_exists($sections_file)) {
         echo json_encode(['status' => 'error', 'message' => 'Configuration file not found.']);
         exit;

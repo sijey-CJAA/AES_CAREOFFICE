@@ -1,6 +1,6 @@
 <?php
-require_once '../config/auth.php';
-require_once '../config/db.php';
+require_once __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../config/db.php';
 
 // Fetch the logged-in admin's details
 $stmt = $pdo->prepare("SELECT email FROM admins WHERE id = :id");
@@ -36,10 +36,10 @@ $parents = $stmt_parents->fetchAll();
 </head>
 <body>
 
-    <?php include '../includes/sidebar.php'; ?>
+    <?php include __DIR__ . '/../includes/sidebar.php'; ?>
 
     <div class="main-wrapper">
-        <?php include '../includes/topbar.php'; ?>
+        <?php include __DIR__ . '/../includes/topbar.php'; ?>
 
         <main class="main-content">
                 <div class="page-header-container">
