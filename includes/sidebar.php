@@ -4,7 +4,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <div class="sidebar-logo-icon">AE</div>
+        <img src="<?= BASE_URL ?>/assets/aeslogo1%201.svg" alt="AES Logo" class="sidebar-logo-icon" style="background: none; width: 36px; height: 36px; border-radius: 0;">
         <div class="sidebar-text-group">
             <div class="sidebar-title">AES Care Office</div>
             <div class="sidebar-subtitle">Counselor Portal</div>

@@ -32,6 +32,7 @@ $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Archive | AES Care Office</title>
+    <link rel="icon" href="<?= BASE_URL ?>/assets/aeslogo1%201.svg" type="image/svg+xml">
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <style>
