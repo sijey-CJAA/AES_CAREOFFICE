@@ -45,10 +45,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         echo json_encode(['status' => 'success', 'message' => 'Assessment record successfully saved!']);
     } catch(PDOException $e) {
+        aes_log_error("Failed to insert assessment record: " . $e->getMessage(), [
+            'student_id'    => $student_id,
+            'record_number' => $record_number,
+            'date'          => $date
+        ]);
+
         if ($e->getCode() == 23000 && strpos($e->getMessage(), 'Duplicate entry') !== false) {
-            echo json_encode(['status' => 'error', 'message' => 'Record Number already exists.']);
+            echo json_encode(['status' => 'error', 'message' => 'Record Number already exists. Please choose a different record number.']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
+            echo json_encode(['status' => 'error', 'message' => 'Unable to save assessment record. Please verify the entered information and try again.']);
         }
     }
 } else {

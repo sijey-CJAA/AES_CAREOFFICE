@@ -59,22 +59,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         $case_id = $pdo->lastInsertId();
 
-        // Insert multiple students
+        // Insert multiple students (deduplicate to prevent primary key collisions)
+        $unique_students = array_unique(array_filter($student_ids));
         $stmt_students = $pdo->prepare("INSERT INTO case_students (case_id, student_id) VALUES (?, ?)");
-        foreach ($student_ids as $sid) {
-            if (!empty($sid)) {
-                $stmt_students->execute([$case_id, $sid]);
-            }
+        foreach ($unique_students as $sid) {
+            $stmt_students->execute([$case_id, $sid]);
         }
 
         $pdo->commit();
         echo json_encode(['status' => 'success', 'message' => 'Case record successfully saved!']);
     } catch(PDOException $e) {
-        $pdo->rollBack();
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        aes_log_error("Failed to insert case: " . $e->getMessage(), [
+            'case_number' => $case_number,
+            'school_year' => $school_year,
+            'date'        => $date
+        ]);
+
         if ($e->getCode() == 23000 && strpos($e->getMessage(), 'Duplicate entry') !== false) {
-            echo json_encode(['status' => 'error', 'message' => 'Case Number already exists.']);
+            echo json_encode(['status' => 'error', 'message' => 'Case Number already exists. Please choose a different number.']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
+            echo json_encode(['status' => 'error', 'message' => 'Unable to save case record. Please check the entered information and try again.']);
         }
     }
 } else {

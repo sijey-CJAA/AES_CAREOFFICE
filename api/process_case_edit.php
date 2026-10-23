@@ -64,24 +64,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $id
         ]);
 
-        // Update case_students
+        // Update case_students (deduplicate to prevent primary key collisions)
         $pdo->prepare("DELETE FROM case_students WHERE case_id = ?")->execute([$id]);
         
+        $unique_students = array_unique(array_filter($student_ids));
         $stmt_students = $pdo->prepare("INSERT INTO case_students (case_id, student_id) VALUES (?, ?)");
-        foreach ($student_ids as $sid) {
-            if (!empty($sid)) {
-                $stmt_students->execute([$id, $sid]);
-            }
+        foreach ($unique_students as $sid) {
+            $stmt_students->execute([$id, $sid]);
         }
 
         $pdo->commit();
         echo json_encode(['status' => 'success', 'message' => 'Case record successfully updated!']);
     } catch(PDOException $e) {
-        $pdo->rollBack();
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        aes_log_error("Failed to update case ID {$id}: " . $e->getMessage(), [
+            'id'          => $id,
+            'case_number' => $case_number
+        ]);
+
         if ($e->getCode() == 23000 && strpos($e->getMessage(), 'Duplicate entry') !== false) {
-            echo json_encode(['status' => 'error', 'message' => 'Case Number already exists.']);
+            echo json_encode(['status' => 'error', 'message' => 'Case Number already exists. Please choose a different number.']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
+            echo json_encode(['status' => 'error', 'message' => 'Unable to update case record. Please check the entered information and try again.']);
         }
     }
 } else {

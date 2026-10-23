@@ -30,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt_parent->execute([
             $student_id,
             $p1_name,
-            get_post('p1_relationship'),
+            get_post('p1_relationship') ?: get_post('p1_rel'),
             get_post('p1_address'),
             get_post('p1_mobile'),
             get_post('p1_telephone'),
@@ -50,7 +50,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt_parent2->execute([
                 $student_id,
                 $p2_name,
-                get_post('p2_relationship'),
+                get_post('p2_relationship') ?: get_post('p2_rel'),
                 get_post('p2_address'),
                 get_post('p2_mobile'),
                 get_post('p2_telephone'),
@@ -68,7 +68,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        echo json_encode(['status' => 'error', 'message' => 'Database error: Could not save parent record.']);
+        aes_log_error("Failed to insert parent record: " . $e->getMessage(), [
+            'student_id' => $student_id,
+            'p1_name'    => $p1_name
+        ]);
+        echo json_encode(['status' => 'error', 'message' => 'Unable to save parent record due to a database error. Please try again.']);
     }
 
 } else {

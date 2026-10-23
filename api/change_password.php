@@ -34,7 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Incorrect current password.']);
         }
     } catch (PDOException $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Database error.']);
+        aes_log_error("Password change database error for admin ID {$admin_id}: " . $e->getMessage(), ['admin_id' => $admin_id]);
+        echo json_encode(['status' => 'error', 'message' => 'Unable to update password due to a temporary database issue. Please try again.']);
     }
 }
 ?>

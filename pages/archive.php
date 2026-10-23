@@ -12,18 +12,37 @@ $email_parts = explode('@', $user_email);
 $name_parts = explode('.', $email_parts[0]);
 $user_name = ucfirst($name_parts[0]);
 
-// Fetch deleted records
-$stmt_del_students = $pdo->query("SELECT * FROM students WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
-$del_students = $stmt_del_students->fetchAll(PDO::FETCH_ASSOC);
+$del_students = [];
+$del_parents = [];
+$del_assess = [];
+$del_cases = [];
 
-$stmt_del_parents = $pdo->query("SELECT p.*, s.full_name as student_name FROM parents p LEFT JOIN students s ON p.student_id = s.id WHERE p.deleted_at IS NOT NULL ORDER BY p.deleted_at DESC");
-$del_parents = $stmt_del_parents->fetchAll(PDO::FETCH_ASSOC);
+try {
+    // Fetch deleted records
+    $stmt_del_students = $pdo->query("SELECT * FROM students WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+    $del_students = $stmt_del_students->fetchAll(PDO::FETCH_ASSOC);
 
-$stmt_del_assess = $pdo->query("SELECT a.*, s.full_name as student_name FROM assessment_records a LEFT JOIN students s ON a.student_id = s.id WHERE a.deleted_at IS NOT NULL ORDER BY a.deleted_at DESC");
-$del_assess = $stmt_del_assess->fetchAll(PDO::FETCH_ASSOC);
+    $stmt_del_parents = $pdo->query("SELECT p.*, s.full_name as student_name FROM parents p LEFT JOIN students s ON p.student_id = s.id WHERE p.deleted_at IS NOT NULL ORDER BY p.deleted_at DESC");
+    $del_parents = $stmt_del_parents->fetchAll(PDO::FETCH_ASSOC);
 
-$stmt_del_cases = $pdo->query("SELECT c.*, s.full_name as student_name FROM case_register c LEFT JOIN students s ON c.student_id = s.id WHERE c.deleted_at IS NOT NULL ORDER BY c.deleted_at DESC");
-$del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
+    $stmt_del_assess = $pdo->query("SELECT a.*, s.full_name as student_name FROM assessment_records a LEFT JOIN students s ON a.student_id = s.id WHERE a.deleted_at IS NOT NULL ORDER BY a.deleted_at DESC");
+    $del_assess = $stmt_del_assess->fetchAll(PDO::FETCH_ASSOC);
+
+    // Case register uses junction table case_students
+    $stmt_del_cases = $pdo->query("
+        SELECT c.*, 
+               GROUP_CONCAT(s.full_name SEPARATOR ', ') as student_name 
+        FROM case_register c 
+        LEFT JOIN case_students cs ON c.id = cs.case_id 
+        LEFT JOIN students s ON cs.student_id = s.id 
+        WHERE c.deleted_at IS NOT NULL 
+        GROUP BY c.id 
+        ORDER BY c.deleted_at DESC
+    ");
+    $del_cases = $stmt_del_cases->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    aes_log_error("Error loading archive records: " . $e->getMessage());
+}
 
 ?>
 <!DOCTYPE html>

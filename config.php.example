@@ -1,0 +1,31 @@
+<?php
+/**
+ * InfinityFree / Production Database Configuration Example
+ * 
+ * Instructions:
+ * 1. Copy or rename this file to 'config.php' in the root directory (c:\xampp\htdocs\AES_CAREOFFICE\config.php
+ *    or the root of your InfinityFree htdocs folder).
+ * 2. In your InfinityFree Client Area (https://dash.infinityfree.com), click on your hosting account
+ *    and look at the "MySQL Details" section.
+ * 3. Fill in the exact values below.
+ * 4. Keep this file outside version control (it is already included in .gitignore).
+ */
+
+// MySQL Host Name (e.g. sql100.infinityfree.com or sql200.epizy.com)
+// WARNING: Do NOT use 'localhost' on InfinityFree! The MySQL server is on a separate cluster host.
+define('DB_HOST', 'sqlxxx.infinityfree.com');
+
+// MySQL Database Name (e.g. if0_12345678_aes)
+// Note: InfinityFree automatically prefixes database names with your account username.
+define('DB_NAME', 'if0_xxxxxxxx_aes');
+
+// MySQL User Name (e.g. if0_12345678)
+// Note: InfinityFree usernames always start with your account prefix (e.g. if0_... or epiz_...).
+define('DB_USER', 'if0_xxxxxxxx');
+
+// MySQL Password
+// Note: This is your vPanel / Account Password from the InfinityFree Client Area.
+define('DB_PASS', 'your_infinityfree_password_here');
+
+// Optional: MySQL Port (default is 3306)
+define('DB_PORT', 3306);

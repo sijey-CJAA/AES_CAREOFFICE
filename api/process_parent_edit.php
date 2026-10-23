@@ -41,7 +41,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo json_encode(['status' => 'success', 'message' => 'Parent/Guardian record successfully updated!']);
 
     } catch(PDOException $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Database error: Could not update parent record.']);
+        aes_log_error("Failed to update parent ID {$id}: " . $e->getMessage(), [
+            'id'         => $id,
+            'student_id' => $student_id,
+            'name'       => $name
+        ]);
+        echo json_encode(['status' => 'error', 'message' => 'Unable to update parent record due to a database error. Please try again.']);
     }
 
 } else {

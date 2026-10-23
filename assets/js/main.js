@@ -17,88 +17,61 @@ document.addEventListener('DOMContentLoaded', function() {
         learnerForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const btn = learnerForm.querySelector('.submit-btn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = 'Saving...';
-            btn.disabled = true;
+            const btn = learnerForm.querySelector('.submit-btn') || learnerForm.querySelector('button[type="submit"]');
+            const originalText = btn ? btn.innerHTML : 'Save';
+            if (btn) {
+                btn.innerHTML = 'Saving...';
+                btn.disabled = true;
+            }
 
             const responseDiv = document.getElementById('learner-response');
-            responseDiv.style.display = 'none';
-            responseDiv.className = '';
+            if (responseDiv) {
+                responseDiv.style.display = 'none';
+                responseDiv.className = '';
+            }
 
             const formData = new FormData(learnerForm);
 
             fetch(BASE_URL + '/api/process_learner.php', {
                 method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
             })
-            .then(response => response.json())
+            .then(async response => {
+                let data;
+                try {
+                    data = await response.json();
+                } catch (jsonErr) {
+                    throw new Error('Server returned an unexpected response. Please try again.');
+                }
+                return data;
+            })
             .then(data => {
-                responseDiv.style.display = 'block';
-                responseDiv.innerHTML = data.message;
-                
-                if (data.status === 'success') {
-                    responseDiv.className = 'msg-success';
-                    learnerForm.reset();
-                    // Optionally, could refresh the page to update the parent dropdown, but user can do that manually.
-                } else {
-                    responseDiv.className = 'msg-error';
+                if (responseDiv) {
+                    responseDiv.style.display = 'block';
+                    responseDiv.innerHTML = data.message || 'Saved successfully.';
+                    
+                    if (data.status === 'success') {
+                        responseDiv.className = 'msg-success';
+                        learnerForm.reset();
+                    } else {
+                        responseDiv.className = 'msg-error';
+                    }
                 }
             })
             .catch(error => {
-                responseDiv.style.display = 'block';
-                responseDiv.className = 'msg-error';
-                responseDiv.innerHTML = 'An unexpected error occurred.';
-                console.error('Error:', error);
-            })
-            .finally(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            });
-        });
-    }
-
-    const parentForm = document.getElementById('parent-form');
-    if (parentForm) {
-        parentForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const btn = parentForm.querySelector('.submit-btn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = 'Saving...';
-            btn.disabled = true;
-
-            const responseDiv = document.getElementById('parent-response');
-            responseDiv.style.display = 'none';
-            responseDiv.className = '';
-
-            const formData = new FormData(parentForm);
-
-            fetch(BASE_URL + '/api/process_parent.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                responseDiv.style.display = 'block';
-                responseDiv.innerHTML = data.message;
-                
-                if (data.status === 'success') {
-                    responseDiv.className = 'msg-success';
-                    parentForm.reset();
-                } else {
+                if (responseDiv) {
+                    responseDiv.style.display = 'block';
                     responseDiv.className = 'msg-error';
+                    responseDiv.innerHTML = error.message || 'An unexpected error occurred. Please try again.';
                 }
-            })
-            .catch(error => {
-                responseDiv.style.display = 'block';
-                responseDiv.className = 'msg-error';
-                responseDiv.innerHTML = 'An unexpected error occurred.';
                 console.error('Error:', error);
             })
             .finally(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+                if (btn) {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
             });
         });
     }

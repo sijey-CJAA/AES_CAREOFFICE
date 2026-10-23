@@ -26,7 +26,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         echo json_encode(['status' => 'success', 'message' => 'Record moved to trash successfully.']);
     } catch(PDOException $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Database error: Could not delete record.']);
+        aes_log_error("Failed to soft-delete from {$table} ID {$id}: " . $e->getMessage(), ['table' => $table, 'id' => $id]);
+        echo json_encode(['status' => 'error', 'message' => 'Unable to delete record due to a database error. Please try again.']);
     }
 } else {
     echo json_encode(['status' => 'error', 'message' => 'Invalid request method.']);

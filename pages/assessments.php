@@ -584,10 +584,18 @@ $today_date = date('Y-m-d');
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
             })
-            .then(response => response.json())
+            .then(async response => {
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    throw new Error('Server returned an unexpected response. Please try again.');
+                }
+                return data;
+            })
             .then(data => {
                 responseDiv.style.display = 'block';
-                responseDiv.innerHTML = data.message;
+                responseDiv.innerHTML = data.message || 'Saved successfully.';
                 
                 if (data.status === 'success') {
                     responseDiv.className = 'msg-success';
@@ -601,7 +609,7 @@ $today_date = date('Y-m-d');
             .catch(error => {
                 responseDiv.style.display = 'block';
                 responseDiv.className = 'msg-error';
-                responseDiv.innerHTML = 'An unexpected error occurred.';
+                responseDiv.innerHTML = error.message || 'An unexpected error occurred. Please try again.';
                 console.error('Error:', error);
             })
             .finally(() => {
@@ -701,10 +709,18 @@ $today_date = date('Y-m-d');
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
             })
-            .then(response => response.json())
+            .then(async response => {
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    throw new Error('Server returned an unexpected response. Please try again.');
+                }
+                return data;
+            })
             .then(data => {
                 responseDiv.style.display = 'block';
-                responseDiv.innerHTML = data.message;
+                responseDiv.innerHTML = data.message || 'Updated successfully.';
                 
                 if (data.status === 'success') {
                     responseDiv.className = 'msg-success';
@@ -718,7 +734,7 @@ $today_date = date('Y-m-d');
             .catch(error => {
                 responseDiv.style.display = 'block';
                 responseDiv.className = 'msg-error';
-                responseDiv.innerHTML = 'An unexpected error occurred.';
+                responseDiv.innerHTML = error.message || 'An unexpected error occurred. Please try again.';
                 console.error('Error:', error);
             })
             .finally(() => {

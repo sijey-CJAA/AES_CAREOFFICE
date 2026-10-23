@@ -377,16 +377,24 @@ $parents = $stmt_parents->fetchAll();
             const resp = document.getElementById('parent-response');
             resp.style.display = 'none'; resp.className = '';
             fetch('<?= BASE_URL ?>/api/process_parent.php', { method:'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }, body: new FormData(this) })
-                .then(r => r.json())
+                .then(async r => {
+                    let data;
+                    try {
+                        data = await r.json();
+                    } catch (e) {
+                        throw new Error('Server returned an unexpected response. Please try again.');
+                    }
+                    return data;
+                })
                 .then(data => {
                     resp.style.display = 'block';
-                    resp.innerHTML = data.message;
+                    resp.innerHTML = data.message || 'Saved successfully.';
                     if (data.status === 'success') {
                         resp.className = 'msg-success';
                         setTimeout(() => { window.location.reload(); }, 900);
                     } else { resp.className = 'msg-error'; }
                 })
-                .catch(() => { resp.style.display='block'; resp.className='msg-error'; resp.innerHTML='Unexpected error.'; })
+                .catch(err => { resp.style.display='block'; resp.className='msg-error'; resp.innerHTML=err.message || 'Unexpected error occurred.'; })
                 .finally(() => { btn.innerHTML = orig; btn.disabled = false; });
         });
 
@@ -445,10 +453,18 @@ $parents = $stmt_parents->fetchAll();
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
             })
-            .then(response => response.json())
+            .then(async response => {
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    throw new Error('Server returned an unexpected response. Please try again.');
+                }
+                return data;
+            })
             .then(data => {
                 responseDiv.style.display = 'block';
-                responseDiv.innerHTML = data.message;
+                responseDiv.innerHTML = data.message || 'Updated successfully.';
                 
                 if (data.status === 'success') {
                     responseDiv.className = 'msg-success';
@@ -462,7 +478,7 @@ $parents = $stmt_parents->fetchAll();
             .catch(error => {
                 responseDiv.style.display = 'block';
                 responseDiv.className = 'msg-error';
-                responseDiv.innerHTML = 'An unexpected error occurred.';
+                responseDiv.innerHTML = error.message || 'An unexpected error occurred. Please try again.';
                 console.error('Error:', error);
             })
             .finally(() => {

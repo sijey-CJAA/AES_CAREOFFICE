@@ -121,8 +121,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo json_encode(['status' => 'success', 'message' => 'Learner and parent records successfully saved!']);
 
     } catch (PDOException $e) {
-        $pdo->rollBack();
-        echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        aes_log_error("Failed to insert learner: " . $e->getMessage(), [
+            'learner_name' => $learner_name,
+            'lrn'          => $lrn,
+            'grade_level'  => $grade_level,
+            'section'      => $section
+        ]);
+
+        if ($e->getCode() == 23000) {
+            echo json_encode(['status' => 'error', 'message' => 'A learner with this LRN already exists.']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Unable to save learner record. Please verify the entered information and try again.']);
+        }
     }
 
 } else {

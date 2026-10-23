@@ -26,7 +26,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         echo json_encode(['status' => 'success', 'message' => 'Record restored successfully.']);
     } catch(PDOException $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Database error: Could not restore record.']);
+        aes_log_error("Failed to restore {$table} ID {$id}: " . $e->getMessage(), ['table' => $table, 'id' => $id]);
+        echo json_encode(['status' => 'error', 'message' => 'Unable to restore record due to a database error. Please try again.']);
     }
 } else {
     echo json_encode(['status' => 'error', 'message' => 'Invalid request method.']);

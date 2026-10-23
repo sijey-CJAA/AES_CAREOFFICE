@@ -133,8 +133,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo json_encode(['status' => 'success', 'message' => 'Learner records successfully updated!']);
 
     } catch (PDOException $e) {
-        $pdo->rollBack();
-        echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        aes_log_error("Failed to update learner ID {$id}: " . $e->getMessage(), [
+            'id'           => $id,
+            'learner_name' => $learner_name,
+            'lrn'          => $lrn
+        ]);
+
+        if ($e->getCode() == 23000) {
+            echo json_encode(['status' => 'error', 'message' => 'A learner with this LRN already exists.']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Unable to update learner record. Please verify the entered information and try again.']);
+        }
     }
 
 } else {
