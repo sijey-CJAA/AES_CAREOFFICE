@@ -39,9 +39,9 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_link_auth_user_admin ON auth.users;
 DO $$
 BEGIN
+    DROP TRIGGER IF EXISTS trg_link_auth_user_admin ON auth.users;
     CREATE TRIGGER trg_link_auth_user_admin
         AFTER INSERT OR UPDATE OF email ON auth.users
         FOR EACH ROW EXECUTE FUNCTION public.link_auth_user_to_admin();

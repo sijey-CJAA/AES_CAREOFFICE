@@ -22,9 +22,26 @@ ALTER TABLE public.cars_assessment_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cars_student_evaluations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cars_norm_tables ENABLE ROW LEVEL SECURITY;
 
--- Revoke default anon privileges defensively
-REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon;
+-- Revoke default public/anon privileges defensively
+REVOKE ALL ON
+    public.admins,
+    public.grade_sections,
+    public.students,
+    public.parents,
+    public.assessment_records,
+    public.case_register,
+    public.case_students,
+    public.cars_assessment_sessions,
+    public.cars_student_evaluations,
+    public.cars_norm_tables,
+    public.case_register_view
+FROM PUBLIC, anon;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM PUBLIC, anon;
+REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC, anon;
+
 GRANT USAGE ON SCHEMA public TO authenticated;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.grade_sections TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.students TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.parents TO authenticated;
