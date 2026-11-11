@@ -790,6 +790,9 @@ export function AssessmentsPage() {
                 onChange={(e) => setEditForm({ ...editForm, school_year: e.target.value })}
                 required
               >
+                {editForm.school_year && !ASSESSMENT_SCHOOL_YEARS.includes(editForm.school_year) && (
+                  <option value={editForm.school_year}>{editForm.school_year}</option>
+                )}
                 {ASSESSMENT_SCHOOL_YEARS.map((sy) => (
                   <option key={sy} value={sy}>
                     {sy}

@@ -48,7 +48,15 @@ export function LearnerFormFields({
   onChange,
   sectionsForGrade,
 }: LearnerFormFieldsProps) {
-  const schoolYears = getLearnerSchoolYearOptions();
+  const baseSchoolYears = getLearnerSchoolYearOptions();
+  const schoolYears =
+    value.school_year && !baseSchoolYears.includes(value.school_year)
+      ? [value.school_year, ...baseSchoolYears]
+      : baseSchoolYears;
+  const availableSections =
+    value.section && !sectionsForGrade.includes(value.section)
+      ? [value.section, ...sectionsForGrade]
+      : sectionsForGrade;
 
   const updateField = <K extends keyof LearnerFormInput>(key: K, val: LearnerFormInput[K]) => {
     onChange({ ...value, [key]: val });
@@ -139,7 +147,7 @@ export function LearnerFormFields({
           <option value="" disabled>
             Select Section
           </option>
-          {sectionsForGrade.map((sec) => (
+          {availableSections.map((sec) => (
             <option key={sec} value={sec}>
               {sec}
             </option>
@@ -155,6 +163,9 @@ export function LearnerFormFields({
           value={value.school_year}
           onChange={(e) => updateField('school_year', e.target.value)}
         >
+          {!value.school_year && (
+            <option value="">-- Select School Year --</option>
+          )}
           {schoolYears.map((sy) => (
             <option key={sy} value={sy}>
               {sy}
