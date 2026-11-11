@@ -27,6 +27,7 @@ export const IMPORT_ORDER = [
   'cars_assessment_sessions',
   'cars_student_evaluations',
   'cars_norm_tables',
+  'waitlist',
 ];
 
 export const TABLE_COLUMNS = {
@@ -83,6 +84,7 @@ export const TABLE_COLUMNS = {
   ],
   case_register: [
     'id',
+    'student_id',
     'case_number',
     'school_year',
     'date',
@@ -125,6 +127,7 @@ export const TABLE_COLUMNS = {
     'updated_at',
   ],
   cars_norm_tables: ['id', 'grade_group', 'raw_score', 't_score', 'percentile'],
+  waitlist: ['id', 'name', 'email', 'created_at'],
 };
 
 const IDENTITY_TABLES = [
@@ -136,6 +139,7 @@ const IDENTITY_TABLES = [
   'cars_assessment_sessions',
   'cars_student_evaluations',
   'cars_norm_tables',
+  'waitlist',
 ];
 
 /**

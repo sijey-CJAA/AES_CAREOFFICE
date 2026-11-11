@@ -21,6 +21,7 @@ ALTER TABLE public.case_students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cars_assessment_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cars_student_evaluations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cars_norm_tables ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.waitlist ENABLE ROW LEVEL SECURITY;
 
 -- Revoke default public/anon privileges defensively
 REVOKE ALL ON
@@ -34,6 +35,7 @@ REVOKE ALL ON
     public.cars_assessment_sessions,
     public.cars_student_evaluations,
     public.cars_norm_tables,
+    public.waitlist,
     public.case_register_view
 FROM PUBLIC, anon;
 REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM PUBLIC, anon;
@@ -117,6 +119,12 @@ CREATE POLICY cars_evaluations_admin_all ON public.cars_student_evaluations
 
 DROP POLICY IF EXISTS cars_norms_admin_all ON public.cars_norm_tables;
 CREATE POLICY cars_norms_admin_all ON public.cars_norm_tables
+    FOR ALL TO authenticated
+    USING (public.is_admin())
+    WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS waitlist_admin_all ON public.waitlist;
+CREATE POLICY waitlist_admin_all ON public.waitlist
     FOR ALL TO authenticated
     USING (public.is_admin())
     WITH CHECK (public.is_admin());

@@ -3,4 +3,5 @@ node_modules/
 .env
 .env.*
 !.env.example
-supabase/005_data_import.sql
+/*.sql
+supabase/*.sql
