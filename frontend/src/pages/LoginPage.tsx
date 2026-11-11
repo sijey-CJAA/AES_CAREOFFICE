@@ -90,8 +90,8 @@ export function LoginPage() {
               style={{ marginBottom: '1.5rem', textAlign: 'left', lineHeight: 1.45 }}
             >
               <strong>Supabase Not Connected Yet:</strong> Configure{' '}
-              <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in{' '}
-              <code>frontend/.env.local</code> once your Supabase project is ready.
+              <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> in{' '}
+              <code>frontend/.env.local</code> (or Vercel Environment Variables).
             </div>
           )}
 
