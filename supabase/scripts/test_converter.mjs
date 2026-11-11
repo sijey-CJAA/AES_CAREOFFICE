@@ -52,3 +52,17 @@ INSERT INTO \`case_students\` (\`case_id\`, \`student_id\`) VALUES (3, 10);
   assert.ok(result.sql.includes("'Note with ; semicolon'"));
 });
 
+test('convertMySqlDump handles assessment_records, CARS tables, doubled quotes, and zero timestamps', () => {
+  const dump = `
+CREATE TABLE \`notes\` (id int COMMENT 'do not INSERT here');
+INSERT INTO \`assessment_records\` VALUES
+(7, 10, 'AES-AR-007', '2025-2026', '0000-00-00', 'Grade 4 - Rose Quartz', '0917', 'Ongoing', 'Care Office', 'Says ''ok''', 'ADHD', 'Support', '0000-00-00 00:00:00', NULL);
+INSERT INTO \`cars_norm_tables\` VALUES (1, 'K-3', 12, 55, 69);
+`;
+  const result = convertMySqlDump(dump);
+  assert.equal(result.counts.assessment_records, 1);
+  assert.equal(result.counts.cars_norm_tables, 1);
+  assert.ok(result.sql.includes("'Says ''ok'''"));
+  assert.ok(!result.sql.includes('0000-00-00'));
+});
+

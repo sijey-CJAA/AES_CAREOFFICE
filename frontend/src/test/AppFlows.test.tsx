@@ -38,10 +38,11 @@ vi.mock('../lib/supabase', () => ({
 
 const mockSignInWithEmail = vi.fn();
 const mockSignOut = vi.fn();
+const mockRequestPasswordReset = vi.fn();
 vi.mock('../services/authService', () => ({
   signInWithEmail: (...args: any[]) => mockSignInWithEmail(...args),
   signOut: () => mockSignOut(),
-  requestPasswordReset: vi.fn(),
+  requestPasswordReset: (...args: any[]) => mockRequestPasswordReset(...args),
   changePassword: vi.fn(),
   updateRecoveredPassword: vi.fn(),
   verifyAdminAccess: vi.fn().mockResolvedValue(true),
@@ -400,6 +401,134 @@ describe('AES CareOffice migrated routes and flows', () => {
 
     await waitFor(() => {
       expect(mockRestoreRecord).toHaveBeenCalledWith('students', 99);
+    });
+  });
+
+  it('submits Add Learner modal and triggers soft delete from Edit Learner modal', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    mockCreateLearner.mockResolvedValue(10);
+    mockSoftDeleteRecord.mockResolvedValue(undefined);
+    mockFetchLearnerDetails.mockResolvedValue({
+      id: 1,
+      full_name: 'Juan Dela Cruz',
+      lrn: '100020003001',
+      grade_level: 'Grade 4',
+      section: 'Rose Quartz',
+      school_year: '2023-2024',
+      date_of_birth: '2015-05-10',
+      home_address: '123 School Ave',
+      blood_type: 'O+',
+      allergies: 'None',
+      medications: null,
+      status: 'Currently Enrolled',
+      parents: [],
+      assessments: [{ id: 1, record_number: 'AES-AR-001', date: '2026-01-01', school_year: '2025-2026', status: 'Ongoing', assessment_provider: 'Care Center' }],
+      cases: [],
+    });
+
+    renderWithRouter('/learners');
+    expect(await screen.findByText('Juan Dela Cruz')).toBeInTheDocument();
+
+    // Open Add Learner modal and submit
+    await user.click(screen.getByRole('button', { name: '+ Add New Learner' }));
+    const addDialog = screen.getByRole('dialog');
+    await user.type(within(addDialog).getByLabelText("Learner's Full Name"), 'Pedro Penduko');
+    await user.selectOptions(within(addDialog).getByLabelText('Grade Level'), 'Grade 4');
+    await user.selectOptions(within(addDialog).getByLabelText('Section'), 'Rose Quartz');
+    await user.click(within(addDialog).getByRole('button', { name: 'Save Learner Record' }));
+
+    await waitFor(() => {
+      expect(mockCreateLearner).toHaveBeenCalledWith(
+        expect.objectContaining({
+          full_name: 'Pedro Penduko',
+          grade_level: 'Grade 4',
+          section: 'Rose Quartz',
+        })
+      );
+    });
+
+    // Close Add modal, open View -> Past Guidance Records -> Edit -> Soft Delete
+    await user.click(within(addDialog).getByRole('button', { name: 'Cancel' }));
+    await user.click(screen.getByText('Juan Dela Cruz'));
+    const viewDialog = await screen.findByRole('dialog');
+    expect(within(viewDialog).getByText('Past Guidance Records')).toBeInTheDocument();
+    await user.click(within(viewDialog).getByRole('button', { name: 'Edit Details' }));
+
+    const editDialog = await screen.findByRole('dialog');
+    expect(within(editDialog).getByDisplayValue('2023-2024')).toBeInTheDocument();
+    await user.click(within(editDialog).getByRole('button', { name: 'Delete Record' }));
+
+    await waitFor(() => {
+      expect(mockSoftDeleteRecord).toHaveBeenCalledWith('students', 1);
+    });
+  });
+
+  it('completes 2-step Add Case modal with custom Other values', async () => {
+    const user = userEvent.setup();
+    mockCreateCase.mockResolvedValue(2);
+    renderWithRouter('/cases');
+
+    expect(await screen.findByText('AES-CR-001')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '+ Add New Case' }));
+    const dialog = screen.getByRole('dialog');
+
+    // Step 1: pick 1 student via SearchableSelect
+    const searchInput = within(dialog).getByPlaceholderText('-- Search by Name or LRN --');
+    await user.click(searchInput);
+    await user.click(await within(dialog).findByText('Juan Dela Cruz (LRN: 100020003001)'));
+    await user.click(within(dialog).getByRole('button', { name: 'Proceed to Case Details' }));
+
+    // Step 2: select Other for case type & submit
+    const selects = within(dialog).getAllByRole('combobox');
+    await user.selectOptions(selects[1], 'Other');
+    await user.type(within(dialog).getByPlaceholderText('Specify case type...'), 'Attendance Concern');
+    await user.click(within(dialog).getByRole('button', { name: 'Save Record' }));
+
+    await waitFor(() => {
+      expect(mockCreateCase).toHaveBeenCalledWith(
+        expect.objectContaining({
+          case_number: 'AES-CR-002',
+          case_type: 'Attendance Concern',
+          student_ids: [1],
+        })
+      );
+    });
+  });
+
+  it('persists sidebar collapse, validates Change Password mismatch, and supports Forgot Password', async () => {
+    const user = userEvent.setup();
+    mockRequestPasswordReset.mockResolvedValue(undefined);
+    localStorage.removeItem('aes_sidebar_collapsed');
+
+    const { unmount } = renderWithRouter('/');
+    expect(await screen.findByText('Welcome, Maria!')).toBeInTheDocument();
+
+    // Collapse sidebar
+    await user.click(screen.getByRole('button', { name: 'Toggle sidebar' }));
+    expect(localStorage.getItem('aes_sidebar_collapsed')).toBe('1');
+
+    // Open Change Password modal via profile menu and verify mismatch check
+    await user.click(screen.getByText('Maria'));
+    await user.click(screen.getByRole('button', { name: 'Change Password' }));
+    const cpDialog = screen.getByRole('dialog');
+    await user.type(within(cpDialog).getByLabelText('Current Password'), 'oldpass123');
+    await user.type(within(cpDialog).getByLabelText('New Password'), 'newpass123');
+    await user.type(within(cpDialog).getByLabelText('Confirm New Password'), 'different123');
+    await user.click(within(cpDialog).getByRole('button', { name: 'Update Password' }));
+    expect(within(cpDialog).getByText('New passwords do not match!')).toBeInTheDocument();
+    unmount();
+
+    // Test Forgot Password flow on LoginPage
+    mockAuthState.session = null;
+    renderWithRouter('/login');
+    await user.click(await screen.findByRole('button', { name: 'Forgot Password?' }));
+    const fpDialog = screen.getByRole('dialog');
+    await user.type(within(fpDialog).getByLabelText('Email Address'), 'maria.santos@aes.edu.ph');
+    await user.click(within(fpDialog).getByRole('button', { name: 'Send Recovery Email' }));
+
+    await waitFor(() => {
+      expect(mockRequestPasswordReset).toHaveBeenCalledWith('maria.santos@aes.edu.ph');
     });
   });
 });
