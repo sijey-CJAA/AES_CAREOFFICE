@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { getSupabaseClient, isSupabaseConfigured } from '../lib/supabase';
 import { deriveUserName } from '../lib/formatters';
@@ -20,43 +20,51 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+  const [adminChecking, setAdminChecking] = useState<boolean>(false);
   const [isAuthorizedAdmin, setIsAuthorizedAdmin] = useState<boolean>(false);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState<boolean>(false);
 
-  const checkAdmin = async (currentSession: Session | null) => {
+  const runAdminCheck = useCallback(async (currentSession: Session | null) => {
     if (!currentSession) {
       setIsAuthorizedAdmin(false);
+      setAdminChecking(false);
       return;
     }
-    const ok = await verifyAdminAccess();
-    setIsAuthorizedAdmin(ok);
-  };
+    setAdminChecking(true);
+    try {
+      const ok = await verifyAdminAccess();
+      setIsAuthorizedAdmin(ok);
+    } finally {
+      setAdminChecking(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
-      setLoading(false);
+      setAuthLoading(false);
       return;
     }
 
     const supabase = getSupabaseClient();
     let mounted = true;
 
-    supabase.auth.getSession().then(async ({ data }) => {
+    supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
+      if (data.session) setAdminChecking(true);
       setSession(data.session);
-      await checkAdmin(data.session);
-      if (mounted) setLoading(false);
+      setAuthLoading(false);
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (!mounted) return;
       if (event === 'PASSWORD_RECOVERY') {
         setIsPasswordRecovery(true);
       }
+      if (nextSession) setAdminChecking(true);
+      else setIsAuthorizedAdmin(false);
       setSession(nextSession);
-      await checkAdmin(nextSession);
-      setLoading(false);
+      setAuthLoading(false);
     });
 
     return () => {
@@ -64,6 +72,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       listener.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || authLoading) return;
+    void runAdminCheck(session);
+  }, [session, authLoading, runAdminCheck]);
 
   const user = session?.user ?? null;
   const userEmail = user?.email ?? '';
@@ -76,11 +89,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         userEmail,
         userName,
-        loading,
+        loading: authLoading || adminChecking,
         isAuthorizedAdmin,
         isPasswordRecovery,
         clearPasswordRecovery: () => setIsPasswordRecovery(false),
-        refreshAdminCheck: () => checkAdmin(session),
+        refreshAdminCheck: () => runAdminCheck(session),
       }}
     >
       {children}
@@ -93,4 +106,3 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
   return ctx;
 }
-
