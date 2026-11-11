@@ -800,6 +800,9 @@ export function CasesPage() {
                 onChange={(e) => setEditSchoolYear(e.target.value)}
                 required
               >
+                {editSchoolYear && !ASSESSMENT_SCHOOL_YEARS.includes(editSchoolYear) && (
+                  <option value={editSchoolYear}>{editSchoolYear}</option>
+                )}
                 {ASSESSMENT_SCHOOL_YEARS.map((sy) => (
                   <option key={sy} value={sy}>
                     {sy}
