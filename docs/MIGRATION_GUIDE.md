@@ -92,10 +92,10 @@ When you are ready to create your Supabase project, follow these exact steps:
 ### Step 4.1 — Create the Project & Get API Keys
 1. Sign in to [Supabase](https://supabase.com) and click **New Project**.
 2. Choose an organization, enter a project name (e.g., `aes-careoffice`), set a strong database password (save it securely), select the region closest to your school, and click **Create new project**.
-3. Wait ~1–2 minutes for provisioning, then go to **Project Settings → API** (or **Data API / API Keys**):
+3. Wait ~1–2 minutes for provisioning, then go to **Project Settings → API Keys**:
    - Copy **Project URL** → `VITE_SUPABASE_URL`
-   - Copy **anon / public key** → `VITE_SUPABASE_ANON_KEY`
-   - **NEVER** copy or use the `service_role` key in `frontend/` or Vercel `VITE_*` variables.
+   - Copy **Publishable key** (`sb_publishable_...`, or legacy **anon** key) → `VITE_SUPABASE_PUBLISHABLE_KEY` *(Note: the frontend accepts either `VITE_SUPABASE_PUBLISHABLE_KEY` or `VITE_SUPABASE_ANON_KEY`)*
+   - **NEVER** copy or use any `secret` / `service_role` key or database password in `frontend/` or Vercel `VITE_*` variables.
 
 ### Step 4.2 — Run the Database Schema, Functions, RLS, and Seed SQL
 1. In the Supabase Dashboard, open **SQL Editor → New Query**.
@@ -133,7 +133,7 @@ When you are ready to create your Supabase project, follow these exact steps:
    *(The `trg_link_auth_user_admin` trigger and `public.is_admin()` automatically authorize matching confirmed users.)*
 
 ### Step 4.5 — Test Locally Against Live Supabase
-1. Copy `frontend/.env.example` to `frontend/.env.local` and fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+1. Copy `frontend/.env.example` to `frontend/.env.local` and fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
 2. Run `cd frontend && npm run dev` and test login, Learners, Parents, Assessments, Cases, Graduates, Archive, Password Change, and Forgot Password.
 
 ---
@@ -141,24 +141,24 @@ When you are ready to create your Supabase project, follow these exact steps:
 ## 5. What to Do in Vercel & GitHub (Step-by-Step)
 
 ### Step 5.1 — Push Your Code to GitHub
-1. Verify `frontend/.env.local` and any sensitive `.sql` data dumps are NOT staged (`git status`).
-2. Commit the `frontend/` and `supabase/migrations/` folders and push to GitHub.
+1. Verify `.env`, `frontend/.env.local`, and any sensitive `.sql` data dumps are NOT staged (`git status`).
+2. Commit the `frontend/`, `supabase/migrations/`, and `docs/` folders and push to GitHub.
    *(Note: `.github/workflows/deploy.yml` currently FTP-deploys the root PHP site to InfinityFree on pushes to `main`. Keep or disable that workflow once you fully cut over from InfinityFree to Vercel.)*
 
 ### Step 5.2 — Deploy on Vercel
-1. Sign in to [Vercel](https://vercel.com) with your GitHub account and click **Add New… → Project**.
+1. Sign in to [Vercel](https://vercel.com) with your GitHub account and click **Add New… → Project** (or open your existing `aes-careoffice` project).
 2. Import your `AES_CAREOFFICE` repository.
-3. Configure **Project Settings**:
+3. Configure **Project Settings → General**:
    - **Framework Preset**: `Vite`
    - **Root Directory**: click **Edit** and select **`frontend`**
    - **Build Command**: `npm run build`
    - **Output Directory**: `dist`
-4. Open **Environment Variables** and add:
+4. Open **Settings → Environment Variables** and add:
    - `VITE_SUPABASE_URL` = your Supabase Project URL
-   - `VITE_SUPABASE_ANON_KEY` = your Supabase anon public key
+   - `VITE_SUPABASE_PUBLISHABLE_KEY` = your Supabase publishable key (`sb_publishable_...`)
    - Scope: `Production`, `Preview`, and `Development`
-5. Click **Deploy**.
-6. Once deployed, copy the Vercel domain (e.g., `https://aes-careoffice.vercel.app`) and paste it into **Supabase → Authentication → URL Configuration → Site URL** and `.../reset-password` Redirect URLs.
+5. Click **Deploy** (or trigger **Redeploy** from Deployments after pushing the latest commit).
+6. Once deployed, copy the Vercel domain (e.g., `https://aes-care-connect.vercel.app`) and paste it into **Supabase → Authentication → URL Configuration → Site URL** and `.../reset-password` Redirect URLs.
 7. Verify browser refreshes on nested routes (e.g. reload `/learners` or `/cases` directly) — `frontend/vercel.json` handles SPA fallback rewrites automatically.
 
 ---
@@ -167,7 +167,7 @@ When you are ready to create your Supabase project, follow these exact steps:
 
 | Symptom | Cause | Resolution |
 | :--- | :--- | :--- |
-| **"Supabase Not Connected Yet" banner on `/login`** | Missing `VITE_SUPABASE_URL` or `VITE_SUPABASE_ANON_KEY`. | Create `frontend/.env.local` locally or add env vars in Vercel and redeploy. |
+| **"Supabase Not Connected Yet" banner on `/login`** | Missing `VITE_SUPABASE_URL` or `VITE_SUPABASE_PUBLISHABLE_KEY`. | Create `frontend/.env.local` locally or add env vars in Vercel and redeploy. |
 | **"Access Restricted" after signing in** | User exists in `auth.users` but email is missing from `public.admins` (or email unconfirmed). | Confirm user in Supabase Auth and `INSERT INTO public.admins (email) VALUES ('...');`. |
 | **404 when refreshing `/learners` on Vercel** | Vercel Root Directory wasn't set to `frontend`, so `frontend/vercel.json` wasn't applied. | Set Root Directory to `frontend` in Vercel Project Settings and redeploy. |
 | **Duplicate key error after importing MySQL rows** | Identity sequence wasn't synced after manual `INSERT`. | Re-run the `SELECT setval(...)` lines at the bottom of `005_data_import.sql`. |
