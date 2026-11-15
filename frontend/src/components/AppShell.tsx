@@ -108,7 +108,7 @@ export function AppShell() {
     <div className="app-shell">
       <aside className={`sidebar ${collapsed ? 'sidebar-collapsed' : ''}`} id="sidebar">
         <div className="sidebar-header">
-          <img src="/aeslogo.svg" alt="AES Logo" className="sidebar-logo-icon" />
+          <img src="/aes-cares-logo-transparent.png" alt="Ambulong ES Care Center Logo" className="sidebar-logo-icon" />
           <div className="sidebar-text-group">
             <div className="sidebar-title">AES Care Office</div>
             <div className="sidebar-subtitle">Counselor Portal</div>
