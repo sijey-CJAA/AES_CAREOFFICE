@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login | AES Care Office</title>
-    <link rel="icon" href="<?= BASE_URL ?>/assets/aeslogo1%201.svg" type="image/svg+xml">
+    <link rel="icon" href="<?= BASE_URL ?>/assets/Transparent%20AES%20Cares%20Logo.png" type="image/png">
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
     <style>
         .login-error {
@@ -77,8 +77,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div style="width: 100%; max-width: 450px; padding: 2rem;">
         
         <!-- Logo outside card -->
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <div style="color: var(--primary); font-size: 2.5rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; letter-spacing: -1px;">
+        <div style="text-align: center; margin-bottom: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem;">
+            <img src="<?= BASE_URL ?>/assets/Transparent%20AES%20Cares%20Logo.png" alt="Ambulong ES Care Center" style="width: 140px; height: 140px; object-fit: contain; filter: drop-shadow(0 6px 16px rgba(0,0,0,0.08));">
+            <div style="color: var(--primary); font-size: 2.25rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; letter-spacing: -1px;">
                 AES Care
             </div>
         </div>
