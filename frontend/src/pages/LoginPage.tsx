@@ -67,7 +67,14 @@ export function LoginPage() {
   return (
     <div className="login-shell">
       <div className="login-wrapper">
-        <div className="login-brand">AES Care</div>
+        <div className="login-brand">
+          <img
+            src="/aes-cares-logo-transparent.png"
+            alt="Ambulong ES Care Center"
+            className="login-brand-logo"
+          />
+          <span>AES Care</span>
+        </div>
 
         <div className="login-card-box">
           <h2
