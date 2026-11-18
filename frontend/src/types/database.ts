@@ -160,3 +160,171 @@ export interface StudentDrillItem {
   contact_number: string | null;
 }
 
+export type SharedResourceType = 'learner' | 'assessment' | 'case' | 'report';
+export type SharedAccessStatus = 'pending' | 'active' | 'expired' | 'revoked';
+export type SharedAccessAction =
+  | 'invitation_created'
+  | 'invitation_sent'
+  | 'invitation_accepted'
+  | 'record_viewed'
+  | 'pdf_downloaded'
+  | 'permission_updated'
+  | 'expiration_extended'
+  | 'access_revoked'
+  | 'access_denied';
+
+export interface SharedAccessPermissions {
+  view_basic_info: boolean;
+  view_parent_info: boolean;
+  view_assessment_records: boolean;
+  view_case_records: boolean;
+  view_download_pdf: boolean;
+}
+
+export interface SharedAccessRecord {
+  id: string;
+  created_by: string;
+  recipient_email: string;
+  recipient_name: string | null;
+  recipient_user_id: string | null;
+  resource_type: SharedResourceType;
+  resource_id: number;
+  resource_label: string | null;
+  permission: 'view_only';
+  status: SharedAccessStatus;
+  expires_at: string;
+  accepted_at: string | null;
+  last_accessed_at: string | null;
+  revoked_at: string | null;
+  created_at: string;
+  updated_at: string;
+  permissions: SharedAccessPermissions;
+}
+
+export interface SharedAccessLogRecord {
+  id: number;
+  shared_access_id: string;
+  actor_user_id: string | null;
+  action: SharedAccessAction;
+  accessed_at: string;
+  metadata: Record<string, unknown>;
+}
+
+export interface CreateSharedAccessInput {
+  recipient_email: string;
+  recipient_name?: string;
+  resource_type: Exclude<SharedResourceType, 'report'>;
+  resource_id: number;
+  expires_at: string;
+  permissions: SharedAccessPermissions;
+}
+
+export interface CreateSharedAccessResult {
+  id: string;
+  invite_token: string;
+  invite_url: string;
+  resource_label: string;
+  expires_at: string;
+  status: SharedAccessStatus;
+  permissions: SharedAccessPermissions;
+}
+
+export interface SharedLearnerData {
+  basic_info?: {
+    full_name: string | null;
+    lrn: string | null;
+    grade_level: string | null;
+    section: string | null;
+    school_year: string | null;
+    date_of_birth: string | null;
+    status: string | null;
+    home_address: string | null;
+    blood_type: string | null;
+    allergies: string | null;
+    medications: string | null;
+  };
+  parents?: Array<{
+    parent_type: string | null;
+    full_name: string | null;
+    relationship: string | null;
+    mobile_number: string | null;
+    telephone_number: string | null;
+    email_address: string | null;
+    home_address: string | null;
+    workplace: string | null;
+    workplace_address: string | null;
+    emergency_contact_number: string | null;
+  }>;
+  assessments?: Array<{
+    record_number: string | null;
+    school_year: string | null;
+    date: string | null;
+    grade_section: string | null;
+    status: string | null;
+    assessment_provider: string | null;
+    findings: string | null;
+    diagnosis: string | null;
+    recommendations: string | null;
+  }>;
+  cases?: Array<{
+    case_number: string | null;
+    school_year: string | null;
+    date: string | null;
+    grade_section: string | null;
+    case_type: string | null;
+    brief_description: string | null;
+    actions_taken: string | null;
+    outcome_disposition: string | null;
+  }>;
+}
+
+export interface SharedAssessmentData {
+  basic_info?: {
+    record_number: string | null;
+    student_name: string | null;
+    school_year: string | null;
+    date: string | null;
+    grade_section: string | null;
+    status: string | null;
+  };
+  parent_contact?: {
+    contact_number: string | null;
+  };
+  assessment_details?: {
+    assessment_provider: string | null;
+    findings: string | null;
+    diagnosis: string | null;
+    recommendations: string | null;
+  };
+}
+
+export interface SharedCaseData {
+  basic_info?: {
+    case_number: string | null;
+    student_names: string | null;
+    school_year: string | null;
+    date: string | null;
+    grade_section: string | null;
+    outcome_disposition: string | null;
+  };
+  case_details?: {
+    case_type: string | null;
+    brief_description: string | null;
+    actions_taken: string | null;
+  };
+}
+
+export interface AuthorizedSharedResponse {
+  share: {
+    id: string;
+    resource_type: SharedResourceType;
+    resource_label: string | null;
+    recipient_email: string;
+    recipient_name: string | null;
+    expires_at: string;
+    accepted_at: string | null;
+    permissions: SharedAccessPermissions;
+  };
+  data: SharedLearnerData | SharedAssessmentData | SharedCaseData;
+}
+
