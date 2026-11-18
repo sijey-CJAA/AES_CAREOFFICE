@@ -116,6 +116,8 @@ export interface DashboardStats {
   total_parents: number;
   total_assessments: number;
   total_cases: number;
+  flagged_students: number;
+  total_sections: number;
 }
 
 export type GradeCounts = Record<'All' | GradeLevel, number>;
