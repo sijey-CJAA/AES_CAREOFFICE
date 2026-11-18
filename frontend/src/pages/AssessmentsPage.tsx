@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ExportIcon, FilterIcon } from '../components/Icons';
+import { ExportIcon, FilterIcon, ShareIcon } from '../components/Icons';
 import { Modal } from '../components/Modal';
 import { SearchableSelect } from '../components/SearchableSelect';
+import { ShareAccessModal, type ShareTarget } from '../components/sharing/ShareAccessModal';
 import { useGlobalSearch } from '../context/SearchContext';
 import {
   ALLOWED_GRADES,
@@ -74,6 +75,7 @@ export function AssessmentsPage() {
 
   // Edit Modal State
   const [editId, setEditId] = useState<number | null>(null);
+  const [shareTarget, setShareTarget] = useState<ShareTarget | null>(null);
   const [editForm, setEditForm] = useState<AssessmentInput>(() => emptyAssessmentInput());
   const [editDiagSelect, setEditDiagSelect] = useState('');
   const [editDiagOther, setEditDiagOther] = useState('');
@@ -898,6 +900,22 @@ export function AssessmentsPage() {
                 {editMsg.text}
               </div>
             )}
+            <button
+              type="button"
+              className="control-btn"
+              onClick={() => {
+                if (editId === null) return;
+                const label = editForm.record_number || `Assessment #${editId}`;
+                setEditId(null);
+                setShareTarget({
+                  resourceType: 'assessment',
+                  resourceId: editId,
+                  resourceLabel: label,
+                });
+              }}
+            >
+              <ShareIcon size={15} /> Share
+            </button>
             <button type="button" className="btn-delete-soft" onClick={() => void handleDelete()}>
               Delete Record
             </button>
@@ -907,6 +925,8 @@ export function AssessmentsPage() {
           </div>
         </form>
       </Modal>
+
+      <ShareAccessModal target={shareTarget} onClose={() => setShareTarget(null)} />
     </>
   );
 }

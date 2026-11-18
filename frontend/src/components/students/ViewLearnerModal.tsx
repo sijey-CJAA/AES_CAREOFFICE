@@ -1,11 +1,12 @@
 import { formatLongDate } from '../../lib/formatters';
 import type { LearnerFullDetails, ParentRecord } from '../../types/database';
-import { CloseIcon } from '../Icons';
+import { CloseIcon, ShareIcon } from '../Icons';
 
 interface ViewLearnerModalProps {
   learner: LearnerFullDetails | null;
   onClose: () => void;
   onEdit?: (learner: LearnerFullDetails) => void;
+  onShare?: (learner: LearnerFullDetails) => void;
 }
 
 function ParentViewBlock({ title, parent }: { title: string; parent?: ParentRecord }) {
@@ -88,7 +89,7 @@ function ParentViewBlock({ title, parent }: { title: string; parent?: ParentReco
   );
 }
 
-export function ViewLearnerModal({ learner, onClose, onEdit }: ViewLearnerModalProps) {
+export function ViewLearnerModal({ learner, onClose, onEdit, onShare }: ViewLearnerModalProps) {
   if (!learner) return null;
 
   const primary = learner.parents.find((p) => p.parent_type === 'Primary');
@@ -362,6 +363,16 @@ export function ViewLearnerModal({ learner, onClose, onEdit }: ViewLearnerModalP
             <button type="button" className="control-btn" onClick={onClose} style={{ padding: '0.75rem 1.5rem' }}>
               Close
             </button>
+            {onShare && (
+              <button
+                type="button"
+                className="control-btn"
+                onClick={() => onShare(learner)}
+                style={{ padding: '0.75rem 1.25rem' }}
+              >
+                <ShareIcon size={15} /> Share
+              </button>
+            )}
             {onEdit && (
               <button
                 type="button"

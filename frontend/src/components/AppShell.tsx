@@ -15,6 +15,7 @@ import {
   LogoutIcon,
   MailIcon,
   SearchIcon,
+  ShieldIcon,
   TrashIcon,
   UsersIcon,
 } from './Icons';
@@ -155,6 +156,10 @@ export function AppShell() {
           </NavLink>
 
           <div className="nav-label">SYSTEM</div>
+          <NavLink to="/shared-access" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} data-tooltip="Shared Access">
+            <ShieldIcon />
+            <span className="nav-text">Shared Access</span>
+          </NavLink>
           <NavLink to="/archive" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} data-tooltip="Deleted Records">
             <TrashIcon />
             <span className="nav-text">Deleted Records</span>

@@ -29,6 +29,7 @@ import type {
 } from '../../types/database';
 import { ExportIcon, FilterIcon, UsersIcon } from '../Icons';
 import { Modal } from '../Modal';
+import { ShareAccessModal, type ShareTarget } from '../sharing/ShareAccessModal';
 import {
   emptyLearnerFormInput,
   emptyParentInput,
@@ -86,6 +87,7 @@ export function StudentDirectory({ mode }: StudentDirectoryProps) {
 
   // View & Edit Modals
   const [viewLearner, setViewLearner] = useState<LearnerFullDetails | null>(null);
+  const [shareTarget, setShareTarget] = useState<ShareTarget | null>(null);
   const [editId, setEditId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<LearnerFormInput>(emptyLearnerFormInput);
   const [editSaving, setEditSaving] = useState(false);
@@ -582,7 +584,18 @@ export function StudentDirectory({ mode }: StudentDirectoryProps) {
         learner={viewLearner}
         onClose={() => setViewLearner(null)}
         onEdit={handleOpenEditFromDetails}
+        onShare={(learner) => {
+          setViewLearner(null);
+          setShareTarget({
+            resourceType: 'learner',
+            resourceId: learner.id,
+            resourceLabel: learner.full_name || `Learner #${learner.id}`,
+          });
+        }}
       />
+
+      {/* Share Learner Access Modal */}
+      <ShareAccessModal target={shareTarget} onClose={() => setShareTarget(null)} />
 
       {/* Add Section Modal */}
       <Modal

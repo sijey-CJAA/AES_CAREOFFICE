@@ -12,6 +12,9 @@ import { LearnersPage } from './pages/LearnersPage';
 import { LoginPage } from './pages/LoginPage';
 import { ParentsPage } from './pages/ParentsPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { SharedAcceptPage } from './pages/SharedAcceptPage';
+import { SharedAccessPage } from './pages/SharedAccessPage';
+import { SharedViewPage } from './pages/SharedViewPage';
 
 function AppRoutes() {
   const { isPasswordRecovery } = useAuth();
@@ -24,6 +27,8 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/shared/accept" element={<SharedAcceptPage />} />
+      <Route path="/shared/view/:id" element={<SharedViewPage />} />
       <Route
         path="/"
         element={
@@ -38,6 +43,7 @@ function AppRoutes() {
         <Route path="cases" element={<CasesPage />} />
         <Route path="graduates" element={<GraduatesPage />} />
         <Route path="parents" element={<ParentsPage />} />
+        <Route path="shared-access" element={<SharedAccessPage />} />
         <Route path="archive" element={<ArchivePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
