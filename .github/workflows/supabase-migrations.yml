@@ -1,0 +1,45 @@
+name: Sync Supabase SQL Migrations
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'supabase/migrations/**/*.sql'
+      - 'supabase/scripts/apply_migrations.mjs'
+      - '.github/workflows/supabase-migrations.yml'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Re-apply all migration files even if checksum is unchanged'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: supabase-migrations-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  apply-migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Apply Supabase SQL migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          if [ "${{ inputs.force }}" = "true" ]; then
+            node supabase/scripts/apply_migrations.mjs --force
+          else
+            node supabase/scripts/apply_migrations.mjs
+          fi
+
