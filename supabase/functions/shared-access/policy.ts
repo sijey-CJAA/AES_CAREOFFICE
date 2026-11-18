@@ -25,9 +25,92 @@ export interface SharedAccessRow {
 }
 
 export interface AuthActor {
-  id: string;
+  id: string | null;
   email: string | null;
   emailConfirmedAt: string | null;
+  authMethod?: 'supabase_auth' | 'email_otp';
+  sessionShareId?: string | null;
+}
+
+export interface VerificationCodeRow {
+  code_hash: string;
+  expires_at: string;
+  attempts: number;
+  used_at: string | null;
+}
+
+export type OtpVerifyResult =
+  | { ok: true }
+  | {
+      ok: false;
+      httpStatus: number;
+      code: 'no_active_code' | 'code_expired' | 'too_many_attempts' | 'invalid_code';
+      message: string;
+      shouldIncrementAttempts?: boolean;
+      remainingAttempts?: number;
+    };
+
+export const MAX_OTP_ATTEMPTS = 5;
+
+export function timingSafeEqualStrings(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+export function evaluateOtpCodeVerification(
+  row: VerificationCodeRow | null,
+  submittedCodeHash: string,
+  options: { now?: Date } = {}
+): OtpVerifyResult {
+  if (!row || row.used_at !== null) {
+    return {
+      ok: false,
+      httpStatus: 400,
+      code: 'no_active_code',
+      message: 'No active verification code was found. Please request a new 6-digit code.',
+    };
+  }
+
+  const nowMs = (options.now ?? new Date()).getTime();
+  const expiresMs = new Date(row.expires_at).getTime();
+  if (Number.isNaN(expiresMs) || expiresMs <= nowMs) {
+    return {
+      ok: false,
+      httpStatus: 410,
+      code: 'code_expired',
+      message: 'This verification code has expired. Please request a new 6-digit code.',
+    };
+  }
+
+  if (row.attempts >= MAX_OTP_ATTEMPTS) {
+    return {
+      ok: false,
+      httpStatus: 429,
+      code: 'too_many_attempts',
+      message: 'Too many incorrect attempts. Please request a new 6-digit verification code.',
+    };
+  }
+
+  if (!timingSafeEqualStrings(row.code_hash, submittedCodeHash)) {
+    const remaining = Math.max(0, MAX_OTP_ATTEMPTS - (row.attempts + 1));
+    return {
+      ok: false,
+      httpStatus: 403,
+      code: 'invalid_code',
+      message:
+        remaining > 0
+          ? `Incorrect verification code. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`
+          : 'Incorrect verification code. Please request a new 6-digit code.',
+      shouldIncrementAttempts: true,
+      remainingAttempts: remaining,
+    };
+  }
+
+  return { ok: true };
 }
 
 export type AccessCheckMode = 'accept' | 'view' | 'pdf';
@@ -82,12 +165,14 @@ export function evaluateShareAccess(
   actor: AuthActor | null,
   options: { mode: AccessCheckMode; now?: Date }
 ): AccessCheckResult {
-  if (!actor || !actor.id || !actor.email) {
+  const isOtpSession = actor?.authMethod === 'email_otp';
+
+  if (!actor || !actor.email || (!isOtpSession && !actor.id)) {
     return {
       ok: false,
       httpStatus: 401,
       code: 'unauthenticated',
-      message: 'Authentication required. Please sign in with your invited email address.',
+      message: 'Verification required. Please open your invitation link and verify your email address.',
     };
   }
 
@@ -139,23 +224,44 @@ export function evaluateShareAccess(
     };
   }
 
-  if (share.recipient_user_id && share.recipient_user_id !== actor.id) {
-    return {
-      ok: false,
-      httpStatus: 403,
-      code: 'forbidden',
-      message: 'This invitation is bound to another authenticated account.',
-    };
-  }
-
-  if (options.mode === 'view' || options.mode === 'pdf') {
-    if (share.status !== 'active' || !share.recipient_user_id) {
+  if (isOtpSession) {
+    if (options.mode === 'view' || options.mode === 'pdf') {
+      if (!actor.sessionShareId || actor.sessionShareId !== share.id) {
+        return {
+          ok: false,
+          httpStatus: 403,
+          code: 'forbidden',
+          message: 'Your temporary verification session is not authorized for this record.',
+        };
+      }
+      if (share.status !== 'active' || !share.accepted_at) {
+        return {
+          ok: false,
+          httpStatus: 403,
+          code: 'not_accepted',
+          message: 'Please verify your invitation link before viewing this record.',
+        };
+      }
+    }
+  } else {
+    if (share.recipient_user_id && share.recipient_user_id !== actor.id) {
       return {
         ok: false,
         httpStatus: 403,
-        code: 'not_accepted',
-        message: 'Please accept your invitation link before viewing this record.',
+        code: 'forbidden',
+        message: 'This invitation is bound to another authenticated account.',
       };
+    }
+
+    if (options.mode === 'view' || options.mode === 'pdf') {
+      if (share.status !== 'active' || !share.recipient_user_id) {
+        return {
+          ok: false,
+          httpStatus: 403,
+          code: 'not_accepted',
+          message: 'Please accept your invitation link before viewing this record.',
+        };
+      }
     }
   }
 

@@ -148,13 +148,10 @@ export function ShareAccessModal({ target, onClose, onCreated }: ShareAccessModa
     setSendingEmail(true);
     setFeedback(null);
     try {
-      const res = await sendSharedAccessInviteEmail(created.id, created.invite_token);
+      await sendSharedAccessInviteEmail(created.id, created.invite_token);
       setFeedback({
         type: 'success',
-        text:
-          res.delivery_method === 'invite'
-            ? `Invitation email sent to ${recipientEmail.trim()}!`
-            : `Secure sign-in link sent to ${recipientEmail.trim()}!`,
+        text: `Private invitation link sent to ${recipientEmail.trim()}! They will verify with a 6-digit Gmail code (no login or sign-up required).`,
       });
     } catch (err) {
       setFeedback({
@@ -201,7 +198,7 @@ export function ShareAccessModal({ target, onClose, onCreated }: ShareAccessModa
           </div>
         </div>
         <span className="status-pill" style={{ background: 'var(--info-bg)', color: 'var(--info-text)' }}>
-          Email Auth Required
+          Gmail Code Verification
         </span>
       </div>
 

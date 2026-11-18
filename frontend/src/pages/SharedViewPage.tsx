@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ExportIcon } from '../components/Icons';
-import { useAuth } from '../context/AuthContext';
 import { formatDateTime, formatLongDate, formatShortDate } from '../lib/formatters';
 import { exportAuthorizedSharedRecordToPDF } from '../lib/pdfExport';
-import { signOut } from '../services/authService';
 import {
+  clearViewerSession,
   fetchAuthorizedSharedRecord,
+  getViewerSession,
   requestAuthorizedPdfPayload,
   SharedAccessError,
 } from '../services/sharedAccessService';
@@ -32,17 +32,21 @@ function FieldItem({ label, value }: { label: string; value?: string | null }) {
 
 export function SharedViewPage() {
   const { id } = useParams<{ id: string }>();
-  const { session, loading: authLoading, userEmail } = useAuth();
 
+  const [viewerSession, setViewerSession] = useState(() => (id ? getViewerSession(id) : null));
   const [payload, setPayload] = useState<AuthorizedSharedResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [errorCode, setErrorCode] = useState<string | undefined>(undefined);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [pdfError, setPdfError] = useState('');
+  const [sessionEnded, setSessionEnded] = useState(false);
 
   const loadRecord = useCallback(async () => {
-    if (!id || !session) {
+    const activeSession = id ? getViewerSession(id) : null;
+    setViewerSession(activeSession);
+    if (!id || !activeSession) {
+      setPayload(null);
       setLoading(false);
       return;
     }
@@ -55,6 +59,10 @@ export function SharedViewPage() {
     } catch (err) {
       setPayload(null);
       if (err instanceof SharedAccessError) {
+        if (err.code === 'revoked' || err.code === 'expired' || err.code === 'unauthenticated') {
+          clearViewerSession(id);
+          setViewerSession(null);
+        }
         setErrorMsg(err.message);
         setErrorCode(err.code);
       } else {
@@ -63,12 +71,18 @@ export function SharedViewPage() {
     } finally {
       setLoading(false);
     }
-  }, [id, session]);
+  }, [id]);
 
   useEffect(() => {
-    if (authLoading) return;
     void loadRecord();
-  }, [authLoading, loadRecord]);
+  }, [loadRecord]);
+
+  const handleCloseSession = () => {
+    if (id) clearViewerSession(id);
+    setViewerSession(null);
+    setPayload(null);
+    setSessionEnded(true);
+  };
 
   const handleDownloadPdf = async () => {
     if (!id) return;
@@ -80,7 +94,9 @@ export function SharedViewPage() {
       await exportAuthorizedSharedRecordToPDF(freshAuthorized);
     } catch (err) {
       if (err instanceof SharedAccessError) {
-        if (err.code === 'revoked' || err.code === 'expired' || err.code === 'forbidden') {
+        if (err.code === 'revoked' || err.code === 'expired' || err.code === 'forbidden' || err.code === 'unauthenticated') {
+          clearViewerSession(id);
+          setViewerSession(null);
           setPayload(null);
           setErrorCode(err.code);
           setErrorMsg(err.message);
@@ -319,32 +335,27 @@ export function SharedViewPage() {
             </div>
           </div>
         </div>
-        {session && (
+        {viewerSession && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
             <span className="status-pill" style={{ background: 'var(--info-bg)', color: 'var(--info-text)' }}>
-              Read-Only Viewer
+              Temporary Read-Only View
             </span>
-            <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{userEmail}</span>
-            <button type="button" className="control-btn" onClick={() => void signOut()}>
-              Sign Out
+            <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+              Verified: {viewerSession.email}
+            </span>
+            <button type="button" className="control-btn" onClick={handleCloseSession}>
+              Close Session
             </button>
           </div>
         )}
       </header>
 
       <main className="viewer-main">
-        {authLoading || loading ? (
+        {loading ? (
           <div className="viewer-card" style={{ textAlign: 'center', padding: '2.5rem' }}>
             <div style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Loading authorized record...</div>
           </div>
-        ) : !session ? (
-          <div className="viewer-card" style={{ textAlign: 'center', maxWidth: '520px', margin: '0 auto' }}>
-            <h2 style={{ color: 'var(--text-dark)', marginBottom: '0.75rem' }}>Authentication Required</h2>
-            <p style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
-              Shared records require email verification. Please open the original invitation link sent to your email address to sign in and view this record.
-            </p>
-          </div>
-        ) : errorMsg || !payload ? (
+        ) : errorMsg ? (
           <div className="viewer-card" style={{ textAlign: 'center', maxWidth: '540px', margin: '0 auto' }}>
             <h2 style={{ color: 'var(--danger-text)', marginBottom: '0.75rem' }}>
               {errorCode === 'expired'
@@ -354,10 +365,24 @@ export function SharedViewPage() {
                   : 'Access Denied'}
             </h2>
             <div className="msg-error" style={{ marginBottom: '1.25rem' }}>
-              {errorMsg || 'You do not have permission to view this shared record.'}
+              {errorMsg}
             </div>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
               If you believe this is an error, please contact the AES Guidance Office to request a new invitation.
+            </p>
+          </div>
+        ) : sessionEnded ? (
+          <div className="viewer-card" style={{ textAlign: 'center', maxWidth: '520px', margin: '0 auto' }}>
+            <h2 style={{ color: 'var(--primary)', marginBottom: '0.75rem' }}>Viewing Session Closed</h2>
+            <p style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              Your temporary view-only access has been cleared from this browser tab. You may close this window safely, or reopen the private link from your email if you need to view it again before expiration.
+            </p>
+          </div>
+        ) : !viewerSession || !payload ? (
+          <div className="viewer-card" style={{ textAlign: 'center', maxWidth: '520px', margin: '0 auto' }}>
+            <h2 style={{ color: 'var(--text-dark)', marginBottom: '0.75rem' }}>Email Verification Required</h2>
+            <p style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              Shared records use temporary Gmail verification with no account or login required. Please open the original private link sent to your email to receive a 6-digit verification code.
             </p>
           </div>
         ) : (

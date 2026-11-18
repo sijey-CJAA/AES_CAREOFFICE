@@ -33,7 +33,8 @@ const STATUS_STYLES: Record<SharedAccessStatus, { bg: string; color: string; lab
 const ACTION_LABELS: Record<SharedAccessAction, string> = {
   invitation_created: 'Invitation Created',
   invitation_sent: 'Invitation Sent / Link Generated',
-  invitation_accepted: 'Invitation Accepted',
+  verification_code_sent: 'Gmail Verification Code Sent',
+  invitation_accepted: 'Email Verified & Opened',
   record_viewed: 'Record Viewed',
   pdf_downloaded: 'PDF Downloaded',
   permission_updated: 'Permissions Updated',

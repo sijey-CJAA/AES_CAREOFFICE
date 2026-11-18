@@ -165,6 +165,7 @@ export type SharedAccessStatus = 'pending' | 'active' | 'expired' | 'revoked';
 export type SharedAccessAction =
   | 'invitation_created'
   | 'invitation_sent'
+  | 'verification_code_sent'
   | 'invitation_accepted'
   | 'record_viewed'
   | 'pdf_downloaded'

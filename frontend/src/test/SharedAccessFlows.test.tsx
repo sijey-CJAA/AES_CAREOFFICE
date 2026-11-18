@@ -10,7 +10,11 @@ import { DashboardPage } from '../pages/DashboardPage';
 import { SharedAcceptPage } from '../pages/SharedAcceptPage';
 import { SharedAccessPage } from '../pages/SharedAccessPage';
 import { SharedViewPage } from '../pages/SharedViewPage';
-import { SharedAccessError } from '../services/sharedAccessService';
+import {
+  clearViewerSession,
+  saveViewerSession,
+  SharedAccessError,
+} from '../services/sharedAccessService';
 
 const mockAuthState = {
   session: { access_token: 'tok', user: { id: 'admin-1', email: 'counselor@aes.edu.ph' } } as any,
@@ -62,10 +66,10 @@ const mockUpdatePerms = vi.fn();
 const mockExtendExpiry = vi.fn();
 const mockRevokeShare = vi.fn();
 const mockRegenerateLink = vi.fn();
-const mockAcceptInvitation = vi.fn();
+const mockRequestVerificationCode = vi.fn();
+const mockVerifyEmailCode = vi.fn();
 const mockFetchAuthorizedRecord = vi.fn();
 const mockRequestAuthorizedPdf = vi.fn();
-const mockRequestMagicLink = vi.fn();
 
 vi.mock('../services/sharedAccessService', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../services/sharedAccessService')>();
@@ -79,10 +83,10 @@ vi.mock('../services/sharedAccessService', async (importOriginal) => {
     extendSharedAccessExpiration: (...args: any[]) => mockExtendExpiry(...args),
     revokeSharedAccess: (...args: any[]) => mockRevokeShare(...args),
     regenerateSharedAccessLink: (...args: any[]) => mockRegenerateLink(...args),
-    acceptSharedInvitation: (...args: any[]) => mockAcceptInvitation(...args),
+    requestEmailVerificationCode: (...args: any[]) => mockRequestVerificationCode(...args),
+    verifyEmailCode: (...args: any[]) => mockVerifyEmailCode(...args),
     fetchAuthorizedSharedRecord: (...args: any[]) => mockFetchAuthorizedRecord(...args),
     requestAuthorizedPdfPayload: (...args: any[]) => mockRequestAuthorizedPdf(...args),
-    requestViewerMagicLink: (...args: any[]) => mockRequestMagicLink(...args),
   };
 });
 
@@ -115,6 +119,7 @@ const futureIso = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 describe('Secure Share Access & External Viewer flows', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearViewerSession();
     mockAuthState.session = { access_token: 'tok', user: { id: 'admin-1', email: 'counselor@aes.edu.ph' } };
     mockAuthState.userEmail = 'counselor@aes.edu.ph';
     mockAuthState.isAuthorizedAdmin = true;
@@ -251,7 +256,7 @@ describe('Secure Share Access & External Viewer flows', () => {
     );
   });
 
-  it('blocks non-admin external viewer from /shared-access while allowing isolated /shared/view/:id', async () => {
+  it('blocks non-admin user from /shared-access and allows passwordless temporary session on /shared/view/:id', async () => {
     mockAuthState.session = { access_token: 'viewer-tok', user: { id: 'viewer-1', email: 'doctor@clinic.org' } };
     mockAuthState.userEmail = 'doctor@clinic.org';
     mockAuthState.isAuthorizedAdmin = false;
@@ -259,6 +264,16 @@ describe('Secure Share Access & External Viewer flows', () => {
     const { unmount } = renderRoutes('/shared-access');
     expect(screen.getByText(/Access Restricted/i)).toBeInTheDocument();
     unmount();
+
+    // External viewer has NO Supabase Auth session at all — only temporary sessionStorage pass
+    mockAuthState.session = null;
+    mockAuthState.userEmail = '';
+    saveViewerSession({
+      shareId: '11111111-1111-1111-1111-111111111111',
+      token: 'signed.temp-token',
+      email: 'doctor@clinic.org',
+      expiresAt: futureIso,
+    });
 
     mockFetchAuthorizedRecord.mockResolvedValue({
       share: {
@@ -307,11 +322,18 @@ describe('Secure Share Access & External Viewer flows', () => {
     expect(screen.queryByText('Deleted Records')).not.toBeInTheDocument();
   });
 
-  it('re-validates server-side before PDF export and clears view immediately if revoked', async () => {
+  it('re-validates server-side before PDF export and clears temporary session immediately if revoked', async () => {
     const user = userEvent.setup();
-    mockAuthState.session = { access_token: 'viewer-tok', user: { id: 'viewer-1', email: 'doctor@clinic.org' } };
-    mockAuthState.userEmail = 'doctor@clinic.org';
+    mockAuthState.session = null;
+    mockAuthState.userEmail = '';
     mockAuthState.isAuthorizedAdmin = false;
+
+    saveViewerSession({
+      shareId: '11111111-1111-1111-1111-111111111111',
+      token: 'signed.temp-token',
+      email: 'doctor@clinic.org',
+      expiresAt: futureIso,
+    });
 
     const authorizedPayload = {
       share: {
@@ -355,19 +377,103 @@ describe('Secure Share Access & External Viewer flows', () => {
     expect(mockExportAuthorizedPdf).not.toHaveBeenCalled();
   });
 
-  it('shows clear email mismatch error when wrong user opens /shared/accept', async () => {
-    mockAuthState.session = { access_token: 'wrong-tok', user: { id: 'wrong-1', email: 'wrong@example.com' } };
-    mockAuthState.userEmail = 'wrong@example.com';
+  it('completes 2-step passwordless Gmail 6-digit verification on /shared/accept without login or signup', async () => {
+    const user = userEvent.setup();
+    mockAuthState.session = null;
     mockAuthState.isAuthorizedAdmin = false;
 
-    mockAcceptInvitation.mockRejectedValueOnce(
-      new SharedAccessError('This invitation belongs to a different email address.', 'email_mismatch', 403)
+    mockRequestVerificationCode.mockResolvedValueOnce({
+      sent: true,
+      expires_in_seconds: 600,
+      masked_email: 'c.*****@gmail.com',
+    });
+
+    mockVerifyEmailCode.mockImplementationOnce(async () => {
+      saveViewerSession({
+        shareId: '11111111-1111-1111-1111-111111111111',
+        token: 'signed.temp-token',
+        email: 'c.artuz143@gmail.com',
+        expiresAt: futureIso,
+      });
+      return {
+        share_id: '11111111-1111-1111-1111-111111111111',
+        resource_type: 'learner',
+        viewer_session: 'signed.temp-token',
+        viewer_email: 'c.artuz143@gmail.com',
+        session_expires_at: futureIso,
+      };
+    });
+
+    mockFetchAuthorizedRecord.mockResolvedValueOnce({
+      share: {
+        id: '11111111-1111-1111-1111-111111111111',
+        resource_type: 'learner',
+        resource_label: 'Anciado, Jerico S.',
+        recipient_email: 'c.artuz143@gmail.com',
+        recipient_name: null,
+        expires_at: futureIso,
+        accepted_at: '2026-11-18T01:00:00Z',
+        permissions: {
+          view_basic_info: true,
+          view_parent_info: false,
+          view_assessment_records: false,
+          view_case_records: false,
+          view_download_pdf: false,
+        },
+      },
+      data: {
+        basic_info: {
+          full_name: 'Anciado, Jerico S.',
+          lrn: '100020003002',
+          grade_level: 'Grade 5',
+          section: 'Jade',
+          school_year: '2025-2026',
+          date_of_birth: '2015-04-19',
+          status: 'Currently Enrolled',
+          home_address: null,
+          blood_type: null,
+          allergies: null,
+          medications: null,
+        },
+      },
+    });
+
+    renderRoutes('/shared/accept?token=' + 'b'.repeat(64));
+
+    // Confirm there is NO password/login form
+    expect(screen.queryByLabelText(/Password/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/No Account Required/i)).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/Invited Email Address/i), 'c.artuz143@gmail.com');
+    await user.click(screen.getByRole('button', { name: /Send 6-Digit Verification Code/i }));
+
+    expect(await screen.findByLabelText(/6-Digit Verification Code/i)).toBeInTheDocument();
+    await user.type(screen.getByLabelText(/6-Digit Verification Code/i), '482917');
+    await user.click(screen.getByRole('button', { name: /Verify & Open Record/i }));
+
+    expect(await screen.findByText('Basic Learner Information')).toBeInTheDocument();
+    expect(screen.getAllByText('Anciado, Jerico S.').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('shows clear email mismatch error when wrong email requests code on /shared/accept', async () => {
+    const user = userEvent.setup();
+    mockAuthState.session = null;
+    mockAuthState.isAuthorizedAdmin = false;
+
+    mockRequestVerificationCode.mockRejectedValueOnce(
+      new SharedAccessError(
+        'This email address does not match the invited recipient for this link.',
+        'email_mismatch',
+        403
+      )
     );
 
     renderRoutes('/shared/accept?token=' + 'b'.repeat(64));
 
-    expect(await screen.findByText(/different email address/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Sign Out & Use Another Email/i })).toBeInTheDocument();
+    await user.type(screen.getByLabelText(/Invited Email Address/i), 'wrong@gmail.com');
+    await user.click(screen.getByRole('button', { name: /Send 6-Digit Verification Code/i }));
+
+    expect(await screen.findByText(/does not match the invited recipient/i)).toBeInTheDocument();
   });
 });
 

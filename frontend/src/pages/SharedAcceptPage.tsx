@@ -1,105 +1,121 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { signInWithEmail, signOut } from '../services/authService';
 import {
-  acceptSharedInvitation,
-  requestViewerMagicLink,
+  requestEmailVerificationCode,
   SharedAccessError,
+  verifyEmailCode,
 } from '../services/sharedAccessService';
 
 export function SharedAcceptPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { session, loading: authLoading, userEmail } = useAuth();
 
   const token = (searchParams.get('token') ?? '').trim();
 
-  const [authMode, setAuthMode] = useState<'magic' | 'password'>('magic');
+  const [step, setStep] = useState<'email' | 'code'>('email');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [maskedEmail, setMaskedEmail] = useState('');
+  const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
-  const [magicSent, setMagicSent] = useState(false);
-  const [authError, setAuthError] = useState('');
-
-  const [acceptState, setAcceptState] = useState<'idle' | 'verifying' | 'error'>('idle');
-  const [acceptError, setAcceptError] = useState('');
-  const [acceptCode, setAcceptCode] = useState<string | undefined>(undefined);
-  const attemptedForUser = useRef<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [errorCode, setErrorCode] = useState<string | undefined>(undefined);
+  const [infoMsg, setInfoMsg] = useState('');
 
   useEffect(() => {
-    if (authLoading || !session || !token) return;
-    const key = `${session.user.id}:${token}`;
-    if (attemptedForUser.current === key) return;
-    attemptedForUser.current = key;
+    if (resendCooldown <= 0) return;
+    const timer = window.setInterval(() => {
+      setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [resendCooldown]);
 
-    let active = true;
-    setAcceptState('verifying');
-    setAcceptError('');
-    setAcceptCode(undefined);
-
-    acceptSharedInvitation(token)
-      .then((res) => {
-        if (active) {
-          navigate(`/shared/view/${res.share_id}`, { replace: true });
-        }
-      })
-      .catch((err) => {
-        if (!active) return;
-        setAcceptState('error');
-        if (err instanceof SharedAccessError) {
-          setAcceptError(err.message);
-          setAcceptCode(err.code);
-        } else {
-          setAcceptError(err instanceof Error ? err.message : 'Unable to verify this invitation.');
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [authLoading, session, token, navigate]);
-
-  const handleMagicLinkSubmit = async (e: React.FormEvent) => {
+  const handleRequestCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    setAuthError('');
-    setMagicSent(false);
-    if (!email.trim()) {
-      setAuthError('Please enter the email address that received this invitation.');
+    setErrorMsg('');
+    setErrorCode(undefined);
+    setInfoMsg('');
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setErrorMsg('Please enter the email address that received this invitation.');
       return;
     }
 
     setBusy(true);
     try {
-      const redirectUrl = `${window.location.origin}/shared/accept?token=${encodeURIComponent(token)}`;
-      await requestViewerMagicLink(email.trim(), redirectUrl);
-      setMagicSent(true);
+      const res = await requestEmailVerificationCode(token, trimmedEmail);
+      setMaskedEmail(res.masked_email || trimmedEmail);
+      setStep('code');
+      setCode('');
+      setResendCooldown(30);
+      setInfoMsg(
+        `A 6-digit verification code has been sent to ${res.masked_email || trimmedEmail}. Check your Gmail inbox (and Spam folder).`
+      );
     } catch (err) {
-      setAuthError(err instanceof Error ? err.message : 'Could not send verification sign-in link.');
+      if (err instanceof SharedAccessError) {
+        setErrorMsg(err.message);
+        setErrorCode(err.code);
+      } else {
+        setErrorMsg(err instanceof Error ? err.message : 'Unable to send verification code.');
+      }
     } finally {
       setBusy(false);
     }
   };
 
-  const handlePasswordSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthError('');
+  const handleResendCode = async () => {
+    if (resendCooldown > 0 || busy) return;
+    setErrorMsg('');
+    setErrorCode(undefined);
+    setInfoMsg('');
     setBusy(true);
     try {
-      await signInWithEmail(email.trim(), password);
+      const res = await requestEmailVerificationCode(token, email.trim());
+      setResendCooldown(30);
+      setInfoMsg(
+        `A fresh 6-digit verification code has been sent to ${res.masked_email || email.trim()}.`
+      );
     } catch (err) {
-      setAuthError(err instanceof Error ? err.message : 'Invalid email or password.');
+      if (err instanceof SharedAccessError) {
+        setErrorMsg(err.message);
+        setErrorCode(err.code);
+      } else {
+        setErrorMsg(err instanceof Error ? err.message : 'Unable to resend verification code.');
+      }
     } finally {
       setBusy(false);
     }
   };
 
-  const handleSwitchAccount = async () => {
-    attemptedForUser.current = null;
-    setAcceptState('idle');
-    setAcceptError('');
-    await signOut();
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg('');
+    setErrorCode(undefined);
+
+    const digitsOnly = code.replace(/\D/g, '').trim();
+    if (digitsOnly.length !== 6) {
+      setErrorMsg('Please enter the full 6-digit verification code from your email.');
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const res = await verifyEmailCode(token, email.trim(), digitsOnly);
+      navigate(`/shared/view/${res.share_id}`, { replace: true });
+    } catch (err) {
+      if (err instanceof SharedAccessError) {
+        setErrorMsg(err.message);
+        setErrorCode(err.code);
+      } else {
+        setErrorMsg(err instanceof Error ? err.message : 'Unable to verify code.');
+      }
+    } finally {
+      setBusy(false);
+    }
   };
+
+  const isTerminalShareError = errorCode === 'expired' || errorCode === 'revoked' || errorCode === 'not_found';
 
   return (
     <div className="viewer-shell">
@@ -119,14 +135,9 @@ export function SharedAcceptPage() {
             </div>
           </div>
         </div>
-        {session && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{userEmail}</span>
-            <button type="button" className="control-btn" onClick={() => void handleSwitchAccount()}>
-              Sign Out
-            </button>
-          </div>
-        )}
+        <span className="status-pill" style={{ background: 'var(--info-bg)', color: 'var(--info-text)' }}>
+          No Account Required
+        </span>
       </header>
 
       <main className="viewer-main" style={{ maxWidth: '500px' }}>
@@ -140,40 +151,23 @@ export function SharedAcceptPage() {
                 This shared access URL is missing a valid invitation token. Please open the full link sent to you by the AES Guidance Office.
               </p>
             </div>
-          ) : authLoading || acceptState === 'verifying' ? (
-            <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
-              <div style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: '0.5rem' }}>
-                Verifying Invitation Access...
-              </div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                Confirming your verified email and authorization permissions.
-              </p>
-            </div>
-          ) : session && acceptState === 'error' ? (
+          ) : isTerminalShareError ? (
             <div style={{ textAlign: 'center' }}>
               <h2 style={{ color: 'var(--danger-text)', marginBottom: '0.75rem' }}>
-                {acceptCode === 'expired'
+                {errorCode === 'expired'
                   ? 'Invitation Expired'
-                  : acceptCode === 'revoked'
+                  : errorCode === 'revoked'
                     ? 'Access Revoked'
-                    : 'Unable to Open Invitation'}
+                    : 'Invitation Not Found'}
               </h2>
               <div className="msg-error" style={{ marginBottom: '1.25rem', textAlign: 'left' }}>
-                {acceptError}
+                {errorMsg}
               </div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-                Signed in as <strong>{userEmail}</strong>. If this invitation was sent to another email address, sign out and authenticate with the invited email.
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', lineHeight: 1.5 }}>
+                Please contact the AES Guidance Office if you need a new shared record invitation.
               </p>
-              <button
-                type="button"
-                className="submit-btn"
-                style={{ width: '100%' }}
-                onClick={() => void handleSwitchAccount()}
-              >
-                Sign Out &amp; Use Another Email
-              </button>
             </div>
-          ) : (
+          ) : step === 'email' ? (
             <div>
               <h2
                 style={{
@@ -192,107 +186,154 @@ export function SharedAcceptPage() {
                   fontSize: '0.88rem',
                   textAlign: 'center',
                   marginBottom: '1.5rem',
-                  lineHeight: 1.5,
+                  lineHeight: 1.55,
                 }}
               >
-                Sign in using the exact email address authorized by the AES Guidance Office to view this shared record.
+                <strong>No sign-up or login needed.</strong> Enter the exact email address authorized by the AES Guidance Office to receive a temporary 6-digit verification code in Gmail.
               </p>
 
-              <div className="tabs" style={{ marginBottom: '1.25rem' }}>
+              <form onSubmit={handleRequestCode}>
+                <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+                  <label htmlFor="viewer_invited_email">Invited Email Address</label>
+                  <input
+                    id="viewer_invited_email"
+                    type="email"
+                    className="form-control"
+                    placeholder="your.email@gmail.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    required
+                  />
+                </div>
+
+                {errorMsg && (
+                  <div className="msg-error" style={{ marginBottom: '1rem' }}>
+                    {errorMsg}
+                  </div>
+                )}
+
+                <button type="submit" className="submit-btn" style={{ width: '100%' }} disabled={busy}>
+                  {busy ? 'Sending Verification Code...' : 'Send 6-Digit Verification Code'}
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div>
+              <h2
+                style={{
+                  color: 'var(--primary)',
+                  fontSize: '1.15rem',
+                  fontWeight: 800,
+                  textAlign: 'center',
+                  marginBottom: '0.5rem',
+                }}
+              >
+                Enter Gmail Verification Code
+              </h2>
+              <p
+                style={{
+                  color: 'var(--text-muted)',
+                  fontSize: '0.88rem',
+                  textAlign: 'center',
+                  marginBottom: '1.25rem',
+                  lineHeight: 1.55,
+                }}
+              >
+                Enter the 6-digit code sent to <strong>{maskedEmail || email}</strong> to open your temporary view-only record.
+              </p>
+
+              {infoMsg && (
+                <div className="msg-success" style={{ marginBottom: '1rem', fontSize: '0.85rem', lineHeight: 1.5 }}>
+                  {infoMsg}
+                </div>
+              )}
+
+              <form onSubmit={handleVerifyCode}>
+                <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+                  <label htmlFor="viewer_otp_code">6-Digit Verification Code</label>
+                  <input
+                    id="viewer_otp_code"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    className="form-control"
+                    placeholder="123456"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    style={{
+                      textAlign: 'center',
+                      fontSize: '1.5rem',
+                      fontWeight: 800,
+                      letterSpacing: '0.35em',
+                    }}
+                    required
+                  />
+                </div>
+
+                {errorMsg && (
+                  <div className="msg-error" style={{ marginBottom: '1rem' }}>
+                    {errorMsg}
+                  </div>
+                )}
+
+                <button type="submit" className="submit-btn" style={{ width: '100%' }} disabled={busy}>
+                  {busy ? 'Verifying Code...' : 'Verify & Open Record'}
+                </button>
+              </form>
+
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  marginTop: '1.25rem',
+                  flexWrap: 'wrap',
+                }}
+              >
                 <button
                   type="button"
-                  className={`tab-btn ${authMode === 'magic' ? 'active' : ''}`}
-                  style={{ flex: 1, padding: '0.65rem 0.75rem', fontSize: '0.88rem' }}
-                  onClick={() => {
-                    setAuthMode('magic');
-                    setAuthError('');
-                  }}
+                  className="control-btn"
+                  disabled={busy || resendCooldown > 0}
+                  onClick={() => void handleResendCode()}
                 >
-                  Email Sign-In Link
+                  {resendCooldown > 0 ? `Resend Code (${resendCooldown}s)` : 'Resend Code'}
                 </button>
                 <button
                   type="button"
-                  className={`tab-btn ${authMode === 'password' ? 'active' : ''}`}
-                  style={{ flex: 1, padding: '0.65rem 0.75rem', fontSize: '0.88rem' }}
+                  className="control-btn"
+                  disabled={busy}
                   onClick={() => {
-                    setAuthMode('password');
-                    setAuthError('');
+                    setStep('email');
+                    setCode('');
+                    setErrorMsg('');
+                    setErrorCode(undefined);
+                    setInfoMsg('');
                   }}
                 >
-                  Email &amp; Password
+                  Use Different Email
                 </button>
               </div>
-
-              {authMode === 'magic' ? (
-                magicSent ? (
-                  <div className="msg-success" style={{ lineHeight: 1.5 }}>
-                    <strong>Check your inbox!</strong> We sent a secure verification sign-in link to{' '}
-                    <strong>{email.trim()}</strong>. Click that link to automatically open the shared record.
-                  </div>
-                ) : (
-                  <form onSubmit={handleMagicLinkSubmit}>
-                    <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-                      <label htmlFor="viewer_magic_email">Invited Email Address</label>
-                      <input
-                        id="viewer_magic_email"
-                        type="email"
-                        className="form-control"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                    {authError && (
-                      <div className="msg-error" style={{ marginBottom: '1rem' }}>
-                        {authError}
-                      </div>
-                    )}
-                    <button type="submit" className="submit-btn" style={{ width: '100%' }} disabled={busy}>
-                      {busy ? 'Sending Verification Link...' : 'Send Verification Sign-In Link'}
-                    </button>
-                  </form>
-                )
-              ) : (
-                <form onSubmit={handlePasswordSignIn}>
-                  <div className="form-group" style={{ marginBottom: '1rem' }}>
-                    <label htmlFor="viewer_pw_email">Invited Email Address</label>
-                    <input
-                      id="viewer_pw_email"
-                      type="email"
-                      className="form-control"
-                      placeholder="you@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-                    <label htmlFor="viewer_pw_pass">Password</label>
-                    <input
-                      id="viewer_pw_pass"
-                      type="password"
-                      className="form-control"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  {authError && (
-                    <div className="msg-error" style={{ marginBottom: '1rem' }}>
-                      {authError}
-                    </div>
-                  )}
-                  <button type="submit" className="submit-btn" style={{ width: '100%' }} disabled={busy}>
-                    {busy ? 'Signing In...' : 'Sign In & Open Record'}
-                  </button>
-                </form>
-              )}
             </div>
           )}
+
+          <div
+            style={{
+              marginTop: '1.5rem',
+              paddingTop: '1rem',
+              borderTop: '1px solid var(--border-color)',
+              fontSize: '0.78rem',
+              color: 'var(--text-muted)',
+              textAlign: 'center',
+              lineHeight: 1.5,
+            }}
+          >
+            Temporary view-only access — no account is created and access ends automatically when you close this tab or when the invitation expires.
+          </div>
         </div>
       </main>
     </div>
   );
 }
-

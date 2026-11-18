@@ -1,23 +1,28 @@
 # AES CareOffice — Secure Share Access & View-Only Record Sharing Guide
 
-This guide documents the **Secure Share Access** subsystem implemented in AES CareOffice, including its database schema, Supabase Edge Function, security architecture, deployment steps, email configuration, and testing procedures.
+This guide documents the **Secure Share Access** subsystem implemented in AES CareOffice, including its database schema, Supabase Edge Function, passwordless Gmail 6-digit verification model, deployment steps, and testing procedures.
 
 ---
 
 ## 1. Architecture & Security Model
 
-AES CareOffice preserves its existing **administrator-only RLS model** (`public.admins` + `public.is_admin()`). External recipients are **never** inserted into `public.admins` and receive **zero** direct PostgREST access to `students`, `parents`, `assessment_records`, `case_register`, or any `shared_access*` table.
+AES CareOffice preserves its existing **administrator-only RLS model** (`public.admins` + `public.is_admin()`). External recipients are **never** inserted into `public.admins`, **never** created as accounts in `auth.users`, and receive **zero** direct PostgREST access to `students`, `parents`, `assessment_records`, `case_register`, or any `shared_access*` table.
 
 ### Security Guarantees
-1. **Email-Authenticated Access Only:** No public/anonymous record links exist. Recipients must authenticate via Supabase Auth with the exact verified email address on the invitation.
-2. **Hashed Invitation Tokens:** Invitations use 256-bit cryptographically random tokens (`extensions.gen_random_bytes(32)`). Only the SHA-256 hex digest (`token_hash`) is stored in `public.shared_access`; plaintext tokens are never persisted.
-3. **Server-Side Authorization & Field Filtering:** Every external viewer call (`accept`, `view`, `pdf_export`) is handled by the **`shared-access` Supabase Edge Function** (`supabase/functions/shared-access/index.ts`), which verifies:
-   - Valid Supabase Auth JWT + verified email (`email_confirmed_at IS NOT NULL`)
-   - Exact email match (`lower(recipient_email) === lower(user.email)`)
-   - Bound `recipient_user_id === user.id` (prevents IDOR across URLs)
-   - `status === 'active'`, `revoked_at IS NULL`, `expires_at > now()`
-   - Resource-specific field-level filtering (`policy.ts`): unauthorized fields are **never** queried or returned in JSON responses
-   - `Cache-Control: no-store` on all responses, plus fresh server-side re-validation before any PDF download
+1. **Passwordless Gmail 6-Digit Verification (No Sign-Up or Login Required):**
+   - No unrestricted public record links exist, AND external recipients never have to sign up or log into Vercel, Supabase, or any third-party app.
+   - Recipients open their private invitation link (`/shared/accept?token=...`), enter their invited email address, and receive a **one-time 6-digit verification code** in their Gmail inbox (10-minute expiration, 5-attempt lockout, 30-second resend cooldown).
+   - Once verified, the Edge Function issues a short-lived **HMAC-SHA256 signed Temporary Viewer Session** (stored strictly in `sessionStorage` for that browser tab, capped at 4 hours or the share's expiration, and scoped exclusively to that single `share_id`).
+2. **Hashed Tokens & Codes Only:**
+   - Invitation tokens use 256-bit cryptographically random bytes (`extensions.gen_random_bytes(32)`); only the SHA-256 `token_hash` is stored in `public.shared_access`.
+   - 6-digit email verification codes are stored strictly as SHA-256 hashes in `public.shared_access_verifications` (zero PostgREST access for `anon`/`authenticated`; `service_role` only).
+3. **Server-Side Authorization & Field Filtering:**
+   - Every viewer request (`request_verification_code`, `verify_code`, `view`, `pdf_export`) is verified server-side inside the **`shared-access` Supabase Edge Function** (`supabase/functions/shared-access/index.ts`), enforcing:
+     - Valid HMAC-signed temporary viewer session bound strictly to `share_id` (prevents IDOR across URLs)
+     - Exact email match (`lower(recipient_email) === lower(session.email)`)
+     - Live DB check of `status === 'active'`, `revoked_at IS NULL`, `expires_at > now()` (revoking access takes effect immediately)
+     - Resource-specific field-level filtering (`policy.ts`): unauthorized fields are never queried or returned in JSON responses
+     - `Cache-Control: no-store` on all responses, plus fresh server-side re-validation before every PDF download
 4. **Admin-Only Direct Table RLS:** `shared_access`, `shared_access_permissions`, and `shared_access_logs` have RLS enabled, `PUBLIC`/`anon` privileges revoked, append-only audit logs (`SELECT, INSERT` only), and no `DELETE` permission so expired/revoked shares remain auditable.
 
 ---
@@ -25,114 +30,72 @@ AES CareOffice preserves its existing **administrator-only RLS model** (`public.
 ## 2. Files Created & Updated
 
 ### Database & Edge Function
-- `supabase/migrations/005_shared_access.sql` — 4 ENUMs, 3 tables (`shared_access`, `shared_access_permissions`, `shared_access_logs`), RLS policies, least-privilege grants, and 6 `SECURITY INVOKER` admin RPCs.
-- `supabase/functions/shared-access/policy.ts` — Pure authorization & server-side field-filtering engine.
-- `supabase/functions/shared-access/index.ts` — Deno Edge Function handling `send_invite`, `accept`, `view`, and `pdf_export`.
-- `supabase/hidden/scripts/apply_migrations.mjs` — Updated to seamlessly scan both `supabase/hidden/migrations/` (`001`–`004`) and `supabase/migrations/` (`005+`) in sorted order.
+- `supabase/migrations/005_shared_access.sql` — 4 ENUMs, 3 tables (`shared_access`, `shared_access_permissions`, `shared_access_logs`), admin-only RLS policies, least-privilege grants, and 6 `SECURITY INVOKER` admin RPCs.
+- `supabase/migrations/006_shared_access_email_otp.sql` — Adds `public.shared_access_verifications` (hashed 6-digit OTP storage locked to `service_role`) and `'verification_code_sent'` audit action.
+- `supabase/functions/shared-access/policy.ts` — Pure authorization, OTP verification, and server-side field-filtering engine.
+- `supabase/functions/shared-access/mailer.ts` — Pure HTTPS email delivery supporting the Google Apps Script Gmail Bridge (`GMAIL_WEBHOOK_URL`) and optional Resend API (`RESEND_API_KEY`).
+- `supabase/functions/shared-access/gmail_apps_script_bridge.gs` — 20-line script you paste into your own Google Apps Script account (`script.google.com`) to send verification codes directly from Gmail with zero third-party sign-ups.
+- `supabase/functions/shared-access/index.ts` — Deno Edge Function handling `send_invite`, `request_verification_code`, `verify_code`, `view`, and `pdf_export`.
 
 ### Frontend (`frontend/src/`)
-- `types/database.ts` — Added `SharedAccess*`, `SharedLearnerData`, `SharedAssessmentData`, `SharedCaseData`, `AuthorizedSharedResponse`.
-- `services/sharedAccessService.ts` — Typed service wrapper for admin RPCs, Edge Function invocations, and viewer OTP magic-link authentication.
-- `lib/pdfExport.ts` — Added `exportAuthorizedSharedRecordToPDF()` (separate from admin table exports; renders strictly authorized sections only).
-- `components/sharing/ShareAccessModal.tsx` — Reusable modal for generating, copying, and emailing view-only invitations with resource-aware permission checkboxes (sensitive permissions default unchecked).
-- `components/students/ViewLearnerModal.tsx` & `StudentDirectory.tsx` — Added **Share** button on Learner profiles (`resource_type: 'learner'`).
-- `pages/AssessmentsPage.tsx` — Added **Share** button on Assessment records (`resource_type: 'assessment'`).
-- `pages/CasesPage.tsx` — Added **Share** button on Case Register entries (`resource_type: 'case'`).
-- `pages/SharedAccessPage.tsx` — Admin management page at `/shared-access` (status filters, details & audit log viewer, edit permissions, extend expiration, copy fresh link, revoke access).
-- `components/AppShell.tsx` — Added **Shared Access** link under `SYSTEM` in sidebar.
-- `pages/SharedAcceptPage.tsx` — Isolated external viewer invitation acceptance & email authentication at `/shared/accept`.
-- `pages/SharedViewPage.tsx` — Isolated read-only viewer interface at `/shared/view/:id` with permission-aware sections and server-verified PDF export.
-- `App.tsx` & `styles/global.css` — Added routes and responsive styles.
-
-### Tests
-- `frontend/src/test/sharedAccessPolicy.test.ts` — 12 unit tests covering Edge Function authorization, IDOR/revocation/expiration blocking, and strict field filtering.
-- `frontend/src/test/SharedAccessFlows.test.tsx` — 5 integration tests covering admin Share Modal, `/shared-access` management, isolated viewer rendering, revoked PDF re-validation, and email mismatch blocking.
+- `types/database.ts` — `SharedAccess*`, `SharedLearnerData`, `SharedAssessmentData`, `SharedCaseData`, `AuthorizedSharedResponse`.
+- `services/sharedAccessService.ts` — Typed service wrapper for admin RPCs, Edge Function calls, 6-digit Gmail OTP verification, and tab-only `sessionStorage` viewer session management.
+- `lib/pdfExport.ts` — Dedicated `exportAuthorizedSharedRecordToPDF()` (never reuses admin exports; renders only authorized sections).
+- `components/sharing/ShareAccessModal.tsx` — Share modal wired into Learner profiles, Assessments, and Cases (sensitive permissions default unchecked).
+- `pages/SharedAccessPage.tsx` — Admin management page at `/shared-access` (filters, details & activity logs, edit permissions, extend expiration, copy fresh link, revoke access).
+- `pages/SharedAcceptPage.tsx` — Isolated 2-step Gmail verification screen at `/shared/accept` (no sign-up, no password, no login).
+- `pages/SharedViewPage.tsx` — Isolated read-only viewer at `/shared/view/:id` with temporary session banner, **Close Session**, and server-verified PDF export.
 
 ---
 
-## 3. Database Tables Overview
+## 3. Pure Gmail Delivery Setup (Zero Third-Party Sign-Ups — 2 Minutes)
 
-| Table | Purpose | Access Control |
-|---|---|---|
-| `public.shared_access` | Stores invitations, `recipient_email`, `recipient_user_id`, `(resource_type, resource_id)`, SHA-256 `token_hash`, `status`, `expires_at`, `revoked_at`, `last_accessed_at` | Admin-only RLS (`SELECT, INSERT, UPDATE`); Edge Function (`service_role`) |
-| `public.shared_access_permissions` | Independent boolean flags: `view_basic_info`, `view_parent_info`, `view_assessment_records`, `view_case_records`, `view_download_pdf` | Admin-only RLS (`SELECT, INSERT, UPDATE`); Edge Function (`service_role`) |
-| `public.shared_access_logs` | Append-only audit trail (`invitation_created`, `invitation_sent`, `invitation_accepted`, `record_viewed`, `pdf_downloaded`, `permission_updated`, `expiration_extended`, `access_revoked`, `access_denied`) | Admin-only RLS (`SELECT, INSERT` — no `UPDATE`/`DELETE`); Edge Function (`service_role`) |
+Supabase Edge Functions block outbound SMTP ports 25/587, so the cleanest way to send emails strictly through **your own Gmail account** without signing up for any external email service is Google's built-in **Google Apps Script**:
 
----
-
-## 4. Environment Variables & Supabase Configuration
-
-### Frontend (`frontend/.env.local` & Vercel)
-No new frontend environment variables are required, and **no `service_role` key** is ever placed in `frontend/`:
-```env
-VITE_SUPABASE_URL=https://<your-project-ref>.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=<your-supabase-publishable-key>
-```
-
-### Edge Function Secrets (Supabase Cloud)
-`SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically by Supabase Edge Runtime. Set `APP_BASE_URL` so invitation emails always point to your production domain:
-
-```powershell
-npx supabase secrets set APP_BASE_URL=https://aes-care-connect.vercel.app --project-ref <your-project-ref>
-```
-
-### Supabase Auth Redirect URLs (Required)
-In **Supabase Dashboard → Authentication → URL Configuration → Redirect URLs**, add:
-- `https://aes-care-connect.vercel.app/shared/accept`
-- `https://aes-care-connect.vercel.app/reset-password`
-- `http://localhost:5173/shared/accept` *(for local testing)*
-
-### Email Delivery Configuration
-- Out of the box, `send_invite` uses Supabase Auth's built-in emailer (`inviteUserByEmail` for new recipients; `signInWithOtp` magic link for existing accounts).
-- Supabase's default built-in emailer has strict hourly rate limits (~2–4 emails/hour on Free tier). For reliable school production delivery, configure a custom SMTP provider (e.g., Resend, Brevo, or school Google Workspace SMTP) under **Supabase Dashboard → Project Settings → Authentication → SMTP Settings**.
-- Even if email rate limits are hit, administrators can always use **Copy Link** inside the Share Modal or `/shared-access` to share the invitation URL directly; the recipient still verifies their email via Supabase Auth before accessing the record.
+1. Open [script.google.com](https://script.google.com) while signed into your Guidance Office Gmail account.
+2. Click **New project**, clear the default code, and paste the contents of `supabase/functions/shared-access/gmail_apps_script_bridge.gs`.
+3. Click **Project Settings** (gear icon) → **Script Properties** → **Add script property**:
+   - Property: `WEBHOOK_SECRET`
+   - Value: any long random password you choose (e.g. `aes-care-2026-secret-9x8k2m`)
+4. Click **Deploy → New deployment**:
+   - Type: **Web app**
+   - Execute as: **Me**
+   - Who has access: **Anyone**
+   - Click **Deploy**, authorize Gmail sending when Google asks, and copy the **Web app URL** (ends with `/exec`).
+5. Save the URL and secret in Supabase (Step 3 below).
 
 ---
 
-## 5. Deployment Commands (Not Yet Deployed Automatically)
+## 4. Deployment Steps
 
-> **Important:** The database migration and Edge Function must be deployed to your live Supabase project before testing live sharing in production.
-
-### Step 1 — Apply SQL Migration `005_shared_access.sql`
-Either run via your local migration runner (with `SUPABASE_ACCESS_TOKEN` set in your local `.env`):
-```powershell
-node supabase/hidden/scripts/apply_migrations.mjs
-```
-Or paste the contents of `supabase/migrations/005_shared_access.sql` into **Supabase Dashboard → SQL Editor → Run**.
+### Step 1 — Run SQL Migrations (`005` + `006`)
+- If `005_shared_access.sql` is already applied, paste `supabase/migrations/006_shared_access_email_otp.sql` into **Supabase Dashboard → SQL Editor → Run**.
+- *(Or run `node supabase/hidden/scripts/apply_migrations.mjs` locally with `SUPABASE_ACCESS_TOKEN` set.)*
 
 ### Step 2 — Deploy the `shared-access` Edge Function
 ```powershell
 npx supabase login
-npx supabase functions deploy shared-access --project-ref <your-project-ref> --no-verify-jwt
+npx supabase functions deploy shared-access --project-ref qrsjdtayhufppajokegu --no-verify-jwt
 ```
-*(Note: `--no-verify-jwt` allows CORS preflight `OPTIONS` requests cleanly while `index.ts` explicitly verifies every `Authorization: Bearer <jwt>` header via `adminClient.auth.getUser(jwt)` and rejects unauthenticated requests with `401`.)*
+*(Note: `--no-verify-jwt` is required because external viewers do not have a Supabase Auth login; `send_invite` strictly verifies the admin's JWT inside `index.ts`, while viewer endpoints strictly verify the 256-bit invitation token, 6-digit Gmail OTP, and HMAC-signed temporary session.)*
 
-### Step 3 — Set `APP_BASE_URL` Secret
+### Step 3 — Set Supabase Edge Function Secrets
 ```powershell
-npx supabase secrets set APP_BASE_URL=https://aes-care-connect.vercel.app --project-ref <your-project-ref>
+npx supabase secrets set `
+  APP_BASE_URL="https://aes-care-connect.vercel.app" `
+  GMAIL_WEBHOOK_URL="https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec" `
+  GMAIL_WEBHOOK_SECRET="YOUR_SAME_WEBHOOK_SECRET" `
+  --project-ref qrsjdtayhufppajokegu
 ```
 
 ### Step 4 — Deploy Frontend
-Commit and push to `main` so Vercel builds and deploys `frontend/`.
+Commit and push to `main` so Vercel automatically deploys the updated `frontend/` build.
 
 ---
 
-## 6. Verification & End-to-End Testing Checklist
-
-### Automated Tests
-```powershell
-cd frontend
-npm test
-npm run build
-```
-```powershell
-node --test supabase/hidden/scripts/test_converter.mjs supabase/hidden/scripts/test_migrations_runner.mjs
-```
-
-### Manual End-to-End Test After Live Deployment
-1. **Admin creates invitation:** Sign in as counselor → open a Learner profile → click **Share** → enter a secondary test email you control → keep only **Basic Learner Info** checked → set **24 hours** → click **Generate Invitation** → click **Copy Link** (or **Send Invitation Email**).
-2. **Wrong-email block:** Open the invitation link while signed in as a different email → confirm `This invitation belongs to a different email address` appears and `access_denied` is logged in `/shared-access` → **Details**.
-3. **Authorized viewer flow:** Sign in with the invited email via the Email Sign-In Link → verify redirection to `/shared/view/<id>` → confirm **only** Basic Learner Information appears (no admin sidebar, no Parents, no Assessments, no Cases, no Download PDF button).
-4. **Live permission update:** As admin on `/shared-access`, click **Permissions** → enable **Download authorized PDF report** → refresh viewer tab → confirm **Download Authorized PDF** appears and downloads a filtered PDF.
-5. **Immediate revocation:** As admin on `/shared-access`, click **Revoke** → as viewer, click **Download Authorized PDF** or reload `/shared/view/<id>` → confirm access is immediately blocked with **Shared Access Revoked**.
-
+## 5. End-to-End Verification Checklist
+1. **Admin Creates & Sends Share:** Open a Learner/Assessment/Case → click **Share** → enter recipient Gmail → verify sensitive checkboxes start unchecked → click **Generate Invitation** → click **Send Invitation Email** → confirm email arrives in recipient's Gmail inbox.
+2. **Recipient Opens Link (No Login / No Sign-Up):** Open the private link in an incognito browser → verify there is **no password or signup form** → enter the invited Gmail → click **Send 6-Digit Verification Code** → enter the 6-digit code from Gmail → confirm read-only viewer opens with **only** the checked sections.
+3. **Wrong Email Blocked:** Enter an uninvited email on `/shared/accept` → verify access is denied and logged as `Access Denied` on `/shared-access`.
+4. **Immediate Revocation:** While the viewer has `/shared/view/:id` open, click **Revoke** on `/shared-access` → refresh or click **Download Authorized PDF** in the viewer → verify immediate `Shared Access Revoked` block and cleared temporary session.
+5. **No Admin Leak:** While viewing a shared record, visit `/` or `/shared-access` → verify the viewer is redirected to `/login` (they have zero admin session or `auth.users` account).

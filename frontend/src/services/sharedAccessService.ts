@@ -235,7 +235,7 @@ export async function createSharedAccess(
 export async function sendSharedAccessInviteEmail(
   shareId: string,
   inviteToken: string
-): Promise<{ sent: boolean; delivery_method: 'invite' | 'magic_link' }> {
+): Promise<{ sent: boolean; delivery_method: string }> {
   const appOrigin = typeof window !== 'undefined' ? window.location.origin : '';
   return invokeSharedAccessFunction({
     action: 'send_invite',
@@ -293,41 +293,131 @@ export async function regenerateSharedAccessLink(
   };
 }
 
-export async function requestViewerMagicLink(email: string, redirectUrl: string): Promise<void> {
-  const supabase = getSupabaseClient();
-  const { error } = await supabase.auth.signInWithOtp({
-    email: email.trim(),
-    options: {
-      emailRedirectTo: redirectUrl,
-    },
-  });
-  if (error) throw new Error(error.message);
+export interface StoredViewerSession {
+  shareId: string;
+  token: string;
+  email: string;
+  expiresAt: string;
 }
 
-export async function acceptSharedInvitation(
-  token: string
-): Promise<{ share_id: string; resource_type: SharedResourceType }> {
+const VIEWER_SESSION_KEY_PREFIX = 'aes_careoffice_viewer_session:';
+
+export function saveViewerSession(session: StoredViewerSession): void {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.setItem(
+    `${VIEWER_SESSION_KEY_PREFIX}${session.shareId}`,
+    JSON.stringify(session)
+  );
+}
+
+export function getViewerSession(shareId: string): StoredViewerSession | null {
+  if (typeof window === 'undefined' || !shareId) return null;
+  const raw = window.sessionStorage.getItem(`${VIEWER_SESSION_KEY_PREFIX}${shareId}`);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<StoredViewerSession>;
+    if (
+      typeof parsed.shareId !== 'string' ||
+      typeof parsed.token !== 'string' ||
+      typeof parsed.email !== 'string' ||
+      typeof parsed.expiresAt !== 'string'
+    ) {
+      clearViewerSession(shareId);
+      return null;
+    }
+    if (new Date(parsed.expiresAt).getTime() <= Date.now()) {
+      clearViewerSession(shareId);
+      return null;
+    }
+    return parsed as StoredViewerSession;
+  } catch {
+    clearViewerSession(shareId);
+    return null;
+  }
+}
+
+export function clearViewerSession(shareId?: string): void {
+  if (typeof window === 'undefined') return;
+  if (shareId) {
+    window.sessionStorage.removeItem(`${VIEWER_SESSION_KEY_PREFIX}${shareId}`);
+    return;
+  }
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < window.sessionStorage.length; i++) {
+    const k = window.sessionStorage.key(i);
+    if (k && k.startsWith(VIEWER_SESSION_KEY_PREFIX)) {
+      keysToRemove.push(k);
+    }
+  }
+  for (const k of keysToRemove) {
+    window.sessionStorage.removeItem(k);
+  }
+}
+
+export async function requestEmailVerificationCode(
+  token: string,
+  email: string
+): Promise<{ sent: boolean; expires_in_seconds: number; masked_email: string }> {
   return invokeSharedAccessFunction({
-    action: 'accept',
-    token,
+    action: 'request_verification_code',
+    token: token.trim(),
+    email: email.trim(),
   });
+}
+
+export async function verifyEmailCode(
+  token: string,
+  email: string,
+  code: string
+): Promise<{
+  share_id: string;
+  resource_type: SharedResourceType;
+  viewer_session: string;
+  viewer_email: string;
+  session_expires_at: string;
+}> {
+  const res = await invokeSharedAccessFunction<{
+    share_id: string;
+    resource_type: SharedResourceType;
+    viewer_session: string;
+    viewer_email: string;
+    session_expires_at: string;
+  }>({
+    action: 'verify_code',
+    token: token.trim(),
+    email: email.trim(),
+    code: code.replace(/\D/g, '').trim(),
+  });
+
+  saveViewerSession({
+    shareId: res.share_id,
+    token: res.viewer_session,
+    email: res.viewer_email,
+    expiresAt: res.session_expires_at,
+  });
+
+  return res;
 }
 
 export async function fetchAuthorizedSharedRecord(
   shareId: string
 ): Promise<AuthorizedSharedResponse> {
+  const viewerSession = getViewerSession(shareId);
   return invokeSharedAccessFunction({
     action: 'view',
     share_id: shareId,
+    viewer_session: viewerSession?.token,
   });
 }
 
 export async function requestAuthorizedPdfPayload(
   shareId: string
 ): Promise<AuthorizedSharedResponse> {
+  const viewerSession = getViewerSession(shareId);
   return invokeSharedAccessFunction({
     action: 'pdf_export',
     share_id: shareId,
+    viewer_session: viewerSession?.token,
   });
 }
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  evaluateOtpCodeVerification,
   evaluateShareAccess,
   filterSharedAssessmentPayload,
   filterSharedCasePayload,
@@ -250,6 +251,69 @@ describe('Edge Function server-side field filtering', () => {
     );
     expect(casePayload.basic_info).toBeDefined();
     expect(casePayload.case_details).toBeUndefined();
+  });
+});
+
+describe('Passwordless Gmail OTP & temporary viewer session security', () => {
+  const otpViewer: AuthActor = {
+    id: null,
+    email: 'parent.viewer@example.com',
+    emailConfirmedAt: '2026-11-18T00:00:00Z',
+    authMethod: 'email_otp',
+    sessionShareId: '11111111-1111-1111-1111-111111111111',
+  };
+
+  it('allows viewing active share via temporary email_otp session with no Supabase auth user', () => {
+    const share = makeShare({ recipient_user_id: null, status: 'active' });
+    expect(evaluateShareAccess(share, otpViewer, { mode: 'view' })).toEqual({ ok: true });
+  });
+
+  it('blocks IDOR when temporary viewer session for one share attempts to open another share', () => {
+    const otherShare = makeShare({
+      id: '99999999-9999-9999-9999-999999999999',
+      recipient_user_id: null,
+      status: 'active',
+    });
+    const res = evaluateShareAccess(otherShare, otpViewer, { mode: 'view' });
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.httpStatus).toBe(403);
+      expect(res.code).toBe('forbidden');
+    }
+  });
+
+  it('validates 6-digit OTP hashes and enforces expiration, reuse, and 5-attempt lockout', () => {
+    const validRow = {
+      code_hash: 'a'.repeat(64),
+      expires_at: futureIso,
+      attempts: 0,
+      used_at: null,
+    };
+
+    expect(evaluateOtpCodeVerification(validRow, 'a'.repeat(64))).toEqual({ ok: true });
+
+    const wrongRes = evaluateOtpCodeVerification(validRow, 'b'.repeat(64));
+    expect(wrongRes.ok).toBe(false);
+    if (!wrongRes.ok) {
+      expect(wrongRes.code).toBe('invalid_code');
+      expect(wrongRes.shouldIncrementAttempts).toBe(true);
+      expect(wrongRes.remainingAttempts).toBe(4);
+    }
+
+    const lockedRes = evaluateOtpCodeVerification({ ...validRow, attempts: 5 }, 'a'.repeat(64));
+    expect(lockedRes.ok).toBe(false);
+    if (!lockedRes.ok) expect(lockedRes.code).toBe('too_many_attempts');
+
+    const expiredRes = evaluateOtpCodeVerification({ ...validRow, expires_at: pastIso }, 'a'.repeat(64));
+    expect(expiredRes.ok).toBe(false);
+    if (!expiredRes.ok) expect(expiredRes.code).toBe('code_expired');
+
+    const usedRes = evaluateOtpCodeVerification(
+      { ...validRow, used_at: new Date().toISOString() },
+      'a'.repeat(64)
+    );
+    expect(usedRes.ok).toBe(false);
+    if (!usedRes.ok) expect(usedRes.code).toBe('no_active_code');
   });
 });
 
