@@ -114,6 +114,8 @@ DECLARE
     v_parents BIGINT;
     v_assessments BIGINT;
     v_cases BIGINT;
+    v_flagged_students BIGINT;
+    v_sections BIGINT;
 BEGIN
     IF NOT public.is_admin() THEN
         RAISE EXCEPTION 'Unauthorized';
@@ -121,14 +123,38 @@ BEGIN
 
     SELECT COUNT(*) INTO v_students FROM public.students WHERE deleted_at IS NULL;
     SELECT COUNT(*) INTO v_parents FROM public.parents WHERE deleted_at IS NULL;
-    SELECT COUNT(*) INTO v_assessments FROM public.assessment_records WHERE deleted_at IS NULL;
+    SELECT COUNT(DISTINCT a.student_id)
+    INTO v_assessments
+    FROM public.assessment_records a
+    JOIN public.students s ON s.id = a.student_id
+    WHERE a.deleted_at IS NULL
+      AND s.deleted_at IS NULL;
     SELECT COUNT(*) INTO v_cases FROM public.case_register WHERE deleted_at IS NULL;
+    SELECT COUNT(DISTINCT student_id)
+    INTO v_flagged_students
+    FROM (
+        SELECT cs.student_id
+        FROM public.case_students cs
+        JOIN public.case_register c ON c.id = cs.case_id
+        JOIN public.students s ON s.id = cs.student_id
+        WHERE c.deleted_at IS NULL
+          AND s.deleted_at IS NULL
+        UNION
+        SELECT a.student_id
+        FROM public.assessment_records a
+        JOIN public.students s ON s.id = a.student_id
+        WHERE a.deleted_at IS NULL
+          AND s.deleted_at IS NULL
+    ) flagged;
+    SELECT COUNT(*) INTO v_sections FROM public.grade_sections;
 
     RETURN jsonb_build_object(
         'total_students', v_students,
         'total_parents', v_parents,
         'total_assessments', v_assessments,
-        'total_cases', v_cases
+        'total_cases', v_cases,
+        'flagged_students', v_flagged_students,
+        'total_sections', v_sections
     );
 END;
 $$;
