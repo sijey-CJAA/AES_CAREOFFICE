@@ -54,6 +54,8 @@ vi.mock('../services/dashboardService', () => ({
     total_parents: 60,
     total_assessments: 9,
     total_cases: 5,
+    flagged_students: 4,
+    total_sections: 26,
   }),
 }));
 
@@ -289,6 +291,10 @@ describe('AES CareOffice migrated routes and flows', () => {
     expect(await screen.findByText('42')).toBeInTheDocument();
     expect(screen.getByText('9')).toBeInTheDocument();
     expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText('Flagged Students')).toBeInTheDocument();
+    expect(screen.getByText('4')).toBeInTheDocument();
+    expect(screen.getByText('Sections')).toBeInTheDocument();
+    expect(screen.getByText('26')).toBeInTheDocument();
   });
 
   it('renders Learners directory, switches grade tabs, adds section, and opens view modal', async () => {
