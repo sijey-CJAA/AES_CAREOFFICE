@@ -6,3 +6,6 @@ node_modules/
 /*.sql
 supabase/*.sql
 AI_DOCUMENTATION
+supabase/hidden/
+supabase/hidden/migrations/
+supabase/hidden/scripts/
