@@ -119,6 +119,8 @@ export async function runMigrations({
     return { applied: [], skipped: [] };
   }
 
+  logger.log(`Syncing ${files.length} migration file(s) to Supabase...`);
+
   const exec = (query) =>
     executeSupabaseSql({ projectRef, accessToken, query, fetchImpl });
 
