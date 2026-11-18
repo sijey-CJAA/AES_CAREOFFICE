@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FileTextIcon, FolderIcon, UsersIcon } from '../components/Icons';
+import { FileTextIcon, FlagIcon, FolderIcon, LayersIcon, UsersIcon } from '../components/Icons';
 import { useAuth } from '../context/AuthContext';
 import { fetchDashboardStats } from '../services/dashboardService';
 import type { DashboardStats } from '../types/database';
@@ -12,6 +12,8 @@ export function DashboardPage() {
     total_parents: 0,
     total_assessments: 0,
     total_cases: 0,
+    flagged_students: 0,
+    total_sections: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -59,7 +61,11 @@ export function DashboardPage() {
           </div>
         </Link>
 
-        <Link to="/assessments" className="kpi-card">
+        <Link
+          to="/assessments"
+          className="kpi-card"
+          title="Distinct students with active assessments (1 student counts as 1)"
+        >
           <div style={{ width: '50px', height: '50px', background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <FileTextIcon size={24} />
           </div>
@@ -83,6 +89,38 @@ export function DashboardPage() {
             </div>
             <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-dark)' }}>
               {loading ? '—' : stats.total_cases}
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          to="/cases"
+          className="kpi-card"
+          title="Distinct students with at least one active case or assessment (1 student counts as 1)"
+        >
+          <div style={{ width: '50px', height: '50px', background: 'rgba(245, 158, 11, 0.12)', color: '#d97706', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <FlagIcon size={24} />
+          </div>
+          <div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>
+              Flagged Students
+            </div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-dark)' }}>
+              {loading ? '—' : stats.flagged_students}
+            </div>
+          </div>
+        </Link>
+
+        <Link to="/learners" className="kpi-card">
+          <div style={{ width: '50px', height: '50px', background: 'rgba(59, 130, 246, 0.12)', color: '#2563eb', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <LayersIcon size={24} />
+          </div>
+          <div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>
+              Sections
+            </div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-dark)' }}>
+              {loading ? '—' : stats.total_sections}
             </div>
           </div>
         </Link>
