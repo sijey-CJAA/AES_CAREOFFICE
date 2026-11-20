@@ -160,6 +160,14 @@ export interface StudentDrillItem {
   contact_number: string | null;
 }
 
+export interface AdminProfile {
+  id: number;
+  email: string;
+  nickname: string | null;
+  display_name: string | null;
+  auth_user_id: string | null;
+}
+
 export type SharedResourceType = 'learner' | 'assessment' | 'case' | 'report';
 export type SharedAccessStatus = 'pending' | 'active' | 'expired' | 'revoked';
 export type SharedAccessAction =

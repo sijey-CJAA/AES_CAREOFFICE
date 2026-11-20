@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useGlobalSearch } from '../context/SearchContext';
-import { truncateEmail } from '../lib/formatters';
+import { deriveInitials, truncateEmail } from '../lib/formatters';
 import { changePassword, signOut } from '../services/authService';
 import {
   BellIcon,
@@ -17,6 +17,7 @@ import {
   SearchIcon,
   ShieldIcon,
   TrashIcon,
+  UserIcon,
   UsersIcon,
 } from './Icons';
 import { Modal } from './Modal';
@@ -24,7 +25,7 @@ import { Modal } from './Modal';
 const SIDEBAR_LS_KEY = 'aes_sidebar_collapsed';
 
 export function AppShell() {
-  const { userEmail, userName } = useAuth();
+  const { userEmail, userName, nickname, updateNickname } = useAuth();
   const { searchQuery, setSearchQuery } = useGlobalSearch();
   const navigate = useNavigate();
 
@@ -46,6 +47,13 @@ export function AppShell() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [cpError, setCpError] = useState('');
   const [cpSaving, setCpSaving] = useState(false);
+
+  // Edit Profile / Nickname Modal
+  const [epOpen, setEpOpen] = useState(false);
+  const [epNickname, setEpNickname] = useState('');
+  const [epSaving, setEpSaving] = useState(false);
+  const [epError, setEpError] = useState('');
+  const [epSuccess, setEpSuccess] = useState('');
 
   const profileRef = useRef<HTMLDivElement>(null);
 
@@ -76,6 +84,37 @@ export function AppShell() {
     navigate('/login', { replace: true });
   };
 
+  const handleOpenEditProfile = () => {
+    setDropdownOpen(false);
+    setEpNickname(nickname || userName);
+    setEpError('');
+    setEpSuccess('');
+    setEpOpen(true);
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEpError('');
+    setEpSuccess('');
+    if (!epNickname.trim()) {
+      setEpError('Nickname / display name cannot be blank.');
+      return;
+    }
+    setEpSaving(true);
+    try {
+      await updateNickname(epNickname.trim());
+      setEpSuccess('Profile updated successfully!');
+      setTimeout(() => {
+        setEpOpen(false);
+        setEpSuccess('');
+      }, 700);
+    } catch (err) {
+      setEpError(err instanceof Error ? err.message : 'Unable to update profile.');
+    } finally {
+      setEpSaving(false);
+    }
+  };
+
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setCpError('');
@@ -103,7 +142,7 @@ export function AppShell() {
     }
   };
 
-  const initials = (userName.slice(0, 2) || 'AC').toUpperCase();
+  const initials = deriveInitials(userName);
 
   return (
     <div className="app-shell">
@@ -211,6 +250,17 @@ export function AppShell() {
 
               {dropdownOpen && (
                 <div className="profile-dropdown">
+                  <button
+                    type="button"
+                    className="profile-dropdown-item"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenEditProfile();
+                    }}
+                  >
+                    <UserIcon size={16} />
+                    Edit Profile
+                  </button>
                   <button
                     type="button"
                     className="profile-dropdown-item"
@@ -337,6 +387,55 @@ export function AppShell() {
           >
             {cpSaving ? 'Updating...' : 'Update Password'}
           </button>
+        </form>
+      </Modal>
+
+      <Modal isOpen={epOpen} onClose={() => setEpOpen(false)} title="Edit Counselor Profile" maxWidth="480px">
+        <form onSubmit={handleSaveProfile}>
+          <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+            <label htmlFor="ep_email">Email Address</label>
+            <input
+              id="ep_email"
+              type="email"
+              className="form-control"
+              value={userEmail}
+              disabled
+              style={{ background: '#f8fafc', color: 'var(--text-muted)', cursor: 'not-allowed' }}
+            />
+            <small style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: '0.25rem', display: 'block' }}>
+              Authorized counselor email managed via Supabase Admins.
+            </small>
+          </div>
+
+          <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+            <label htmlFor="ep_nickname">Nickname / Display Name *</label>
+            <input
+              id="ep_nickname"
+              type="text"
+              className="form-control"
+              placeholder="e.g. Christopher Artuz"
+              value={epNickname}
+              onChange={(e) => setEpNickname(e.target.value)}
+              required
+              maxLength={100}
+              autoFocus
+            />
+            <small style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: '0.25rem', display: 'block' }}>
+              Shown on your Dashboard welcome title (&quot;Welcome, {epNickname.trim() || 'Your Name'}!&quot;) and top navigation bar.
+            </small>
+          </div>
+
+          {epError && <div className="msg-error" style={{ marginBottom: '1rem' }}>{epError}</div>}
+          {epSuccess && <div className="msg-success" style={{ marginBottom: '1rem' }}>{epSuccess}</div>}
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+            <button type="button" className="control-btn" onClick={() => setEpOpen(false)} disabled={epSaving}>
+              Cancel
+            </button>
+            <button type="submit" className="submit-btn" disabled={epSaving}>
+              {epSaving ? 'Saving...' : 'Save Profile'}
+            </button>
+          </div>
         </form>
       </Modal>
     </div>

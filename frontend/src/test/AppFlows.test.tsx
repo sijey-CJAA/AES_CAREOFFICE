@@ -19,6 +19,8 @@ const mockAuthState = {
   user: { id: 'u1', email: 'maria.santos@aes.edu.ph' } as any,
   userEmail: 'maria.santos@aes.edu.ph',
   userName: 'Maria',
+  nickname: '',
+  updateNickname: vi.fn().mockResolvedValue(undefined),
   loading: false,
   isAuthorizedAdmin: true,
   isPasswordRecovery: false,

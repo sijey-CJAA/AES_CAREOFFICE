@@ -2,13 +2,15 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import type { Session, User } from '@supabase/supabase-js';
 import { getSupabaseClient, isSupabaseConfigured } from '../lib/supabase';
 import { deriveUserName } from '../lib/formatters';
-import { verifyAdminAccess } from '../services/authService';
+import { fetchAdminProfile, updateAdminNickname, verifyAdminAccess } from '../services/authService';
 
 interface AuthContextValue {
   session: Session | null;
   user: User | null;
   userEmail: string;
   userName: string;
+  nickname: string;
+  updateNickname: (newNickname: string) => Promise<void>;
   loading: boolean;
   isAuthorizedAdmin: boolean;
   isPasswordRecovery: boolean;
@@ -24,21 +26,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [adminChecking, setAdminChecking] = useState<boolean>(false);
   const [isAuthorizedAdmin, setIsAuthorizedAdmin] = useState<boolean>(false);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState<boolean>(false);
+  const [customNickname, setCustomNickname] = useState<string | null>(null);
+
+  const loadAdminProfile = useCallback(async () => {
+    try {
+      const profile = await fetchAdminProfile();
+      if (profile && (profile.nickname || profile.display_name)) {
+        setCustomNickname(profile.nickname || profile.display_name);
+      }
+    } catch {
+      // Ignore background fetch error
+    }
+  }, []);
 
   const runAdminCheck = useCallback(async (currentSession: Session | null) => {
     if (!currentSession) {
       setIsAuthorizedAdmin(false);
       setAdminChecking(false);
+      setCustomNickname(null);
       return;
     }
     setAdminChecking(true);
     try {
       const ok = await verifyAdminAccess();
       setIsAuthorizedAdmin(ok);
+      if (ok) {
+        await loadAdminProfile();
+      }
     } finally {
       setAdminChecking(false);
     }
-  }, []);
+  }, [loadAdminProfile]);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -62,7 +80,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsPasswordRecovery(true);
       }
       if (nextSession) setAdminChecking(true);
-      else setIsAuthorizedAdmin(false);
+      else {
+        setIsAuthorizedAdmin(false);
+        setCustomNickname(null);
+      }
       setSession(nextSession);
       setAuthLoading(false);
     });
@@ -80,7 +101,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const user = session?.user ?? null;
   const userEmail = user?.email ?? '';
-  const userName = deriveUserName(userEmail);
+  const metaName = (user?.user_metadata?.nickname ||
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.display_name ||
+    '') as string;
+  const effectiveNickname = customNickname || metaName || '';
+  const userName = effectiveNickname || deriveUserName(userEmail);
+
+  const handleUpdateNickname = async (newNickname: string) => {
+    const saved = await updateAdminNickname(newNickname);
+    setCustomNickname(saved || null);
+  };
 
   return (
     <AuthContext.Provider
@@ -89,6 +120,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         userEmail,
         userName,
+        nickname: effectiveNickname,
+        updateNickname: handleUpdateNickname,
         loading: authLoading || adminChecking,
         isAuthorizedAdmin,
         isPasswordRecovery,

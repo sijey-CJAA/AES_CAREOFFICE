@@ -1,12 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { getLearnerSchoolYearOptions } from '../lib/constants';
-import { deriveUserName, formatShortDate, truncateEmail, truncateText } from '../lib/formatters';
+import { deriveInitials, deriveUserName, formatShortDate, truncateEmail, truncateText } from '../lib/formatters';
 
 describe('formatters & constants', () => {
   it('derives friendly display name from email like PHP index.php', () => {
     expect(deriveUserName('maria.santos@aes.edu.ph')).toBe('Maria');
     expect(deriveUserName('counselor@aes.edu.ph')).toBe('Counselor');
+    expect(deriveUserName('artuzjrchristopher@gmail.com')).toBe('Christopher Artuz');
     expect(deriveUserName('')).toBe('Counselor');
+  });
+
+  it('derives avatar initials correctly from single or multi-token names', () => {
+    expect(deriveInitials('Christopher Artuz')).toBe('CA');
+    expect(deriveInitials('Maria')).toBe('MA');
+    expect(deriveInitials('')).toBe('AC');
   });
 
   it('truncates email over 20 characters matching topbar.php', () => {

@@ -1,9 +1,24 @@
 export function deriveUserName(email?: string | null): string {
   if (!email) return 'Counselor';
   const localPart = email.split('@')[0] ?? '';
+  if (!localPart) return 'Counselor';
+
+  // Specific common patterns in guidance office
+  if (/^artuzjrchristopher/i.test(localPart)) return 'Christopher Artuz';
+  if (/^chriszelartuz/i.test(localPart)) return 'Chriszel Artuz';
+
   const firstToken = localPart.split('.')[0] ?? localPart;
   if (!firstToken) return 'Counselor';
   return firstToken.charAt(0).toUpperCase() + firstToken.slice(1);
+}
+
+export function deriveInitials(name?: string | null): string {
+  if (!name) return 'AC';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
 }
 
 export function truncateEmail(email?: string | null): string {
