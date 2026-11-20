@@ -830,6 +830,83 @@ textarea.form-control {
   padding: 1.5rem;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  background: white;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.modal-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 1.5rem;
+  background: white;
+  flex-shrink: 0;
+  gap: 0.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal-tab-btn {
+  padding: 0.85rem 1.25rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  transition: all 0.15s ease-in-out;
+}
+
+.modal-tab-btn:hover {
+  color: var(--text-dark);
+}
+
+.modal-tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.learner-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+@media (max-width: 600px) {
+  .learner-info-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .modal-tabs {
+    padding: 0 1rem;
+  }
+  .modal-tab-btn {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.875rem;
+  }
+  .modal-body {
+    padding: 1rem;
+  }
+  .modal-header {
+    padding: 1rem;
+  }
+  .modal-footer {
+    padding: 0.85rem 1rem;
+  }
 }
 
 /* ── Archive Tabs ────────────────────────────────────────────────────────── */
