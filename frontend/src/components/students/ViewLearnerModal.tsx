@@ -29,7 +29,7 @@ function ParentViewBlock({ title, parent }: { title: string; parent?: ParentReco
         style={{
           border: '1px solid var(--border-color)',
           borderRadius: '12px',
-          padding: '1.25rem',
+          padding: '1.5rem',
           background: '#fafafa',
         }}
       >
@@ -102,7 +102,7 @@ function AuthorizedContactsBlock({ contacts }: { contacts?: AuthorizedContact[] 
         style={{
           border: '1px solid var(--border-color)',
           borderRadius: '12px',
-          padding: '1.25rem',
+          padding: '1.5rem',
           background: '#fafafa',
         }}
       >
@@ -186,7 +186,7 @@ export function ViewLearnerModal({ learner, onClose, onEdit, onShare }: ViewLear
         <div
           className="modal-header"
           style={{
-            padding: '1.25rem 1.5rem',
+            padding: '1.25rem 1.75rem',
             borderBottom: '1px solid var(--border-color)',
             flexShrink: 0,
             background: 'white',
@@ -233,7 +233,7 @@ export function ViewLearnerModal({ learner, onClose, onEdit, onShare }: ViewLear
         <div
           className="modal-body"
           style={{
-            padding: '1.5rem',
+            padding: '1.75rem',
             overflowY: 'auto',
             flex: 1,
             minHeight: 0,
@@ -343,7 +343,7 @@ export function ViewLearnerModal({ learner, onClose, onEdit, onShare }: ViewLear
                 style={{
                   border: '1px solid var(--border-color)',
                   borderRadius: '12px',
-                  padding: '1.25rem',
+                  padding: '1.5rem',
                   marginBottom: '1rem',
                   background: '#fafafa',
                 }}
@@ -457,7 +457,7 @@ export function ViewLearnerModal({ learner, onClose, onEdit, onShare }: ViewLear
         <div
           className="modal-footer"
           style={{
-            padding: '1rem 1.5rem',
+            padding: '1.15rem 1.75rem',
             borderTop: '1px solid var(--border-color)',
             display: 'flex',
             justifyContent: 'flex-end',
