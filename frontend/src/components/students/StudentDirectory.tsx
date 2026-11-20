@@ -7,7 +7,7 @@ import {
   STUDENT_STATUS_BADGE_STYLES,
   STUDENT_STATUS_OPTIONS,
 } from '../../lib/constants';
-import { formatShortDate, truncateText } from '../../lib/formatters';
+import { formatShortDate } from '../../lib/formatters';
 import { exportTableToPDF } from '../../lib/pdfExport';
 import { softDeleteRecord } from '../../services/archiveService';
 import { addGradeSection, fetchGradeSections, type SectionsMap } from '../../services/sectionsService';
@@ -191,6 +191,7 @@ export function StudentDirectory({ mode }: StudentDirectoryProps) {
       status: learner.status ?? 'Unknown / Not Indicated',
       primary_parent: parentRecordToInput(primary),
       secondary_parent: parentRecordToInput(secondary),
+      reunification_contacts: learner.reunification_contacts ?? [],
     });
   };
 
@@ -288,14 +289,7 @@ export function StudentDirectory({ mode }: StudentDirectoryProps) {
         'Grade Level',
         'Section',
         'Date of Birth',
-        'Blood Type',
         'Status',
-        'Home Address',
-        'Allergies',
-        'Medications',
-        'Registered',
-        'Primary Parent',
-        'Secondary Parent',
       ],
       rows: displayedStudents.map((s) => [
         s.full_name,
@@ -304,14 +298,7 @@ export function StudentDirectory({ mode }: StudentDirectoryProps) {
         s.grade_level || s.grade_section,
         s.section,
         formatShortDate(s.date_of_birth),
-        s.blood_type,
         s.status || 'Unknown / Not Indicated',
-        s.home_address,
-        s.allergies,
-        s.medications,
-        formatShortDate(s.created_at),
-        s.primary_parent,
-        s.secondary_parent,
       ]),
     });
   };
@@ -462,26 +449,19 @@ export function StudentDirectory({ mode }: StudentDirectoryProps) {
                 <th>Grade Level</th>
                 <th>Section</th>
                 <th>Date of Birth</th>
-                <th>Blood Type</th>
                 <th>Status</th>
-                <th>Home Address</th>
-                <th>Allergies</th>
-                <th>Medications</th>
-                <th>Registered</th>
-                <th>Primary Parent</th>
-                <th>Secondary Parent</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={14} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2.5rem', fontStyle: 'italic' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2.5rem', fontStyle: 'italic' }}>
                     Loading...
                   </td>
                 </tr>
               ) : displayedStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={14} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
                     {isGraduated ? 'No graduates found.' : 'No active learners found.'}
                   </td>
                 </tr>
@@ -500,18 +480,11 @@ export function StudentDirectory({ mode }: StudentDirectoryProps) {
                       <td>{s.grade_level || s.grade_section || ''}</td>
                       <td>{s.section || ''}</td>
                       <td>{formatShortDate(s.date_of_birth)}</td>
-                      <td>{s.blood_type || ''}</td>
                       <td>
                         <span className="status-pill" style={{ background: badgeStyle.bg, color: badgeStyle.color }}>
                           {status}
                         </span>
                       </td>
-                      <td>{truncateText(s.home_address, 30, '…')}</td>
-                      <td>{truncateText(s.allergies, 30, '…')}</td>
-                      <td>{truncateText(s.medications, 30, '…')}</td>
-                      <td style={{ color: 'var(--text-muted)' }}>{formatShortDate(s.created_at)}</td>
-                      <td>{s.primary_parent || ''}</td>
-                      <td>{s.secondary_parent || ''}</td>
                     </tr>
                   );
                 })

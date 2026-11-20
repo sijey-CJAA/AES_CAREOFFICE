@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { formatLongDate } from '../../lib/formatters';
-import type { LearnerFullDetails, ParentRecord } from '../../types/database';
+import type { AuthorizedContact, LearnerFullDetails, ParentRecord } from '../../types/database';
 import { CloseIcon, ShareIcon } from '../Icons';
 
 interface ViewLearnerModalProps {
@@ -89,12 +90,86 @@ function ParentViewBlock({ title, parent }: { title: string; parent?: ParentReco
   );
 }
 
+function AuthorizedContactsBlock({ contacts }: { contacts?: AuthorizedContact[] | null }) {
+  const list = (contacts ?? []).filter((c) => c && (c.name?.trim() || c.relationship?.trim())).slice(0, 3);
+  return (
+    <>
+      <div
+        style={{
+          fontSize: '0.75rem',
+          fontWeight: 700,
+          color: 'var(--text-light)',
+          textTransform: 'uppercase',
+          marginBottom: '0.75rem',
+          letterSpacing: '0.5px',
+        }}
+      >
+        Authorized Person of Contact
+      </div>
+      <div
+        style={{
+          border: '1px solid var(--border-color)',
+          borderRadius: '12px',
+          padding: '1.5rem',
+          marginBottom: '2rem',
+          background: '#fafafa',
+        }}
+      >
+        {list.length === 0 ? (
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontStyle: 'italic' }}>
+            No authorized reunification contacts listed.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {list.map((c, idx) => (
+              <div
+                key={idx}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '1.5rem',
+                  paddingBottom: idx < list.length - 1 ? '1.25rem' : 0,
+                  borderBottom: idx < list.length - 1 ? '1px dashed var(--border-color)' : 'none',
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
+                    Name
+                  </span>
+                  <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-dark)' }}>
+                    {c.name || 'N/A'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
+                    Relationship
+                  </span>
+                  <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
+                    {c.relationship || 'N/A'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
 export function ViewLearnerModal({ learner, onClose, onEdit, onShare }: ViewLearnerModalProps) {
+  const [activeTab, setActiveTab] = useState<'reunification' | 'profile'>('reunification');
+
   if (!learner) return null;
 
   const primary = learner.parents.find((p) => p.parent_type === 'Primary');
   const secondary = learner.parents.find((p) => p.parent_type === 'Secondary');
   const hasPastRecords = learner.assessments.length > 0 || learner.cases.length > 0;
+
+  const gradeSectionLabel =
+    learner.grade_level || learner.grade_section
+      ? `${learner.grade_level || learner.grade_section}${learner.section ? ` - ${learner.section}` : ''}`
+      : 'N/A';
 
   return (
     <div
@@ -107,12 +182,13 @@ export function ViewLearnerModal({ learner, onClose, onEdit, onShare }: ViewLear
       }}
     >
       <div className="modal-content" style={{ maxWidth: '700px', padding: '2rem' }}>
+        {/* Header with green accent bar */}
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '2rem',
+            marginBottom: '1.5rem',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -126,230 +202,286 @@ export function ViewLearnerModal({ learner, onClose, onEdit, onShare }: ViewLear
           </button>
         </div>
 
-        <div className="modal-body" style={{ padding: 0 }}>
-          <div
+        {/* Clickable Tabs: 1. Student Reunification, 2. Student Profile */}
+        <div
+          className="tabs"
+          role="tablist"
+          aria-label="Learner Modal Tabs"
+          style={{
+            marginBottom: '1.5rem',
+            borderBottom: '1px solid var(--border-color)',
+            display: 'flex',
+            gap: '0.5rem',
+          }}
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'reunification'}
+            className={`tab-btn ${activeTab === 'reunification' ? 'active' : ''}`}
+            onClick={() => setActiveTab('reunification')}
             style={{
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              color: 'var(--text-light)',
-              textTransform: 'uppercase',
-              marginBottom: '0.75rem',
-              letterSpacing: '0.5px',
+              padding: '0.75rem 1.25rem',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              borderBottom: activeTab === 'reunification' ? '2px solid var(--primary)' : '2px solid transparent',
+              color: activeTab === 'reunification' ? 'var(--primary)' : 'var(--text-muted)',
+              background: 'none',
+              borderTop: 'none',
+              borderLeft: 'none',
+              borderRight: 'none',
+            }}
+          >
+            Student Reunification
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'profile'}
+            className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
+            onClick={() => setActiveTab('profile')}
+            style={{
+              padding: '0.75rem 1.25rem',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              borderBottom: activeTab === 'profile' ? '2px solid var(--primary)' : '2px solid transparent',
+              color: activeTab === 'profile' ? 'var(--primary)' : 'var(--text-muted)',
+              background: 'none',
+              borderTop: 'none',
+              borderLeft: 'none',
+              borderRight: 'none',
             }}
           >
             Student Profile
-          </div>
-          <div
-            style={{
-              border: '1px solid var(--border-color)',
-              borderRadius: '12px',
-              padding: '1.5rem',
-              marginBottom: '2rem',
-              background: '#fafafa',
-            }}
-          >
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '1.5rem',
-                marginBottom: '1.5rem',
-              }}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
-                  Full Name
-                </span>
-                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-dark)' }}>
-                  {learner.full_name || 'N/A'}
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
-                  LRN
-                </span>
-                <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
-                  {learner.lrn || 'N/A'}
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
-                  School Year
-                </span>
-                <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
-                  {learner.school_year || 'N/A'}
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
-                  Grade &amp; Section
-                </span>
-                <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
-                  {`${learner.grade_level || learner.grade_section || ''} - ${learner.section || ''}`}
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
-                  Date of Birth
-                </span>
-                <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
-                  {formatLongDate(learner.date_of_birth)}
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
-                  Blood Type
-                </span>
-                <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
-                  {learner.blood_type || 'N/A'}
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
-                  Status
-                </span>
-                <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
-                  {learner.status || 'Unknown / Not Indicated'}
-                </span>
-              </div>
-            </div>
+          </button>
+        </div>
 
-            <div
-              style={{
-                borderTop: '1px dashed var(--border-color)',
-                paddingTop: '1.5rem',
-                marginBottom: '1.5rem',
-              }}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
-                  Home Address
-                </span>
-                <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
-                  {learner.home_address || 'N/A'}
-                </span>
-              </div>
-            </div>
+        <div className="modal-body" style={{ padding: 0 }}>
+          {/* TAB 1: STUDENT REUNIFICATION */}
+          {activeTab === 'reunification' && (
+            <div>
+              <ParentViewBlock title="Primary Parent" parent={primary} />
+              <ParentViewBlock title="Secondary Parent" parent={secondary} />
+              <AuthorizedContactsBlock contacts={learner.reunification_contacts} />
 
-            <div
-              style={{
-                borderTop: '1px dashed var(--border-color)',
-                paddingTop: '1.5rem',
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '1.5rem',
-              }}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
-                  Allergies
-                </span>
-                <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
-                  {learner.allergies || 'None'}
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
-                  Medications
-                </span>
-                <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
-                  {learner.medications || 'None'}
-                </span>
-              </div>
-            </div>
-          </div>
+              {hasPastRecords && (
+                <div style={{ marginTop: '2rem', borderTop: '2px solid var(--border-color)', paddingTop: '1.5rem' }}>
+                  <h3 style={{ fontSize: '1.1rem', color: 'var(--primary)', marginBottom: '1rem' }}>
+                    Past Guidance Records
+                  </h3>
 
-          <ParentViewBlock title="Primary Parent" parent={primary} />
-          <ParentViewBlock title="Secondary Parent" parent={secondary} />
-
-          {hasPastRecords && (
-            <div style={{ marginTop: '2rem', borderTop: '2px solid var(--border-color)', paddingTop: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.1rem', color: 'var(--primary)', marginBottom: '1rem' }}>
-                Past Guidance Records
-              </h3>
-
-              <h4 style={{ fontSize: '0.95rem', color: 'var(--text-dark)', marginBottom: '0.75rem' }}>
-                Assessment Records
-              </h4>
-              <div style={{ overflowX: 'auto', marginBottom: '1.5rem' }}>
-                <table className="data-table" style={{ minWidth: '100%', fontSize: '0.85rem' }}>
-                  <thead>
-                    <tr>
-                      <th>Record #</th>
-                      <th>Date</th>
-                      <th>School Year</th>
-                      <th>Status</th>
-                      <th>Provider</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {learner.assessments.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '1rem' }}>
-                          No assessment records found.
-                        </td>
-                      </tr>
-                    ) : (
-                      learner.assessments.map((a) => (
-                        <tr key={a.id}>
-                          <td style={{ color: 'var(--text-muted)' }}>{a.record_number || 'N/A'}</td>
-                          <td>{a.date || 'N/A'}</td>
-                          <td>{a.school_year || 'N/A'}</td>
-                          <td>
-                            <span style={{ fontWeight: 600, fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: '#f1f5f9', borderRadius: '4px' }}>
-                              {a.status || 'N/A'}
-                            </span>
-                          </td>
-                          <td>{a.assessment_provider || 'N/A'}</td>
+                  <h4 style={{ fontSize: '0.95rem', color: 'var(--text-dark)', marginBottom: '0.75rem' }}>
+                    Assessment Records
+                  </h4>
+                  <div style={{ overflowX: 'auto', marginBottom: '1.5rem' }}>
+                    <table className="data-table" style={{ minWidth: '100%', fontSize: '0.85rem' }}>
+                      <thead>
+                        <tr>
+                          <th>Record #</th>
+                          <th>Date</th>
+                          <th>School Year</th>
+                          <th>Status</th>
+                          <th>Provider</th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      </thead>
+                      <tbody>
+                        {learner.assessments.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '1rem' }}>
+                              No assessment records found.
+                            </td>
+                          </tr>
+                        ) : (
+                          learner.assessments.map((a) => (
+                            <tr key={a.id}>
+                              <td style={{ color: 'var(--text-muted)' }}>{a.record_number || 'N/A'}</td>
+                              <td>{a.date || 'N/A'}</td>
+                              <td>{a.school_year || 'N/A'}</td>
+                              <td>
+                                <span style={{ fontWeight: 600, fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: '#f1f5f9', borderRadius: '4px' }}>
+                                  {a.status || 'N/A'}
+                                </span>
+                              </td>
+                              <td>{a.assessment_provider || 'N/A'}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
 
-              <h4 style={{ fontSize: '0.95rem', color: 'var(--text-dark)', marginBottom: '0.75rem' }}>
-                Case Register
-              </h4>
-              <div style={{ overflowX: 'auto' }}>
-                <table className="data-table" style={{ minWidth: '100%', fontSize: '0.85rem' }}>
-                  <thead>
-                    <tr>
-                      <th>Case #</th>
-                      <th>Date</th>
-                      <th>School Year</th>
-                      <th>Type</th>
-                      <th>Outcome</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {learner.cases.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '1rem' }}>
-                          No case register entries found.
-                        </td>
-                      </tr>
-                    ) : (
-                      learner.cases.map((c) => (
-                        <tr key={c.id}>
-                          <td style={{ color: 'var(--text-muted)' }}>{c.case_number || 'N/A'}</td>
-                          <td>{c.date || 'N/A'}</td>
-                          <td>{c.school_year || 'N/A'}</td>
-                          <td>{c.case_type || 'N/A'}</td>
-                          <td>
-                            <span style={{ fontWeight: 600, fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: '#f1f5f9', borderRadius: '4px' }}>
-                              {c.outcome_disposition || 'N/A'}
-                            </span>
-                          </td>
+                  <h4 style={{ fontSize: '0.95rem', color: 'var(--text-dark)', marginBottom: '0.75rem' }}>
+                    Case Register
+                  </h4>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="data-table" style={{ minWidth: '100%', fontSize: '0.85rem' }}>
+                      <thead>
+                        <tr>
+                          <th>Case #</th>
+                          <th>Date</th>
+                          <th>School Year</th>
+                          <th>Type</th>
+                          <th>Outcome</th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody>
+                        {learner.cases.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '1rem' }}>
+                              No case register entries found.
+                            </td>
+                          </tr>
+                        ) : (
+                          learner.cases.map((c) => (
+                            <tr key={c.id}>
+                              <td style={{ color: 'var(--text-muted)' }}>{c.case_number || 'N/A'}</td>
+                              <td>{c.date || 'N/A'}</td>
+                              <td>{c.school_year || 'N/A'}</td>
+                              <td>{c.case_type || 'N/A'}</td>
+                              <td>
+                                <span style={{ fontWeight: 600, fontSize: '0.75rem', padding: '0.25rem 0.5rem', background: '#f1f5f9', borderRadius: '4px' }}>
+                                  {c.outcome_disposition || 'N/A'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 2: STUDENT PROFILE */}
+          {activeTab === 'profile' && (
+            <div>
+              <div
+                style={{
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  marginBottom: '1rem',
+                  background: '#fafafa',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '1.5rem',
+                    marginBottom: '1.5rem',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
+                      Full Name
+                    </span>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-dark)' }}>
+                      {learner.full_name || 'N/A'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
+                      LRN
+                    </span>
+                    <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
+                      {learner.lrn || 'N/A'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
+                      School Year
+                    </span>
+                    <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
+                      {learner.school_year || 'N/A'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
+                      Grade &amp; Section
+                    </span>
+                    <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
+                      {gradeSectionLabel}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
+                      Date of Birth
+                    </span>
+                    <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
+                      {formatLongDate(learner.date_of_birth) || 'N/A'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
+                      Blood Type
+                    </span>
+                    <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
+                      {learner.blood_type || 'N/A'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
+                      Status
+                    </span>
+                    <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
+                      {learner.status || 'Currently Enrolled'}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    borderTop: '1px dashed var(--border-color)',
+                    paddingTop: '1.5rem',
+                    marginBottom: '1.5rem',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
+                      Home Address
+                    </span>
+                    <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
+                      {learner.home_address || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    borderTop: '1px dashed var(--border-color)',
+                    paddingTop: '1.5rem',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '1.5rem',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
+                      Allergies
+                    </span>
+                    <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
+                      {learner.allergies || 'None'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
+                      Medications
+                    </span>
+                    <span style={{ fontSize: '0.95rem', color: 'var(--text-dark)' }}>
+                      {learner.medications || 'None'}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
+          {/* Action buttons */}
           <div
             style={{
               display: 'flex',
@@ -389,4 +521,3 @@ export function ViewLearnerModal({ learner, onClose, onEdit, onShare }: ViewLear
     </div>
   );
 }
-

@@ -126,8 +126,24 @@ export async function fetchLearnerDetails(id: number): Promise<LearnerFullDetail
     .filter((c): c is CaseRecord => c !== null && c.deleted_at === null)
     .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
 
+  const rawStudent = studentRes.data as Student;
+  const rawContacts = rawStudent.reunification_contacts;
+  const reunification_contacts = Array.isArray(rawContacts)
+    ? rawContacts
+    : typeof rawContacts === 'string'
+      ? (() => {
+          try {
+            const parsed = JSON.parse(rawContacts);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch {
+            return [];
+          }
+        })()
+      : [];
+
   return {
-    ...(studentRes.data as Student),
+    ...rawStudent,
+    reunification_contacts,
     parents: (parentsRes.data ?? []) as ParentRecord[],
     assessments: (assessRes.data ?? []) as AssessmentRecord[],
     cases,
@@ -149,6 +165,13 @@ export async function createLearner(input: LearnerFormInput): Promise<number> {
       allergies: input.allergies,
       medications: input.medications,
       status: input.status,
+      reunification_contacts: (input.reunification_contacts ?? [])
+        .slice(0, 3)
+        .filter((c) => c && (c.name?.trim() || c.relationship?.trim()))
+        .map((c) => ({
+          name: c.name.trim(),
+          relationship: c.relationship.trim(),
+        })),
     },
     p_primary_parent: input.primary_parent,
     p_secondary_parent: input.secondary_parent,
@@ -179,6 +202,13 @@ export async function updateLearner(id: number, input: LearnerFormInput): Promis
       allergies: input.allergies,
       medications: input.medications,
       status: input.status,
+      reunification_contacts: (input.reunification_contacts ?? [])
+        .slice(0, 3)
+        .filter((c) => c && (c.name?.trim() || c.relationship?.trim()))
+        .map((c) => ({
+          name: c.name.trim(),
+          relationship: c.relationship.trim(),
+        })),
     },
     p_primary_parent: input.primary_parent,
     p_secondary_parent: input.secondary_parent,

@@ -22,6 +22,11 @@ export type SoftDeleteTable =
   | 'assessment_records'
   | 'case_register';
 
+export interface AuthorizedContact {
+  name: string;
+  relationship: string;
+}
+
 export interface Student {
   id: number;
   full_name: string | null;
@@ -37,6 +42,7 @@ export interface Student {
   allergies: string | null;
   medications: string | null;
   status: string | null;
+  reunification_contacts?: AuthorizedContact[] | null;
   created_at: string;
   deleted_at: string | null;
 }
@@ -147,6 +153,7 @@ export interface LearnerFormInput {
   allergies: string;
   medications: string;
   status: string;
+  reunification_contacts?: AuthorizedContact[];
   primary_parent: ParentInput;
   secondary_parent: ParentInput;
 }

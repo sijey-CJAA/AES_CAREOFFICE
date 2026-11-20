@@ -323,6 +323,25 @@ describe('AES CareOffice migrated routes and flows', () => {
     renderWithRouter('/learners');
     expect(await screen.findByText('Juan Dela Cruz')).toBeInTheDocument();
 
+    const table = screen.getByRole('table');
+    const headers = within(table).getAllByRole('columnheader').map((th) => th.textContent);
+    expect(headers).toEqual([
+      'Full Name',
+      'LRN',
+      'School Year',
+      'Grade Level',
+      'Section',
+      'Date of Birth',
+      'Status',
+    ]);
+    expect(headers).not.toContain('Blood Type');
+    expect(headers).not.toContain('Home Address');
+    expect(headers).not.toContain('Allergies');
+    expect(headers).not.toContain('Medications');
+    expect(headers).not.toContain('Registered');
+    expect(headers).not.toContain('Primary Parent');
+    expect(headers).not.toContain('Secondary Parent');
+
     await user.click(screen.getByTitle('Grade 4'));
     expect(await screen.findByRole('button', { name: 'Rose Quartz' })).toBeInTheDocument();
     expect(mockFetchFilteredStudents).toHaveBeenCalledWith({
@@ -340,6 +359,25 @@ describe('AES CareOffice migrated routes and flows', () => {
 
     await user.click(screen.getByText('Juan Dela Cruz'));
     expect(await screen.findByText('Learner Full Information')).toBeInTheDocument();
+
+    const reunTab = screen.getByRole('tab', { name: /Student Reunification/i });
+    const profTab = screen.getByRole('tab', { name: /Student Profile/i });
+    expect(reunTab).toBeInTheDocument();
+    expect(profTab).toBeInTheDocument();
+
+    // Default tab is Student Reunification
+    expect(screen.getByText(/Authorized Person of Contact/i)).toBeInTheDocument();
+    expect(screen.getByText(/Primary Parent/i)).toBeInTheDocument();
+
+    // Switch to Student Profile tab
+    await user.click(profTab);
+    expect(screen.getByText('123 School Ave')).toBeInTheDocument();
+    expect(screen.getByText('O+')).toBeInTheDocument();
+    expect(screen.getByText('Grade 4 - Rose Quartz')).toBeInTheDocument();
+
+    // Switch back to Student Reunification tab
+    await user.click(reunTab);
+    expect(screen.getByText(/Authorized Person of Contact/i)).toBeInTheDocument();
   });
 
   it('completes 2-step Assessment drill-down and submits new assessment', async () => {

@@ -37,6 +37,7 @@ export function emptyLearnerFormInput(): LearnerFormInput {
     allergies: '',
     medications: '',
     status: 'Unknown / Not Indicated',
+    reunification_contacts: [],
     primary_parent: emptyParentInput(),
     secondary_parent: emptyParentInput(),
   };
@@ -437,6 +438,105 @@ export function LearnerFormFields({
           }
         />
       </div>
+
+      {/* Authorized Persons of Contact (Reunification) */}
+      <div style={{ gridColumn: '1 / -1', margin: '1.5rem 0 0.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-light)', paddingBottom: '0.5rem' }}>
+          <h3 style={{ margin: 0, color: 'var(--text-dark)', fontSize: '1.1rem' }}>
+            Authorized Person of Contact (Reunification)
+          </h3>
+          {(value.reunification_contacts?.length ?? 0) < 3 && (
+            <button
+              type="button"
+              className="control-btn"
+              style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
+              onClick={() => {
+                const current = value.reunification_contacts ?? [];
+                if (current.length < 3) {
+                  onChange({
+                    ...value,
+                    reunification_contacts: [...current, { name: '', relationship: '' }],
+                  });
+                }
+              }}
+            >
+              + Add Person ({(value.reunification_contacts?.length ?? 0)}/3)
+            </button>
+          )}
+        </div>
+        <p style={{ margin: '0.5rem 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+          Authorized persons for student reunification. Maximum 3 individuals (Name and Relationship to student only).
+        </p>
+      </div>
+
+      {(value.reunification_contacts ?? []).map((contact, idx) => (
+        <div
+          key={idx}
+          style={{
+            gridColumn: '1 / -1',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr auto',
+            gap: '1rem',
+            alignItems: 'flex-end',
+            padding: '0.75rem 1rem',
+            background: '#fafafa',
+            borderRadius: '8px',
+            border: '1px solid var(--border-light)',
+          }}
+        >
+          <div className="form-group" style={{ margin: 0 }}>
+            <label htmlFor={`${prefix}_auth_name_${idx}`} style={{ fontSize: '0.75rem' }}>
+              Person {idx + 1} Name
+            </label>
+            <input
+              type="text"
+              id={`${prefix}_auth_name_${idx}`}
+              className="form-control"
+              placeholder="Full Name"
+              value={contact.name}
+              onChange={(e) => {
+                const next = [...(value.reunification_contacts ?? [])];
+                next[idx] = { ...next[idx], name: e.target.value };
+                onChange({ ...value, reunification_contacts: next });
+              }}
+            />
+          </div>
+          <div className="form-group" style={{ margin: 0 }}>
+            <label htmlFor={`${prefix}_auth_rel_${idx}`} style={{ fontSize: '0.75rem' }}>
+              Relationship
+            </label>
+            <input
+              type="text"
+              id={`${prefix}_auth_rel_${idx}`}
+              className="form-control"
+              placeholder="e.g. Aunt, Grandparent, Relative"
+              value={contact.relationship}
+              onChange={(e) => {
+                const next = [...(value.reunification_contacts ?? [])];
+                next[idx] = { ...next[idx], relationship: e.target.value };
+                onChange({ ...value, reunification_contacts: next });
+              }}
+            />
+          </div>
+          <button
+            type="button"
+            className="control-btn"
+            style={{ height: '38px', color: '#dc2626', borderColor: '#fca5a5' }}
+            title="Remove person"
+            onClick={() => {
+              const next = (value.reunification_contacts ?? []).filter((_, i) => i !== idx);
+              onChange({ ...value, reunification_contacts: next });
+            }}
+          >
+            Remove
+          </button>
+        </div>
+      ))}
+      {(value.reunification_contacts?.length ?? 0) === 0 && (
+        <div style={{ gridColumn: '1 / -1', color: 'var(--text-muted)', fontSize: '0.85rem', fontStyle: 'italic', padding: '0.5rem 0' }}>
+          No authorized contacts added yet. Click &quot;+ Add Person&quot; to specify reunification contacts (up to 3).
+        </div>
+      )}
     </div>
   );
 }
