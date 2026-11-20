@@ -46,7 +46,7 @@ export function DashboardPage() {
 
       {error && <div className="msg-error" style={{ marginBottom: '1.5rem' }}>{error}</div>}
 
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', marginBottom: '2.5rem' }}>
+      <div className="stats-grid dashboard-stats-grid" style={{ marginBottom: '2.5rem' }}>
         <Link to="/learners" className="kpi-card">
           <div style={{ width: '50px', height: '50px', background: 'rgba(0, 135, 90, 0.1)', color: 'var(--primary)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <UsersIcon size={24} />

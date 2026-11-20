@@ -9,3 +9,5 @@ AI_DOCUMENTATION
 supabase/hidden/
 supabase/hidden/migrations/
 supabase/hidden/scripts/
+supabase/.temp/
+supabase/.branches/

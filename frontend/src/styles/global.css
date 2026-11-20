@@ -647,6 +647,22 @@ body {
   margin-bottom: 2rem;
 }
 
+.dashboard-stats-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 960px) {
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 580px) {
+  .dashboard-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .kpi-card {
   background: white;
   border: 1px solid var(--border-color);

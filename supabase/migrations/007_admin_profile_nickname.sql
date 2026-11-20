@@ -93,3 +93,4 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.update_admin_profile(TEXT) TO authenticated;
+
