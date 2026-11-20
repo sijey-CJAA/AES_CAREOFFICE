@@ -829,6 +829,26 @@ textarea.form-control {
   overflow: hidden;
 }
 
+.modal-content-wide {
+  max-width: 960px;
+  width: 95%;
+  max-height: 90vh;
+}
+
+@media (max-width: 1024px) {
+  .modal-content-wide {
+    width: 96%;
+    max-height: 92vh;
+  }
+}
+
+@media (max-width: 600px) {
+  .modal-content-wide {
+    width: 98%;
+    max-height: 95vh;
+  }
+}
+
 .modal-header {
   padding: 1.5rem;
   border-bottom: 1px solid var(--border-color);

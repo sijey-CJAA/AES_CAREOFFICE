@@ -171,9 +171,9 @@ export function ViewLearnerModal({ learner, onClose, onEdit, onShare }: ViewLear
       }}
     >
       <div
-        className="modal-content"
+        className="modal-content modal-content-wide"
         style={{
-          maxWidth: '940px',
+          maxWidth: '960px',
           width: '95%',
           maxHeight: '90vh',
           display: 'flex',
