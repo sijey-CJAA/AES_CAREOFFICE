@@ -256,8 +256,10 @@ async function fetchAuthorizedResourcePayload(
 
     const caseRows = (casesRes.data ?? [])
       .map((row: Record<string, unknown>) => row.case_register as Record<string, unknown> | null)
-      .filter((c): c is Record<string, unknown> => c !== null)
-      .sort((a, b) => String(b.date ?? '').localeCompare(String(a.date ?? '')));
+      .filter((c: Record<string, unknown> | null): c is Record<string, unknown> => c !== null)
+      .sort((a: Record<string, unknown>, b: Record<string, unknown>) =>
+        String(b.date ?? '').localeCompare(String(a.date ?? ''))
+      );
 
     return {
       found: true,
