@@ -3,6 +3,7 @@ import type {
   SharedAssessmentData,
   SharedCaseData,
   SharedLearnerData,
+  SharedReportData,
 } from '../types/database';
 import { formatDateTime, formatLongDate, formatShortDate } from './formatters';
 
@@ -226,6 +227,61 @@ export async function exportAuthorizedSharedRecordToPDF(
         ['Brief Description', d.brief_description || 'N/A'],
         ['Actions Taken', d.actions_taken || 'N/A'],
       ]);
+    }
+  } else if (payload.share.resource_type === 'report') {
+    const data = payload.data as SharedReportData;
+    const summary = data.summary;
+    const cases = data.cases ?? [];
+
+    let dateRangeText = 'All Dates';
+    if (summary?.date_from && summary?.date_to) {
+      dateRangeText = `${formatShortDate(summary.date_from)} to ${formatShortDate(summary.date_to)}`;
+    } else if (summary?.date_from) {
+      dateRangeText = `From ${formatShortDate(summary.date_from)}`;
+    } else if (summary?.date_to) {
+      dateRangeText = `Until ${formatShortDate(summary.date_to)}`;
+    }
+
+    const summaryRows: string[][] = [
+      ['Total Cases Shared', String(summary?.total_cases ?? cases.length)],
+      ['Date Range', dateRangeText],
+    ];
+    if (summary?.school_year) summaryRows.push(['School Year Filter', summary.school_year]);
+    if (summary?.case_type) summaryRows.push(['Case Type Filter', summary.case_type]);
+    if (summary?.outcome) summaryRows.push(['Outcome Filter', summary.outcome]);
+
+    addSection('Report Parameters', ['Filter', 'Value'], summaryRows);
+
+    if (payload.share.permissions.view_basic_info) {
+      const headers = ['Case #', 'Date', 'Student(s)', 'School Year', 'Grade & Section', 'Outcome'];
+      if (payload.share.permissions.view_case_records) {
+        headers.push('Case Type', 'Brief Description', 'Actions Taken');
+      }
+
+      const caseRows = cases.map((c) => {
+        const row = [
+          c.case_number || 'N/A',
+          formatShortDate(c.date),
+          c.student_names || 'Unknown',
+          c.school_year || 'N/A',
+          c.grade_section || 'N/A',
+          c.outcome_disposition || 'N/A',
+        ];
+        if (payload.share.permissions.view_case_records) {
+          row.push(
+            c.case_type || 'N/A',
+            c.brief_description || 'N/A',
+            c.actions_taken || 'N/A'
+          );
+        }
+        return row;
+      });
+
+      addSection(
+        `Case Register (${cases.length} records)`,
+        headers,
+        caseRows.length > 0 ? caseRows : [['—', 'No case records found', '', '', '', '']]
+      );
     }
   }
 

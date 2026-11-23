@@ -90,6 +90,27 @@ export function getApplicablePermissions(resourceType: SharedResourceType): Perm
     ];
   }
 
+  if (resourceType === 'report') {
+    return [
+      {
+        key: 'view_basic_info',
+        label: 'View basic case summary & register table',
+        description: 'Case number, learner name(s), date, school year, grade & section, and outcome disposition.',
+      },
+      {
+        key: 'view_case_records',
+        label: 'View counseling incident details & actions taken',
+        description: 'Includes case types, brief incident descriptions, and counselor actions taken for all cases in the filtered batch.',
+        sensitive: true,
+      },
+      {
+        key: 'view_download_pdf',
+        label: 'Download authorized PDF report',
+        description: 'Allows exporting an authorized view-only PDF of the shared cases register.',
+      },
+    ];
+  }
+
   return [
     {
       key: 'view_basic_info',
@@ -219,6 +240,8 @@ export async function createSharedAccess(
     p_resource_id: input.resource_id,
     p_expires_at: input.expires_at,
     p_permissions: input.permissions,
+    p_filter_params: input.filter_params || null,
+    p_custom_label: input.custom_label || null,
   });
 
   if (error || !data) {

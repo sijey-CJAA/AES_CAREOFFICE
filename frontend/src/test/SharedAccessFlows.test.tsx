@@ -477,5 +477,133 @@ describe('Secure Share Access & External Viewer flows', () => {
 
     expect(await screen.findByText(/does not match the invited recipient/i)).toBeInTheDocument();
   });
+
+  it('shares filtered cases report through ShareAccessModal with filter_params', async () => {
+    const user = userEvent.setup();
+    mockCreateShared.mockResolvedValueOnce({
+      id: '22222222-2222-2222-2222-222222222222',
+      invite_token: 'c'.repeat(64),
+      invite_url: 'http://localhost:5173/shared/accept?token=' + 'c'.repeat(64),
+      resource_label: 'Case Register Report — 2 cases (2026-10-01 to 2026-10-31)',
+      expires_at: futureIso,
+      status: 'pending',
+      permissions: {
+        view_basic_info: true,
+        view_parent_info: false,
+        view_assessment_records: false,
+        view_case_records: false,
+        view_download_pdf: false,
+      },
+    });
+
+    const target = {
+      resourceType: 'report' as const,
+      resourceId: 1,
+      resourceLabel: 'Case Register Report — 2 cases (2026-10-01 to 2026-10-31)',
+      filterParams: {
+        entity: 'cases',
+        case_ids: [101, 102],
+        date_from: '2026-10-01',
+        date_to: '2026-10-31',
+        school_year: '2025-2026',
+        total_count: 2,
+      },
+    };
+
+    render(
+      <ShareAccessModal
+        target={target}
+        onClose={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Filtered Cases Register (View-Only)')).toBeInTheDocument();
+    expect(screen.getByText(/Case Register Report — 2 cases/i)).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/Recipient Email Address/i), 'principal@deped.gov.ph');
+    await user.click(screen.getByRole('button', { name: /Generate Invitation/i }));
+
+    expect(mockCreateShared).toHaveBeenCalledWith(
+      expect.objectContaining({
+        recipient_email: 'principal@deped.gov.ph',
+        resource_type: 'report',
+        filter_params: target.filterParams,
+        custom_label: target.resourceLabel,
+      })
+    );
+  });
+
+  it('renders authorized report view on /shared/view/:id with date range and cases table', async () => {
+    saveViewerSession({
+      shareId: 'report-share-1',
+      token: 'valid.token',
+      email: 'viewer@deped.gov.ph',
+      expiresAt: futureIso,
+    });
+
+    mockFetchAuthorizedRecord.mockResolvedValueOnce({
+      share: {
+        id: 'report-share-1',
+        resource_type: 'report',
+        resource_label: 'Case Register Report — 2 cases',
+        recipient_email: 'viewer@deped.gov.ph',
+        recipient_name: 'DepEd Official',
+        expires_at: futureIso,
+        accepted_at: '2026-11-20T08:00:00Z',
+        permissions: {
+          view_basic_info: true,
+          view_parent_info: false,
+          view_assessment_records: false,
+          view_case_records: true,
+          view_download_pdf: true,
+        },
+      },
+      data: {
+        summary: {
+          total_cases: 2,
+          date_from: '2026-10-01',
+          date_to: '2026-10-31',
+          school_year: '2025-2026',
+        },
+        cases: [
+          {
+            id: 101,
+            case_number: 'AES-CR-001',
+            student_names: 'Maria Santos',
+            school_year: '2025-2026',
+            date: '2026-10-15',
+            grade_section: 'Grade 3 - Jade',
+            outcome_disposition: 'Closed/Resolved',
+            case_type: 'Bullying',
+            brief_description: 'Incident in corridor',
+            actions_taken: 'Parent consultation',
+          },
+          {
+            id: 102,
+            case_number: 'AES-CR-002',
+            student_names: 'Juan Dela Cruz',
+            school_year: '2025-2026',
+            date: '2026-10-20',
+            grade_section: 'Grade 4 - Ruby',
+            outcome_disposition: 'Ongoing',
+            case_type: 'Academic Distress',
+            brief_description: 'Low attendance and engagement',
+            actions_taken: 'Home visitation scheduled',
+          },
+        ],
+      },
+    });
+
+    renderRoutes('/shared/view/report-share-1');
+
+    expect(await screen.findByText('Case Register Report Summary')).toBeInTheDocument();
+    expect(screen.getByText('Shared Case Records (2)')).toBeInTheDocument();
+    expect(screen.getByText('AES-CR-001')).toBeInTheDocument();
+    expect(screen.getByText('Maria Santos')).toBeInTheDocument();
+    expect(screen.getByText('Bullying')).toBeInTheDocument();
+    expect(screen.getByText('AES-CR-002')).toBeInTheDocument();
+    expect(screen.getByText('Juan Dela Cruz')).toBeInTheDocument();
+    expect(screen.getByText('Academic Distress')).toBeInTheDocument();
+  });
 });
 

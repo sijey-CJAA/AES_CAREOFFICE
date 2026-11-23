@@ -215,6 +215,7 @@ export interface SharedAccessRecord {
   created_at: string;
   updated_at: string;
   permissions: SharedAccessPermissions;
+  filter_params?: Record<string, unknown> | null;
 }
 
 export interface SharedAccessLogRecord {
@@ -229,10 +230,12 @@ export interface SharedAccessLogRecord {
 export interface CreateSharedAccessInput {
   recipient_email: string;
   recipient_name?: string;
-  resource_type: Exclude<SharedResourceType, 'report'>;
+  resource_type: SharedResourceType;
   resource_id: number;
   expires_at: string;
   permissions: SharedAccessPermissions;
+  filter_params?: Record<string, unknown> | null;
+  custom_label?: string | null;
 }
 
 export interface CreateSharedAccessResult {
@@ -330,6 +333,29 @@ export interface SharedCaseData {
   };
 }
 
+export interface SharedReportData {
+  summary?: {
+    total_cases: number;
+    date_from?: string | null;
+    date_to?: string | null;
+    school_year?: string | null;
+    case_type?: string | null;
+    outcome?: string | null;
+  };
+  cases?: Array<{
+    id?: number | null;
+    case_number: string | null;
+    student_names?: string | null;
+    school_year: string | null;
+    date: string | null;
+    grade_section?: string | null;
+    outcome_disposition?: string | null;
+    case_type?: string | null;
+    brief_description?: string | null;
+    actions_taken?: string | null;
+  }>;
+}
+
 export interface AuthorizedSharedResponse {
   share: {
     id: string;
@@ -341,6 +367,6 @@ export interface AuthorizedSharedResponse {
     accepted_at: string | null;
     permissions: SharedAccessPermissions;
   };
-  data: SharedLearnerData | SharedAssessmentData | SharedCaseData;
+  data: SharedLearnerData | SharedAssessmentData | SharedCaseData | SharedReportData;
 }
 

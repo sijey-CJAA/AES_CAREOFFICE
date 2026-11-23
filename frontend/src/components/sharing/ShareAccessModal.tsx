@@ -14,9 +14,10 @@ import type {
 import { Modal } from '../Modal';
 
 export interface ShareTarget {
-  resourceType: Exclude<SharedResourceType, 'report'>;
+  resourceType: SharedResourceType;
   resourceId: number;
   resourceLabel: string;
+  filterParams?: Record<string, unknown>;
 }
 
 interface ShareAccessModalProps {
@@ -112,6 +113,8 @@ export function ShareAccessModal({ target, onClose, onCreated }: ShareAccessModa
         resource_id: target.resourceId,
         expires_at: expiresAtIso,
         permissions,
+        filter_params: target.filterParams || null,
+        custom_label: target.resourceLabel || null,
       });
       setCreated(result);
       setFeedback({
@@ -191,7 +194,7 @@ export function ShareAccessModal({ target, onClose, onCreated }: ShareAccessModa
       >
         <div>
           <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-light)', textTransform: 'uppercase' }}>
-            Selected Record (View-Only)
+            {target.resourceType === 'report' ? 'Filtered Cases Register (View-Only)' : 'Selected Record (View-Only)'}
           </div>
           <div style={{ fontWeight: 700, color: 'var(--text-dark)', marginTop: '0.15rem' }}>
             {target.resourceLabel}

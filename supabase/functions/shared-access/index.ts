@@ -10,6 +10,7 @@ import {
   filterSharedAssessmentPayload,
   filterSharedCasePayload,
   filterSharedLearnerPayload,
+  filterSharedReportPayload,
   normalizeEmail,
   sanitizePermissionsForResource,
   timingSafeEqualStrings,
@@ -180,6 +181,7 @@ function mapDbShareRow(row: Record<string, unknown>): SharedAccessRow {
     accepted_at: (row.accepted_at as string | null) ?? null,
     revoked_at: (row.revoked_at as string | null) ?? null,
     permissions: sanitizePermissionsForResource(resourceType, permsObj),
+    filter_params: (row.filter_params as Record<string, unknown> | null) ?? null,
   };
 }
 
@@ -313,6 +315,53 @@ async function fetchAuthorizedResourcePayload(
     return {
       found: true,
       payload: filterSharedCasePayload(caseRow as Record<string, unknown>, perms),
+    };
+  }
+
+  if (share.resource_type === 'report') {
+    let query = adminClient
+      .from('case_register_view')
+      .select(
+        'id, case_number, student_names, school_year, date, grade_section, case_type, brief_description, actions_taken, outcome_disposition'
+      )
+      .is('deleted_at', null);
+
+    const caseIds = Array.isArray(share.filter_params?.case_ids)
+      ? (share.filter_params?.case_ids as (number | string)[])
+      : null;
+
+    if (caseIds && caseIds.length > 0) {
+      query = query.in('id', caseIds);
+    } else {
+      if (share.filter_params?.date_from) {
+        query = query.gte('date', share.filter_params.date_from);
+      }
+      if (share.filter_params?.date_to) {
+        query = query.lte('date', share.filter_params.date_to);
+      }
+      if (share.filter_params?.school_year && share.filter_params.school_year !== 'all') {
+        query = query.eq('school_year', share.filter_params.school_year);
+      }
+      if (share.filter_params?.case_type) {
+        query = query.ilike('case_type', `%${share.filter_params.case_type}%`);
+      }
+      if (share.filter_params?.outcome) {
+        query = query.ilike('outcome_disposition', `%${share.filter_params.outcome}%`);
+      }
+    }
+
+    query = query.order('date', { ascending: false });
+    const { data: caseRows, error } = await query;
+
+    if (error) throw new Error(error.message);
+
+    return {
+      found: true,
+      payload: filterSharedReportPayload(
+        (caseRows ?? []) as Record<string, unknown>[],
+        perms,
+        share.filter_params ?? undefined
+      ),
     };
   }
 

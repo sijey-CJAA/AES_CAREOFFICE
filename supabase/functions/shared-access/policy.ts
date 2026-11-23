@@ -22,6 +22,7 @@ export interface SharedAccessRow {
   accepted_at: string | null;
   revoked_at: string | null;
   permissions: SharedPermissions;
+  filter_params?: Record<string, unknown> | null;
 }
 
 export interface AuthActor {
@@ -152,7 +153,7 @@ export function sanitizePermissionsForResource(
 
   if (resourceType === 'assessment') {
     base.view_case_records = false;
-  } else if (resourceType === 'case') {
+  } else if (resourceType === 'case' || resourceType === 'report') {
     base.view_parent_info = false;
     base.view_assessment_records = false;
   }
@@ -416,6 +417,54 @@ export function filterSharedCasePayload(
       actions_taken: raw.actions_taken ?? null,
     };
   }
+
+  return result;
+}
+
+export function filterSharedReportPayload(
+  cases: Record<string, unknown>[],
+  rawPerms: SharedPermissions,
+  filterParams?: Record<string, unknown>
+) {
+  const perms = sanitizePermissionsForResource('report', rawPerms);
+  const result: Record<string, unknown> = {};
+
+  const summary: Record<string, unknown> = {
+    total_cases: cases.length,
+  };
+
+  if (filterParams) {
+    if (filterParams.date_from) summary.date_from = filterParams.date_from;
+    if (filterParams.date_to) summary.date_to = filterParams.date_to;
+    if (filterParams.school_year) summary.school_year = filterParams.school_year;
+    if (filterParams.case_type) summary.case_type = filterParams.case_type;
+    if (filterParams.outcome) summary.outcome = filterParams.outcome;
+  }
+
+  result.summary = summary;
+
+  result.cases = cases.map((c) => {
+    const item: Record<string, unknown> = {
+      id: c.id ?? null,
+    };
+
+    if (perms.view_basic_info) {
+      item.case_number = c.case_number ?? null;
+      item.student_names = c.student_names ?? null;
+      item.school_year = c.school_year ?? null;
+      item.date = c.date ?? null;
+      item.grade_section = c.grade_section ?? null;
+      item.outcome_disposition = c.outcome_disposition ?? null;
+    }
+
+    if (perms.view_case_records) {
+      item.case_type = c.case_type ?? null;
+      item.brief_description = c.brief_description ?? null;
+      item.actions_taken = c.actions_taken ?? null;
+    }
+
+    return item;
+  });
 
   return result;
 }

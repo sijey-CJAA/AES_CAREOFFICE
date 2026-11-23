@@ -424,7 +424,7 @@ describe('AES CareOffice migrated routes and flows', () => {
     unmount();
   });
 
-  it('renders Cases analytics and filters by outcome card', async () => {
+  it('renders Cases analytics and filters by outcome card and date range', async () => {
     const user = userEvent.setup();
     renderWithRouter('/cases');
 
@@ -434,6 +434,32 @@ describe('AES CareOffice migrated routes and flows', () => {
 
     await user.click(screen.getByRole('button', { name: /Total Cases/i }));
     expect(screen.getByText('AES-CR-001')).toBeInTheDocument();
+
+    // Ensure filter panel is open
+    if (!screen.queryByLabelText(/Date From/i)) {
+      await user.click(screen.getByRole('button', { name: /^Filter/i }));
+    }
+    const dateFromInput = screen.getByLabelText(/Date From/i);
+    const dateToInput = screen.getByLabelText(/Date To/i);
+    expect(dateFromInput).toBeInTheDocument();
+    expect(dateToInput).toBeInTheDocument();
+
+    // Out of range: should filter out
+    await user.type(dateFromInput, '2026-03-01');
+    expect(screen.queryByText('AES-CR-001')).not.toBeInTheDocument();
+
+    // Clear filters
+    await user.click(screen.getByRole('button', { name: /Clear Filters/i }));
+    expect(screen.getByText('AES-CR-001')).toBeInTheDocument();
+
+    // In range
+    await user.type(dateFromInput, '2026-02-01');
+    await user.type(dateToInput, '2026-02-28');
+    expect(screen.getByText('AES-CR-001')).toBeInTheDocument();
+
+    // Click Share Filtered Cases
+    await user.click(screen.getByRole('button', { name: /Share Filtered Cases/i }));
+    expect(await screen.findByText('Filtered Cases Register (View-Only)')).toBeInTheDocument();
   });
 
   it('renders Archive tabs and invokes restoreRecord on confirmation', async () => {

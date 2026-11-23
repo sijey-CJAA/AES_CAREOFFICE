@@ -15,6 +15,7 @@ import type {
   SharedAssessmentData,
   SharedCaseData,
   SharedLearnerData,
+  SharedReportData,
 } from '../types/database';
 
 function FieldItem({ label, value }: { label: string; value?: string | null }) {
@@ -317,6 +318,90 @@ export function SharedViewPage() {
     </>
   );
 
+  const renderReportContent = (
+    data: SharedReportData,
+    perms: AuthorizedSharedResponse['share']['permissions']
+  ) => {
+    const cases = data.cases ?? [];
+    const summary = data.summary;
+
+    let dateRangeText = 'All Dates';
+    if (summary?.date_from && summary?.date_to) {
+      dateRangeText = `${formatShortDate(summary.date_from)} to ${formatShortDate(summary.date_to)}`;
+    } else if (summary?.date_from) {
+      dateRangeText = `From ${formatShortDate(summary.date_from)}`;
+    } else if (summary?.date_to) {
+      dateRangeText = `Until ${formatShortDate(summary.date_to)}`;
+    }
+
+    return (
+      <>
+        <section className="viewer-section">
+          <h3 className="viewer-section-title">Case Register Report Summary</h3>
+          <div className="viewer-info-grid" style={{ marginBottom: '1rem' }}>
+            <FieldItem label="Total Cases Shared" value={String(summary?.total_cases ?? cases.length)} />
+            <FieldItem label="Date Range" value={dateRangeText} />
+            {summary?.school_year && (
+              <FieldItem label="School Year Filter" value={summary.school_year} />
+            )}
+            {summary?.case_type && (
+              <FieldItem label="Case Type Filter" value={summary.case_type} />
+            )}
+            {summary?.outcome && (
+              <FieldItem label="Outcome Filter" value={summary.outcome} />
+            )}
+          </div>
+        </section>
+
+        {perms.view_basic_info && (
+          <section className="viewer-section">
+            <h3 className="viewer-section-title">Shared Case Records ({cases.length})</h3>
+            {cases.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)' }}>No case records match the specified filters.</p>
+            ) : (
+              <div className="table-responsive">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Case #</th>
+                      <th>Date</th>
+                      <th>Student Name(s)</th>
+                      <th>School Year</th>
+                      <th>Grade &amp; Section</th>
+                      <th>Outcome / Disposition</th>
+                      {perms.view_case_records && <th>Case Type</th>}
+                      {perms.view_case_records && <th>Brief Description</th>}
+                      {perms.view_case_records && <th>Actions Taken</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cases.map((c, idx) => (
+                      <tr key={idx}>
+                        <td style={{ fontWeight: 600 }}>{c.case_number || 'N/A'}</td>
+                        <td>{formatShortDate(c.date)}</td>
+                        <td style={{ fontWeight: 500, color: 'var(--text-dark)' }}>
+                          {c.student_names || 'Unknown'}
+                        </td>
+                        <td>{c.school_year || 'N/A'}</td>
+                        <td>{c.grade_section || 'N/A'}</td>
+                        <td>
+                          <span className="status-pill">{c.outcome_disposition || 'N/A'}</span>
+                        </td>
+                        {perms.view_case_records && <td>{c.case_type || 'N/A'}</td>}
+                        {perms.view_case_records && <td>{c.brief_description || 'N/A'}</td>}
+                        {perms.view_case_records && <td>{c.actions_taken || 'N/A'}</td>}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="viewer-shell">
       <header className="viewer-header">
@@ -438,6 +523,9 @@ export function SharedViewPage() {
 
             {payload.share.resource_type === 'case' &&
               renderCaseContent(payload.data as SharedCaseData, payload.share.permissions)}
+
+            {payload.share.resource_type === 'report' &&
+              renderReportContent(payload.data as SharedReportData, payload.share.permissions)}
 
             <div
               style={{

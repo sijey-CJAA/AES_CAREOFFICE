@@ -38,6 +38,8 @@ export function CasesPage() {
   const [filterSchoolYear, setFilterSchoolYear] = useState('all');
   const [filterCaseType, setFilterCaseType] = useState('');
   const [filterOutcome, setFilterOutcome] = useState('');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
 
   // Add Case Modal (2-step)
   const [addOpen, setAddOpen] = useState(false);
@@ -148,6 +150,13 @@ export function CasesPage() {
       if (filterOutcome && !(c.outcome_disposition ?? '').toLowerCase().includes(filterOutcome.toLowerCase())) {
         return false;
       }
+      const caseDate = (c.date ?? '').slice(0, 10);
+      if (filterDateFrom && caseDate && caseDate < filterDateFrom) {
+        return false;
+      }
+      if (filterDateTo && caseDate && caseDate > filterDateTo) {
+        return false;
+      }
       if (!q) return true;
       const hay = [
         c.case_number,
@@ -164,7 +173,7 @@ export function CasesPage() {
         .toLowerCase();
       return hay.includes(q);
     });
-  }, [cases, searchQuery, filterSchoolYear, filterCaseType, filterOutcome]);
+  }, [cases, searchQuery, filterSchoolYear, filterCaseType, filterOutcome, filterDateFrom, filterDateTo]);
 
   const filterByOutcome = (outcome: string) => {
     setFilterOutcome(outcome);
@@ -176,6 +185,53 @@ export function CasesPage() {
     setFilterCaseType(type);
     setFilterOutcome('');
     if (type !== '') setShowFilters(true);
+  };
+
+  const hasActiveFilters = Boolean(
+    filterDateFrom ||
+    filterDateTo ||
+    filterSchoolYear !== 'all' ||
+    filterCaseType ||
+    filterOutcome
+  );
+
+  const resetFilters = () => {
+    setFilterDateFrom('');
+    setFilterDateTo('');
+    setFilterSchoolYear('all');
+    setFilterCaseType('');
+    setFilterOutcome('');
+  };
+
+  const handleOpenShareFiltered = () => {
+    if (displayedCases.length === 0) return;
+
+    let dateDesc = '';
+    if (filterDateFrom && filterDateTo) {
+      dateDesc = ` (${filterDateFrom} to ${filterDateTo})`;
+    } else if (filterDateFrom) {
+      dateDesc = ` (from ${filterDateFrom})`;
+    } else if (filterDateTo) {
+      dateDesc = ` (until ${filterDateTo})`;
+    }
+
+    const label = `Case Register Report — ${displayedCases.length} case${displayedCases.length === 1 ? '' : 's'}${dateDesc}`;
+
+    setShareTarget({
+      resourceType: 'report',
+      resourceId: 1,
+      resourceLabel: label,
+      filterParams: {
+        entity: 'cases',
+        case_ids: displayedCases.map((c) => c.id),
+        date_from: filterDateFrom || null,
+        date_to: filterDateTo || null,
+        school_year: filterSchoolYear !== 'all' ? filterSchoolYear : null,
+        case_type: filterCaseType || null,
+        outcome: filterOutcome || null,
+        total_count: displayedCases.length,
+      },
+    });
   };
 
   const openAddModal = async () => {
@@ -390,7 +446,16 @@ export function CasesPage() {
             Showing <strong id="showing-counter" style={{ color: 'var(--text-dark)' }}>{displayedCases.length}</strong>
           </span>
           <button type="button" className="control-btn" onClick={() => setShowFilters((f) => !f)}>
-            <FilterIcon /> Filter
+            <FilterIcon /> Filter {hasActiveFilters ? '(Active)' : ''}
+          </button>
+          <button
+            type="button"
+            className="control-btn"
+            onClick={handleOpenShareFiltered}
+            disabled={displayedCases.length === 0}
+            title="Share currently filtered cases"
+          >
+            <ShareIcon /> Share Cases ({displayedCases.length})
           </button>
           <button type="button" className="control-btn" onClick={handleExport}>
             <ExportIcon /> Export
@@ -461,10 +526,11 @@ export function CasesPage() {
       </div>
 
       {showFilters && (
-        <div className="filter-panel">
+        <div className="filter-panel" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>School Year</label>
+            <label htmlFor="filter_school_year" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>School Year</label>
             <select
+              id="filter_school_year"
               className="form-control"
               value={filterSchoolYear}
               onChange={(e) => setFilterSchoolYear(e.target.value)}
@@ -479,8 +545,9 @@ export function CasesPage() {
             </select>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Case Type</label>
+            <label htmlFor="filter_case_type" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Case Type</label>
             <input
+              id="filter_case_type"
               type="text"
               className="form-control"
               placeholder="Type case type..."
@@ -490,8 +557,9 @@ export function CasesPage() {
             />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Outcome</label>
+            <label htmlFor="filter_outcome" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Outcome</label>
             <input
+              id="filter_outcome"
               type="text"
               className="form-control"
               placeholder="Type outcome..."
@@ -499,6 +567,50 @@ export function CasesPage() {
               onChange={(e) => setFilterOutcome(e.target.value)}
               style={{ minWidth: '150px' }}
             />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label htmlFor="filter_date_from" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Date From</label>
+            <input
+              id="filter_date_from"
+              type="date"
+              className="form-control"
+              value={filterDateFrom}
+              onChange={(e) => setFilterDateFrom(e.target.value)}
+              style={{ minWidth: '140px' }}
+            />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label htmlFor="filter_date_to" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Date To</label>
+            <input
+              id="filter_date_to"
+              type="date"
+              className="form-control"
+              value={filterDateTo}
+              onChange={(e) => setFilterDateTo(e.target.value)}
+              style={{ minWidth: '140px' }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto', alignItems: 'center', flexWrap: 'wrap' }}>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                className="control-btn"
+                onClick={resetFilters}
+                title="Clear all active filters"
+              >
+                Clear Filters
+              </button>
+            )}
+            <button
+              type="button"
+              className="control-btn btn-primary"
+              onClick={handleOpenShareFiltered}
+              disabled={displayedCases.length === 0}
+              title="Share these filtered cases via secure view-only link"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <ShareIcon /> Share Filtered Cases ({displayedCases.length})
+            </button>
           </div>
         </div>
       )}

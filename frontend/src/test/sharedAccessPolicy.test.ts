@@ -5,6 +5,7 @@ import {
   filterSharedAssessmentPayload,
   filterSharedCasePayload,
   filterSharedLearnerPayload,
+  filterSharedReportPayload,
   sanitizePermissionsForResource,
   type AuthActor,
   type SharedAccessRow,
@@ -314,6 +315,88 @@ describe('Passwordless Gmail OTP & temporary viewer session security', () => {
     );
     expect(usedRes.ok).toBe(false);
     if (!usedRes.ok) expect(usedRes.code).toBe('no_active_code');
+  });
+
+  it('sanitizes permissions for report resource by stripping parent and assessment records', () => {
+    const raw = {
+      view_basic_info: true,
+      view_parent_info: true,
+      view_assessment_records: true,
+      view_case_records: true,
+      view_download_pdf: true,
+    };
+    const perms = sanitizePermissionsForResource('report', raw);
+    expect(perms).toEqual({
+      view_basic_info: true,
+      view_parent_info: false,
+      view_assessment_records: false,
+      view_case_records: true,
+      view_download_pdf: true,
+    });
+  });
+
+  it('filters report payload strictly hiding case details when view_case_records is false', () => {
+    const rawCases = [
+      {
+        id: 1,
+        case_number: 'AES-CR-001',
+        student_names: 'Maria Santos',
+        school_year: '2025-2026',
+        date: '2026-10-15',
+        grade_section: 'Grade 3 - Jade',
+        outcome_disposition: 'Closed/Resolved',
+        case_type: 'Bullying',
+        brief_description: 'Incident in hallway',
+        actions_taken: 'Parent counseling session',
+      },
+    ];
+
+    const basicOnly = filterSharedReportPayload(
+      rawCases,
+      {
+        view_basic_info: true,
+        view_parent_info: false,
+        view_assessment_records: false,
+        view_case_records: false,
+        view_download_pdf: false,
+      },
+      {
+        date_from: '2026-10-01',
+        date_to: '2026-10-31',
+      }
+    );
+
+    expect(basicOnly.summary).toEqual({
+      total_cases: 1,
+      date_from: '2026-10-01',
+      date_to: '2026-10-31',
+    });
+    const cases = basicOnly.cases as Array<Record<string, unknown>>;
+    expect(cases).toHaveLength(1);
+    expect(cases[0].case_number).toBe('AES-CR-001');
+    expect(cases[0].student_names).toBe('Maria Santos');
+    expect(cases[0].case_type).toBeUndefined();
+    expect(cases[0].brief_description).toBeUndefined();
+    expect(cases[0].actions_taken).toBeUndefined();
+
+    const withDetails = filterSharedReportPayload(
+      rawCases,
+      {
+        view_basic_info: true,
+        view_parent_info: false,
+        view_assessment_records: false,
+        view_case_records: true,
+        view_download_pdf: true,
+      },
+      {
+        date_from: '2026-10-01',
+        date_to: '2026-10-31',
+      }
+    );
+    const detailCases = withDetails.cases as Array<Record<string, unknown>>;
+    expect(detailCases[0].case_type).toBe('Bullying');
+    expect(detailCases[0].brief_description).toBe('Incident in hallway');
+    expect(detailCases[0].actions_taken).toBe('Parent counseling session');
   });
 });
 
